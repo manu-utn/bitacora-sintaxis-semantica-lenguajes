@@ -1,0 +1,601 @@
+#+TITLE: Resumen Finales
+* Nivel Léxico + Sintactico + Semántico
+** Conceptos básicos
+*** Constructos de un (LP)
+   - Los *constructos* ó *constructos sintácticos* se refieren a las *restricciones sintácticas*
+   - Un constructo es una *secuencia de tokens* que forman una *categoría sintáctica* (Ej. expresiones, sentencias, declaraciones)
+   - Los TOKENS son (LR)
+*** Analizador Léxico (Scanner)
+   - El Scanner usa ~getchar()~ para leer caracter a caracter de una secuencia de caracteres
+   - El Scanner usa ~ungetc()~ para ...
+*** Expresión
+   - Una expresión es una secuencia de operandos y operadores que producen un valor y pueden producir efecto de lado
+*** BNF de C - Caracteres de Puntuación
+   #+BEGIN_QUOTE
+   punctuator -> uno de
+   [ ] ( ) { } . ->
+   ++ -- & * + -  ̃ !
+   / % << >> < > <= >= == != ˆ | && ||
+   = *= /= %= += -= <<= >>= &= ˆ= |=
+   ? : ; ... , # ##
+   #+END_QUOTE
+** Problema 1 (2021-06-23)
+*** Enunciado
+   #+BEGIN_SRC c
+     while( EOF != (c=getchar()) ){
+       switch(state){
+       case INICIAL:
+         switch(c){
+         case 'a':
+           state=INICIAL;
+           continue;
+           // ...
+         }
+         // ...
+       }
+      }
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Analice el anterior fragmento de un programa C, asuma que se incluyó el header correspondiente:   
+   
+   Analice Léxica, Sintáctica, y Semánticamente el anterior fragmento:
+   1. Indique cuántos *tokens* tiene la *expresión* que controla el while.
+   2. Enumere las *operaciones que tiene esa expresión*
+   3. Indique los *efectos de lado de la expresión*
+   4. Declare ~state~ e ~INICIAL~
+   5. Declare la variable ~c~. Justifique el tipo.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   Tokens:
+   1) ~!=~ <- operador desigualdad
+   2) ~(~ <- caracter puntuación
+   3) ~c~ <- identificador
+   4) ~=~ <- operador de asignación
+   5) ~getchar~ <- palabra reservada
+   6) ~()~ -> operador invocar función
+   7) ~)~ <- caracter de puntuación
+
+   Cant. de operaciones:
+   - son tres el ~!=~, ~=~ y ~()~
+
+   Los efectos de lado:
+   1) se asigna el retorno de ~getchar()~ que recibe la entrada del stdin, y se asigna como valor a ~c~ con el operador ~=~
+   #+END_QUOTE
+
+   #+BEGIN_SRC C
+     // Alternativa #1 sin typedef, en una sola declaración
+     // enum {INICIAL, ...} state;
+
+     // Alternativa #2 con typedef, se puede reciclar para varias declaraciones
+     typedef enum {INICIAL, ...} ESTADO;
+     ESTADO state;
+
+     state = INICIAL;
+
+     // debe ser numérico porque el primer valor de un enum inicia en 0
+     // (apesar de ser entero, podemos asignar c='a')
+     int c;
+   #+END_SRC
+** Problema 2 (2021-08-04)
+*** Enunciado
+   #+BEGIN_SRC C
+     function calcular(){
+       var x;
+     }
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Analice el anterior fragmento, siguiendo las reglas de C:
+   
+   1) ¿En qué cambiaría el resultado del *análisis léxico* si el anterior fragmento se escribe en solo una línea?
+   2) ¿Cuántos *errores léxicos* tiene?
+   3) ¿Cuántos *tokens keyword* tiene?
+   4) Independientemente del contexto, ¿es *sintácticamente correcto*? ¿Por qué?
+   5) En función a su respuesta anterior, ¿es *semánticamente correcto*? ¿Por qué?
+   6) Introduzca al contexto del anterior fragmento *declaraciones typedef* que hagan cambiar su respuesta al punto 4.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   1) Ninguno, el Scanner lee la secuencia de caracteres
+   2) NO tiene errores léxicos, habría error si el Scanner detecta en el fragmento un lexema que no es un TOKEN válido (categoría léxica)
+   3) NO tiene ningún token keyword
+   4) Tiene errores sintácticos porque no se puede derivar de la BNF de C
+      - ~function~ no es especificador de tipo válido para definir una función
+      - ~var~ tampoco es un espcificador de tipo válido para declarar una variable
+   5) No es semanticamente correcto, al no ser sintacticamente correcto
+   6) ~typedef int function, var;~
+   #+END_QUOTE
+** Problema 3 (2021-09-24)
+*** Enunciado
+   #+BEGIN_QUOTE
+    Escriba el *prototipo en C* de la *función transición de un AFD*. Justifique.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_SRC C
+     typedef struct { /* ... */ } ESTADO;
+
+     // - Hace una transición a un Estado, y lee un caracter
+     // - Retorna el siguiente estado
+     ESTADO transicion(ESTADO estado, char caracterLeido);
+   #+END_SRC
+** Problema 4 (2021-09-24)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado el siguiente fragmento: ~a<b<c~
+   
+   1. Indique la *secuencia de caracteres* devueltos por ~ungetc~ durante el *Análisis Léxico*
+   2. Indique la asociatividad mediante *paréntesis redundantes*.
+   3. Para cada situación pedida a continuación escriba una declaración que haga…
+      - … *Semánticamente inválido* al fragmento.
+      - … cero al valor resultante sin usar el tipo int.
+      - … uno al valor resultante sin usar el tipo int.
+      
+   4. Escriba una *expresión* que evalúe si un valor b está dentro del intervalo abierto ~(a, c)~. Agregue
+   la *declaración* que haga *semánticamente válida* a esa expresión, no es necesario *inicializar*
+   
+   5. Presente un contexto *semántico* donde la anterior expresión, aunque *semánticamente correcta*,
+   no pueda ser utilizada. Justifique.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   Durante el *analisis léxico* la secuencia de caracteres devueltos por ~ungetc~ es ~<b<c~
+   1) devuelve ~<~ <-- porque al leer con ~getchar()~ el caracter ~a~ sabe que es identificador y el ~<~ no pertenecía a ese TOKEN
+   2) devuelve ~b~ <-- porque al leer con ~getchar()~ el caracter ~<~ sabe que es un operador y ~b~ no pertenecía a ese TOKEN
+   3) devuelve ~<~ <-- porque al leer ~b~ sabe que es un identificador y ~<~ no pertenecía a ese TOKEN
+   4) devuelve ~c~ <-- porque al leer ~<~ sabe que es un operador y que ~c~ no pertenecía a ese TOKEN
+
+   Si remarcamos la asociatividad de ~a<b<c~ quedaría ~(a<b)<c~
+   porque la asociatividad del operador relacional ~<~ es de izquierda a derecha
+   según la sintáxis de C (ésta especifica la asociatividad/precedencia de los operadores)
+   #+END_QUOTE
+
+   #+BEGIN_SRC C
+     // - Esto haría semánticamente incorrecto la expresion "a<b<c" porque
+     // los structs no se pueden comparar con el operador <
+     struct { /*...*/ } a,b,c;
+
+     // La siguiente declaración, e inicialización de las variables
+     // hará que a<b<c retorne 0
+     // 1) 'a' < 'a' < 0
+     // 2) 0 < 0
+     // 3) 0
+     char a = 'a', b = 'a' , c = 0;
+
+     // alternativa #2 para que a<b<c devuelva 0
+     // 1) 0<0<-1
+     // 2) 0<-1
+     // 3) 0
+     unsigned a = 0, b = 0, c = -1;
+
+     // La siguientes declaraciones, e inicialización de las variables
+     // hará que a<b<c retorne 1
+     unsigned a, b, c;
+     a = b = c = 1;
+
+     char a, b, c;
+     a = b = c = 'a';
+
+     // expresiones que evalúan si b está entre (a,c)
+     a < b && b < c;
+
+     a < b && c > b;
+
+     b > a && b < c;
+
+     // las expresiones de las últimas 3 sentencias anteriores no podrían
+     // ser utilizadas en los siguientes contextos
+
+     // lo usamos para asignarlo a un valor que no es lvalue (Ej. una constante entera)
+     42 = a < b && b < c;
+
+     // ó al revés, donde éste no es un lvalue
+     a < b && b < c = 42;
+   #+END_SRC
+** Problema 5 (2021-03-10)
+*** Enunciado
+   #+BEGIN_SRC C
+     int f(int x, int y){
+       int z=1;
+       for(int i=1;i<=y;++i)
+         z*=x;
+       return z;
+     }
+   #+END_SRC
+
+   #+BEGIN_QUOTE
+   Dada la definición de ~f~
+   
+   *Analice Léxicamente*
+   1. Indique la cantidad de *tokens* de la tercera expresión de la *sentencia* ~for~
+   2. Indique la cantidad de veces que el símbolo ~=~ es un *lexem*. Justifique.
+      
+   *Analice Sintácticamente:*
+   1. Indique si faltan llaves para que ~f~ sea *sintácticamente correcta*. Justifique.
+   2. Indique la cantidad de *declaraciones* en la *sentencia compuesta*
+   3. Indique la cantidad de *expresiones completas* en la definición
+   
+   *Analice Semánticamente:*
+   1. Indique si la tercera expresión del ~for~ debiera ser ~i++~. Justifique.
+   2. Considerando como único contexto la definición dada, escriba una *declaración* que use ~f~ y sea *semánticamente correcta*
+   3. Indique el alcance de ~f~ y ~z~
+   4. Indique los valores de ~x~ e ~y~ que hacen que la función retorne
+
+   *Analice pragmáticamente* 
+   Analice la función y luego escriba un nuevo *prototipo* para ~f~ que sea
+   superador, es decir que sea mejor según sus propios criterios. Puede cambiar el *identificador de la función*
+   y los tipos de datos. Justifique.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   *Análisis Léxico*
+   La expresión ~++i~ tiene 2 *tokens*
+   1. ~++~ (operador incremento como prefijo)
+   2. ~i~ (identificador)
+
+   El símbolo ~=~ es un *lexema* en 2 ocasiones
+   1. en ~z=1~
+   2. en ~i=1~
+   3. Pero no es lexema en ~i<=y~, ~z*=x~ porque representan otros operadores
+   #+END_QUOTE
+   
+   #+BEGIN_QUOTE
+   *Análisis Sintáctico*
+   ~f~ no necesita de llaves adicionales, es sintácticamente correcta porque declara los parámetros
+   y define su cuerpo con la sentencia compuesta que está delimitada por las llaves
+
+   la *sentencia compuesta* que es el cuerpo de ~f~ tiene 2 declaraciones
+   1. ~int z=1~
+   2. ~int i=0~
+
+   (/una expresión es una secuencia de operandos y operadores que producen un valor y pueden producir efecto de lado/)
+   las *expresiones completas* del cuerpo de la función ~f~ son
+   1. ~int z=1~
+   2. ~int i=1~
+   3. ~i<=y~
+   4. ~++i~
+   5. ~z*=x~
+   6. ~return z~
+   #+END_QUOTE
+      
+   #+BEGIN_QUOTE
+   *Análisis Semántico*
+
+   Es indiferente si la 3º expresión del ~for~ tiene al operador de incremento ~++~ como prefijo ó sufijo sobre ~i~
+   distinto hubiera sido si.. si hubiera usado en alguna expresión como ~a=i++~ ó ~a=++i~
+   en ~a=i++~ se genera efecto en ~i~ luego de evaluar la expresión ~a=i~,
+   mientras que ~a=++i~ se genera efecto sobre ~i~ previo a evaluar ~a=i~
+
+   La declaración ~int x = f(0,0)~ sería semánticamente correcta
+
+   El alcance/scope de ~f~ es la (UT) Unidad de traducción (etapa que se integra el archivo fuente .c y los archivos cabecera .h),
+   el alcance de ~z~ es dentro del cuerpo de la función ~f~ (sentencia compuesta delimitada por las llaves { ... })
+
+   Cualquiera sea el valor de ~x~ e ~y~, la función ~f~ retornará un entero
+   #+END_QUOTE
+
+   #+BEGIN_QUOTE
+   *Análisis Pragmático*
+   ~int numeroElevadoAExponente(int numero, int exponente);~
+   #+END_QUOTE
+** [WAITING] Problema 6 (2021-02-24)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión, que es sintácticamente correcta, y luego responda:
+   ~f(g(x))~
+   
+   1. Indique el primer *token* resultante del *análisis léxico*
+   2. Declare un *tipo de dato* capaz de _contener toda la información_ necesaria para representar
+      cualquiera de los *tokens* de la expresión.
+   3. Enumere en orden los caracteres retornados por ~ungetc~
+   4. Escriba una *declaración* que haga a la expresión *semánticamente correcta*
+   5. ¿Es posible declarar que ~g~ retorne un *arreglo*? ¿Por qué?
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: En la resolución dice ~(,(,)~ y yo puse ~(,g,(,x,)~
+   porque.. después de ~f(~ podría haber sido el ~f()~ osea el operador ()
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) ~f~ identificador
+
+   (3) La secuencia de caracteres retornados por ~ungetc~ sería
+   1. ~(~ --> porque el anterior era ~f~ (identificador) y ~(~ no pertenece a ese TOKEN
+   2. ~(~ --> porque el anterior era ~g~ (identificador) y ~(~ no pertenece a ese TOKEN
+   3. ~)~ --> porque el anterior era ~x~ idem que los dos anteriores
+   
+   (4) Una posible declaración sería ~int f(int), g(int);~
+
+   (5) Una función no puede retornar un arreglo, pero si puede retornar un puntero a la primera dirección
+   de un bloque de memoria que fue reservada para el arreglo, apuntando a su primer elemento.
+   #+END_QUOTE
+
+   #+BEGIN_SRC C
+     typedef enum {IDENTIFICADOR, OPERADOR, PUNCTUATOR/*...*/} TIPO_TOKEN;
+     typedef struct {TIPO_TOKEN tipo, char* valor} TOKEN;
+
+     // Ej.
+     TOKEN apertura_parentesis;
+     apertura_parentesis.tipo = PUNCTUATOR;
+     apertura_parentesis.valor = "(";
+
+     TOKEN cierre_parentesis;
+     cierre_parentesis.tipo = PUNCTUATOR;
+     cierre_parentesis.valor = ")";
+   #+END_SRC
+* Nivel Léxico
+** Problema 1
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analizar la siguiente declaración: ~int f ( int ) ;~
+   e indique cuantos *lexemas* tiene si se remueven todos los espacios:   
+   #+END_QUOTE
+*** Respuesta   
+   #+BEGIN_QUOTE
+   1. intf
+   2. (
+   3. int
+   4. )
+   5. ;
+   #+END_QUOTE
+** [WAITING] Problema 2 (2021-02-10) <- pendiente lex/flex
+*** Enunciado
+   #+BEGIN_QUOTE
+    Indique todas las afirmaciones verdaderas acerca del *análisis léxico*
+    
+    1. Es realizado por *lex/flex*
+    2. Detecta a ~"hola\"~ como *léxicamente correcto*
+    3. Reconoce a ~main~ como *palabra clave (keyword)*
+    4. Puede generar un mismo *token* a partir de diferentes *lexemas*
+    5. Puede diferenciar cuando un símbolo actúa como *operador, punctuator, ó separador* .
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   La secuencia de caracteres ~"hola\"~ no es léxicamente correcta,
+   al usar el ~\~ se escapa las comillas dobles y las toma como un caracter común,
+   para ser *literal cadena* los caracteres deben estar delimitadas entre comillas dobles
+   
+   El *lexema* ~main~ NO es una *palabra reservada*,
+   podríamos escribir la sig. declaración sin problema ~struct main{ int x; }~
+
+   A partir de diferentes *lexemas* (Ej. for, while, ...) puede generar el mismo TOKEN,
+   Ej. for, while son lexemas diferentes pero se genera el mismo TOKEN (palabra reservada)
+   
+   El *analizador léxico* no sabe si un símbolo actúa como *operador* ó *caracter de puntuación*,
+   porque no sabe del contexto, ni la sintáxis del lenguaje.
+   Este sólo lee caracter por caracter de una secuencia de caracteres
+   según el contexto se podría saber si actúa como *punctuator* u *operador* pero.. el Scanner no sabe de eso.
+
+   Notas:
+   1) En C el scanner (analizador léxico) NO puede almacenar/buscar en la (TS) *tabla de símbolos*
+   2) En LP simples, el analizador léxico podría almacenar/buscar en la (TS)
+   #+END_QUOTE
+
+   #+BEGIN_COMMENT
+   <<DUDA>>: Las últimas dos preguntas, estarán ok?
+   #+END_COMMENT
+** [TODO] Problema 3 (2021-02-17) <- pendiente lex/flex
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique todas las afirmaciones verdaderas sobre el *análisis léxico*:
+   
+   1. Lo puede realizar la salida de lex/flex.
+   2. Utiliza *lexemas* para construir *tokens*.
+   3. Detecta a ~'\''~ como *léxicamente correcto*
+   4. Reconoce a ~printf~ como *palabra clave (keyword)*
+   5. Detecta cuando el asterisco (*) actúa como *operador binario* o *unario*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (2) Verdadero. El *analizador léxico* lee una secuencia de caracteres, caracter por caracter
+   y genera *lexemas*. Usa los *lexemas* para construir *tokens* (que usará el analizador sintáctico)
+
+   (3) Verdadero. El Scanner lee el lexema ~'\''~ como una *constante caracter*,
+   porque al usar el ~\~ escapa la comilla simple y lo interpreta como un caracter común
+   
+   (4) FALSO. El lexema ~printf~ NO es una *palabra reservada*,
+   si lo fuera no podriamos realizar la siguiente declaración ~struct printf{ }~
+   
+   (5) FALSO. El Analizador léxico, no sabe del contexto ni sintáxis,
+   por tanto no sabe si el operador ~*~ actúa como operador binario o unario,
+   sólo sabe que es un operador
+   #+END_QUOTE
+* Nivel Semántico
+** Problema 1 (2021-08-04)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Escriba *declaraciones* que hagan que la siguiente expresión sea *semánticamente válida* y que
+   la expresión a la derecha de la asignación sea un *valor-l no modificable*
+   
+   ~c = a[1].b~
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_SRC C
+     int c;
+     const struct { int b; } a[10]; // declaramos un vector 'a' del tipo de un struct anónimo
+
+     // - la expresión a[1].b es un valor-l NO modificable
+     // - es lvalue porque b es un miembro del struct a, y es un operando
+     // válido para el operador de asignacion =
+     // - no es modificable porque el struct lo impide, es de sólo lectura por ser const
+     a[1].b = 5;
+   #+END_SRC
+** Problema 2 (2021-03-10)
+*** Enunciado
+   #+BEGIN_QUOTE
+    Indique todas las afirmaciones verdaderas acerca del *Análisis Semántico*
+    
+    1. Utiliza la *tabla de símbolos*
+    2. Detecta un error en ~for-while~
+    3. Puede _detectar argumentos faltantes_
+    4. Debe detectar si una *variable se usa sin inicializar*
+    5. ~struct S{struct S m;};~ puede ser *semánticamente correcto*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   El *Analizador Semántico* usa la *tabla de símbolos*
+
+   En la expresión ~for-while~ el que encuentra error es el *Analizador sintáctico* (Parser),
+   porque no se puede derivar usando las *reglas sintácticas de la BNF de C*
+   
+   Como el *analizador semántico* conoce el contexto, entonces puede revisar
+   las firmas de las funciones y detectar si faltan o no argumentos,
+   cuando son invocadas.
+   #+END_QUOTE
+
+   #+BEGIN_COMMENT
+   <<DUDAS>>:
+   No es responsabilidad del *analizador semántico* detectar si una variable se usa sin inicializar,
+   pero si debe validar la redeclaración de una variable, ó redefinición de una función, por ej.
+   
+   la sentencia expresión ~struct S{struct S m;};~ NO es semánticamente correcta,
+   porque... (?)
+   #+END_COMMENT
+** Problema 3 (2021-02-17)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique todas las afirmaciones verdaderas sobre el *análisis semántico*:
+   
+   1. Lee la *tabla de símbolos*
+   2. Detecta un error en ~if()~
+   3. Puede detectar el uso de una *variable no declarada*
+   4. Debe detectar si una variable se declara pero no se usa.
+   5. La declaración ~int v[5];~ es siempre *semánticamente correcta*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Verdadero
+
+   (2) Falso. Es un error sintáctico, se deduce al tratar de derivar la expresión
+   usando la BNF de C
+
+   (3) Verdadero. Si se utiliza en una expresión, y ésta no fue declarada previamente, es un error semántico
+
+   (4) Falso.
+
+   (5) Falso. Se debe evaluar el contexto donde fue declarada..
+   Ej. No sería semánticamente correcta si ya fue declarada previamente una variable con el identificador ~v~
+   #+END_QUOTE
+
+   #+BEGIN_COMMENT
+   La (4) es un warning que arroja el compilador,
+   se necesita saber más detalle de eso?
+   #+END_COMMENT
+* Nivel Sintáctico
+** [WAITING] Problema 1 (2021-03-10)
+*** Enunciado
+   #+BEGIN_QUOTE
+    Indique todas las afirmaciones verdaderas acerca del *Análisis Sintáctico*
+    
+    1. Recibe una *secuencia de tokens*
+    2. Un *parser* diferencia *expresiones de sentencias*
+    3. Puede detectar el error de variable no declarada.
+    4. ~printf(main)~ es siempre *sintácticamente correcto*
+    5. Aplica el *orden de evaluación* del *operador ternario* ~?:~
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   El Parser no sabe si una variable fue declarada o no, porque no conoce el contexto
+   (el analizador semántico si, por tanto si ocurriera sería un error semántico)
+   #+END_QUOTE
+
+   #+BEGIN_COMMENT
+   <<DUDAS>>
+   El *analizador sintáctico* recibe una secuencia de *TOKENS*
+   (generados por el analizador léxico, pero los guarda el Parser en la TS TAbla de Simbolos (???) <- no?
+   
+   El Parser diferencia entre *expresiones* y *sentencias*, porque es parte de las reglas sintácticas de la BNF de c <--- no?  (???)
+   
+   la expresión ~printf(main)~ es sintácticamente correcta, pero semanticamente incorrecta,
+   porque printf espera una cadena de caracteres como primer argumento <--- no? (???)
+   
+   C especifica que el *orden de evaluación del operador ternario* ~exp1 ? exp2 : exp3~ es de de izq. a derecha,
+   el Parser evalúa de Izq a Der ó Der a Izq según la precedencia/asociatividad de los operadores en las
+   reglas sintácticas de la BND de c <-- no? (???)
+   #+END_COMMENT
+** [TODO] Problema 2 (2021-02-17) <- pendiente yacc/bison
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique todas las afirmaciones verdaderas sobre el *análisis sintáctico*:
+   
+   1. Detecta un error en ~printf()~
+   2. Recibe una *secuencia de caracteres*
+   3. Lo puede realizar la salida de *yacc/bison*
+   4. Puede diferenciar si un *token* se usa como *puntuación* u *operador*
+   5. Puede detectar un error en la cantidad de argumentos usados al invocar una función.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) FALSO. Es un error semántico, que lo detecta el Analizador Semántico
+
+   (2) FALSO. El analizador sintáctico recibe una secuencia de TOKENs (generados por el analizador léxico)
+
+   (4) VERDADERO. En las reglas sintácticas de la BNF de C (ó constructos sintácticos)
+
+   (5) FALSO. Es el analizador semántico, que chequea la cant. de argumentos de invocar una función,
+   comparando con la firma de la función
+   #+END_QUOTE
+
+   #+BEGIN_COMMENT
+   <<DUDA>>: La última estará ok (???)
+   #+END_COMMENT
+* Errores de Compilación
+** Errores Léxicos
+** Errores Sintácticos
+** Errores Semánticos
+*** Ejemplo 1
+   #+BEGIN_QUOTE
+   Analizar la siguiente declaración: ~int f ( int ) ;~
+   y escriba, con la mínima cantidad de *tokens*, una *sentencia semánticamente correcta* que use ~f~
+   #+END_QUOTE
+   
+   #+BEGIN_SRC C
+     f(0); // sentencia expresión
+
+     f; // <-- alternativa interesante, no arroja error
+   #+END_SRC
+* Lenguajes Formales
+** Conceptos básicos
+*** Relación con la BNF de C
+**** Conceptos
+   - Si X es (LR) => por definición es posible escribir una (GIC) que lo genere => es posible escribir una BNF que lo defina
+**** Declaraciones
+   - No es (LR) por tener *paréntesis balanceados*
+   - En C se definen con notación BNF, que se puede representar con (LIC)
+**** Constantes enteras
+   - Las constantes enteras sin sufijo se pueden representar con la (ER) ~0(0+1+2+3+4+5+6+7)*~
+**** Sentencias
+* [WAITING] Automatas
+** Ejemplo 1
+*** Problema
+   #+BEGIN_SRC c
+     while( EOF != (c=getchar()) ){
+       switch(state){
+       case INICIAL:
+         switch(c){
+         case 'a':
+           state=INICIAL;
+           continue;
+           // ...
+         }
+         // ...
+       }
+      }
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Asuma que el anterior fragmento es parte de la implementación de una *máquina de estado*, responda
+   considerando sólo la parte presentada:
+   
+   1) Indique el *tipo de máquina de estado*. Justifique.
+   2) Indique a qué conjunto pertenece ~INICIAL~
+   3) Indique a qué conjunto pertenece ~a~
+   4) Escriba la o las *transiciones* que representa.
+   5) Escriba una *ERX* análoga.
+   6) Escriba una *producción* análoga.
+   #+END_QUOTE
+* Diagramas
+** Automatas
+** Arboles sintácticos
