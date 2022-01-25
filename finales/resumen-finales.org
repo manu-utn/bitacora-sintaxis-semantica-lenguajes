@@ -1,4 +1,91 @@
 #+TITLE: Resumen Finales
+* Evaluar expresiones
+** Problema 1 (2020-12-14)
+*** Enunciado
+   #+BEGIN_SRC C
+     int f(int c){
+       int d = c-7;
+       printf("%d",d);
+       return d;
+     }
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Dada la anterior función:
+   Indicar de las siguientes expresiones su valor y su salida por ~stdout~
+   1) ~f(7)-f(7)~
+   2) ~f(8) || f(7)~
+   3) ~f(7) || f(8)~
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   El valor de retorno y la salida por stdout de las expresiones dadas serian
+   (1) para ~f(7)-f(7)~
+    - el valor de retorno es ~0~ (al evaluar la expresión, realiza una operación arimética 7-7 = 0)
+    - la salida por stdout es ~00~ (al evaluar la expresión, invoca dos veces a f pasandole 7 como parámetro)
+        
+   (2) para ~f(8)||f(7)~
+    - el retorno sería ~1~ (al evaluar la exp, y realiza una operación lógica que finaliza luego evalúar la primera subexpresion f(8) que la hace verdadera)
+    - la salida ~1~ (como sólo evalúa la primera subexpresión osea f(8), se invoca sólo una vez a f pasandole 8 como parámetro)
+        
+   (3) para ~f(7)||f(8)~
+    - el retorno sería ~1~ (al evaluar la exp. el operando de la derecha hace verdadera la expresión, por tanto devuelve 1)
+    - la salida ~01~ (como el operando de la izquierda es falso, evalúa el de la derecha, por tanto se invoca dos veces a f y hace dos printf)
+   #+END_QUOTE
+** Problema 2 (2020-12-09)
+*** Enunciado
+   #+BEGIN_SRC C
+     int f(int c){
+       int d = c-'A';
+       printf("%d",d);
+       return d;
+     }
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Dada la anterior función:
+   
+   Analice las siguientes expresiones. Indique su valor y su salida por stdout, si la salida no se puede
+   determinar, indique "Indeterminada":
+   #+END_QUOTE
+
+   | Expresión            | Valor | Salida por stdout o "Indeterminada" |
+   |----------------------+-------+-------------------------------------|
+   | f('A')-f('A')        |       |                                     |
+   | f('B')llf('A')       |       |                                     |
+   | f('A')llf('B')       |       |                                     |
+   | f('A')?f('B'):f('C') |       |                                     |
+*** Respuesta
+   #+BEGIN_QUOTE
+   Al evaluar la exp ~f('A')-f('A')~
+   - El valor de retorno es ~0~ (/realiza la operación arimética 0-0 = 0/)
+   - La salida por stdout es ~00~ (/se invoca dos veces la función f, por tanto se ejecuta dos veces el printf haciendo 'A'-'A'/)
+   
+   Al evaluar la exp ~f('B')||f('A')~
+   - El valor de retorno es ~1~ (/sólo evalúa la primera subexpresion f('B') hace verdadera a la expresión, y no se sigue evaluando el operando derecho/)
+   - La salida por stdout es ~1~ (/como sólo evalúa el operando izquierdo, se ejecuta una única vez el printf que hace 'B'-'A' = 1/)
+   
+   Al evaluar la exp ~f('A')||f('B')~
+   - El valor de retorno es ~1~
+   - La salida por stdout es ~01~ (/como el operando izquierdo no hace verdadera la expresión OR, evalúa el operando derecho, por tanto se invoca dos veces f y también el printf/)
+   
+   Al evaluar la exp ~f('A')?f('B'):f('C')~
+   - El valor de retorno es ~2~ (/como la condición del operador ternario es falsa, se invoca f('C') y 'C'-'A' = 2/)
+   - La salida por stdout es ~02~ (/porque evalúa la exp de la condicion que es f('A') y luego f('C'), por tanto invoca a la función f dos veces y también printf/)
+   #+END_QUOTE
+
+   #+BEGIN_QUOTE
+   La evaluación de la expresión ~f('A')-f('A')~ es de Izq. a Derecha porque
+    - la asociatividad del operador aritmético ~-~ es de Izq. a Der.
+    - no hay otras subexpresiones con operadores de mayor precedencia (Ej. el operador * de multiplicación)
+    - tampoco se usaron paréntesis para alterar la precedencia con otras subexpresiones
+     
+   La evaluación de la expresión ~f('B')||f('A')~ es de Izq. a Derecha porque
+   - La asociatividad del operador lógico OR ~exp1||exp2~ es de Izq. a Der. (tanto AND como OR)
+
+   La evaluación de la expresión ~f('A')?f('B'):f('C')~ es de Izq. a Derecha porque
+   - La asociatividad del operador ternario ~exp1?exp2:exp3~ es de Izq a Der.
+   #+END_QUOTE
 * Nivel Léxico + Sintactico + Semántico
 ** Conceptos básicos
 *** Constructos de un (LP)
@@ -10,15 +97,38 @@
    - El Scanner usa ~ungetc()~ para ...
 *** Expresión
    - Una expresión es una secuencia de operandos y operadores que producen un valor y pueden producir efecto de lado
-*** BNF de C - Caracteres de Puntuación
+*** Declaración
+   - Es una *sentencia* donde se específica atributos para darles un significado (Ej. tipo de dato) a uno ó varios identificadores.
+   - Pasa a ser *definición* si esta implíca reservar memoria
+   - Cuando declaramos una variable (/objeto/) también la estamos definiendo a menos que usemos ~extern tipoDato identificador~ ahí sólo declaramos
+*** Punctuator - Caracter de Puntuación
    #+BEGIN_QUOTE
+   *Según la BNF de C*
+   
    punctuator -> uno de
-   [ ] ( ) { } . ->
-   ++ -- & * + -  ̃ !
-   / % << >> < > <= >= == != ˆ | && ||
-   = *= /= %= += -= <<= >>= &= ˆ= |=
-   ? : ; ... , # ##
+     [ ] ( ) { } . -> ++ -- & * + -  ̃ !
+     / % << >> < > <= >= == != ˆ | && ||
+     = *= /= %= += -= <<= >>= &= ˆ= |=
+     ? : ; ... , # ##
    #+END_QUOTE
+*** Operador Vs Caracter de Puntuación
+   |----------+---------------------------------------------------------+------------------------------------------|
+   | Caracter | Operador                                                | Caracter de Puntuación                   |
+   |----------+---------------------------------------------------------+------------------------------------------|
+   | ','      | Separador de expresiones (/Ej. en una sentencia/)       | Separar parámetros en una función        |
+   |----------+---------------------------------------------------------+------------------------------------------|
+   | '(', ')' | Invocar una función                                     | Declarar ó definir una función           |
+   |          | Agrupar expresiones                                     |                                          |
+   |          | Conversión de datos explícita (typecasting)             |                                          |
+   |          | Modificar precedencia de los *OPERADORES*               |                                          |
+   |          | (Ej. al evaluar la expresión ~(1+1)*2 != 1+1*2~)        |                                          |
+   |----------+---------------------------------------------------------+------------------------------------------|
+   | '[', ']' | Acceder a un elemento de un array                       | Declarar una variable del tipo array     |
+   |----------+---------------------------------------------------------+------------------------------------------|
+   | '='      | Asignar un valor a una variable                         | Inicializar una variable                 |
+   |          | (que ya estaba declarada, osea fuera de la declaración) | Definir una constante enumeración        |
+   |          |                                                         | (Ej. ~enum mes{Enero=1, Febrero=2,...}~) |
+   |----------+---------------------------------------------------------+------------------------------------------|
 ** Problema 1 (2021-06-23)
 *** Enunciado
    #+BEGIN_SRC c
@@ -325,6 +435,159 @@
      cierre_parentesis.tipo = PUNCTUATOR;
      cierre_parentesis.valor = ")";
    #+END_SRC
+** [WAITING] Problema 7 (2020-12-21)
+*** Enunciado
+   #+BEGIN_SRC C
+   char user[1000];
+   assert(0==strcmp("cjkent",CopyUser(user,"cjkent@dailyplanet.com")));
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Analice el anterior fragmento C que prueba una función
+   
+   1. Indique la cantidad de *tokens* en la declaración del fragmento anterior.
+   2. Indique cuantos *literales y constantes* hay en la sentencia del fragmento anterior.
+   3. Escriba una *expresión* que use user y que sea *semánticamente incorrecta*. Justifique.
+   4. Indique el *prototipo* de CopyUser.
+   5. Escriba la *definición* de CopyUser
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>:
+   la resolución no consideró la "declaración" como una "sentencia expresión", por que?
+
+   <sentencia> ->
+     <sentencia expresión> |
+     <sentencia compuesta> |
+     <sentencia de selección> |
+     <sentencia de iteración> |
+     <sentencia etiquetada> |
+     <sentencia de salto>
+   
+   <sentencia expresión> ->
+     <expresión>? ;
+
+   <nombre de tipo> está descripto más adelante, en la secciónDeclaraciones.
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Una declaración es una sentencia donde se específica atributos para darles un significado (Ej. tipo de dato) a uno ó varios identificadores.
+   Por tanto existe sólo una declaración en ese fragmento y es ~char user[1000]~ que tiene 5 tokens
+   1. ~char~ (palabra reservada)
+   2. ~user~ (identificador)
+   3. ~[~ (caractacter de puntuación)
+   4. ~1000~ (constante numérica entera)
+   5. ~]~ (caractacter de puntuación)
+   6. ~;~ (caracter de puntuación) <---
+
+   (2) La *sentencia expresión* de la segunda linea tiene 1 constante, y 2 literales cadena
+   1. ~0~ (constante entera)
+   2. ~"cjkent"~ (literal cadena)
+   3. ~"cjkent@dailyplanet.com"~ (literal cadena)
+   #+END_QUOTE
+
+   #+BEGIN_SRC C
+     // las siguientes sentencias tienen expresiones que son semanticamente incorrectas
+
+     user++; // el operando 'user' no es lvalue válido para el operador de incremento ++
+
+     42 = user[0]; // la constante 42 no es un operando lvalue válido para el operador de asignación
+
+     user[0.1]; // la constante real 0.1 no es un operando lvalue válido para el operador []
+
+     // --------------------------
+
+     char* CopyUser(char*, const char*);
+
+     char* CopyUser(char* usuario, const char* email){
+       // aux apuntará a la primera dirección del bloque de memoria reservado para usuario
+       char* aux = usuario;
+
+       // - nos desplazamos por ambas cadenas como punteros, y los desreferenciamos para la asignación
+       // - el centinela es el @
+       while(*email != '@') *aux++ = *email++;
+       // agregamos el caracter nulo, que representa fin de cadena
+       ,*aux= '\0';
+
+        // alternativa al puntero aux
+        // int i; for(i =0; email[i] != '@'; i++) cadena[i] = email[i];
+        // cadena[i] = '\0';
+       return usuario;
+     }
+
+
+   #+END_SRC
+** Problema 8 (2020-12-14)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado el fragmento: ~wiehl()--x;~   
+   
+   1. Enumere en orden los caracteres que son devueltos al flujo mediante ~ungetc~ durante el *Análisis Léxico*:
+   2. Realice un *análisis de sintáctico* de izquierda a derecha y justifique si es una *sentencia*
+      *sintácticamente correcta*. Si hay *error sintáctico*, reescríbala con el error encontrado corregido:
+   3. Escriba una *declaración* que haga la sentencia anterior, ya se a la original o la corregida,
+   *semánticamente correcta*:
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Los caracteres devueltos mediante el ~ungetc~ por el Scanner son
+   1. ~(~ porque cuando estaba leyendo la cadena ~wiehl~ (identificador) detectó que ~(~ no pertenece a ese TOKEN
+   2. ~;~ porque cuando estaba lyendo la ~x~ (identificador) detectó que el ~;~ no pertenece a ese TOKEN
+
+   (2) Tiene error sintáctico, el operador ~--~ que está como sufijo, necesita un operando que sea lvalue y ~wiehl()~ no lo es.
+   1. Lee la cadena ~wiehl()~ que es derivable de la BNF de C (/la invocación de una función/)
+   2. Cuando lee ~wiehl()++~ detecta que no se puede derivar, porque no esperaba un operador de incremento
+   Posible soluciones serían, suponiendo que son valores numericos
+   1. ~wiehl()*--x;~ (/una sentencia expresión, con una expresión de dos valores multplicandose, donde el 2do operando de decrementa previo a evaluar la multiplicación/)
+   2. ~wiehl(),--x;~ (/dos expresiones en una sentencia expresión, separadas por la coma como operador/)
+   3. ~wiehl();--x;~ (/dos sentencias expresión usando el punto y coma como operador para indicar el fin de cada expresión/)
+
+   (3) Una posible declaración sería ~int wiehl(), x;~
+   #+END_QUOTE
+** [WAITING] Problema 9 (2020-12-14)
+*** Enunciado
+   #+BEGIN_SRC C
+     int f(int c){
+       int d = c-7;
+       printf("%d",d);
+       return d;
+     }
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Dada la anterior función:
+   
+   1. Analice sintácticamente el cuerpo de la función e indique:
+      - Cantidad de *sentencias*
+      - Cantidad de *expresiones completas*
+      - Cantidad de *declaraciones*
+   2. ¿Explique para qué usaría la keyword ~union~ en la *construcción de scanners*?
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: habia considerado la declaración ~int d = c-7;~ como sentencia expresión,
+   pero la resolución indicaba que había sólo 2, al derivar de la gramatica de la BNF
+   ésta no resulta como sentencia expresión entonces?
+
+   <<DUDA>>: La resolución dice que hay 3 expresiones completas, cuales son? y cuales serian no completas(?)
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Cant. de sentencias: 2
+   1. ~printf(...);~ (sentencia expresión)
+   2. ~return d;~ (sentencia expresión)
+
+   Cant. de declaraciones: 1
+   1. ~int d = c-7;~
+
+   (2) Podría usar la palabra reservada ~union~ para darle un significado (valor semántico) a los *TOKENS*,
+   de la misma forma como usaría un ~struct~
+   #+END_QUOTE
+
+   #+BEGIN_SRC C
+     typedef enum {IDENTIFICADOR, OPERADOR, ...} TIPO_TOKEN;
+     typedef union{ TIPO_TOKEN tipo; char* valor; } TOKEN;
+   #+END_SRC
 * Nivel Léxico
 ** Problema 1
 *** Enunciado
@@ -562,11 +825,53 @@
 **** Conceptos
    - Si X es (LR) => por definición es posible escribir una (GIC) que lo genere => es posible escribir una BNF que lo defina
 **** Declaraciones
-   - No es (LR) por tener *paréntesis balanceados*
+   - No son (LR) por tener *paréntesis balanceados*
    - En C se definen con notación BNF, que se puede representar con (LIC)
 **** Constantes enteras
    - Las constantes enteras sin sufijo se pueden representar con la (ER) ~0(0+1+2+3+4+5+6+7)*~
 **** Sentencias
+* BNF de C
+** Declaración
+   #+BEGIN_QUOTE
+   <declaración> ->
+     <especificadores de declaración> <lista de declaradores>?
+   
+   <especificadores de declaración> ->
+     <especificador de clase de almacenamiento> <especificadores de declaración>? |
+     <especificador de tipo> <especificadores de declaración>? |
+     <calificador de tipo> <especificadores de declaración>?
+
+   <lista de declaradores> ->
+     <declarador> |
+     <lista de declaradores> , <declarador>
+     
+   <declarador> ->
+     <decla> |
+     <decla> = <inicializador>
+     
+   <inicializador> ->
+     <expresión de asignación> | /* Inicialización de tipos escalares */
+     {<lista de inicializadores>} | /* Inicialización de tipos estructurados */
+     {<lista de inicializadores> , }
+
+   <especificador de clase de almacenamiento> -> uno de
+     typedef static auto register extern
+     * No más de un <especificador de clase de almacenamiento> puede haber en una declaración
+
+   <especificador de tipo> -> uno de
+     void char short int long float double signed unsigned
+     <especificador de "struct" o "union">
+     <especificador de "enum">
+     <nombre de "typedef">
+   
+   <calificador de tipo> -> const | volatile
+   
+   <especificador de "struct" o "union"> ->
+     <"struct" o "union"> <identificador>? {<lista de declaraciones "struct">} |
+     <"struct" o "union"> <identificador>
+     
+   <"struct" o "union"> -> struct | union
+   #+END_QUOTE
 * [WAITING] Automatas
 ** Ejemplo 1
 *** Problema
