@@ -1,4 +1,7 @@
 #+TITLE: Resumen Finales
+#+BEGIN_COMMENT
+Chequear por "sintesis" del compilador
+#+END_COMMENT
 * Evaluar expresiones
 ** Problema 1 (2020-12-14)
 *** Enunciado
@@ -588,6 +591,349 @@
      typedef enum {IDENTIFICADOR, OPERADOR, ...} TIPO_TOKEN;
      typedef union{ TIPO_TOKEN tipo; char* valor; } TOKEN;
    #+END_SRC
+** Problema 10 (2020-10-14)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión C: ~s.a[s.i]~
+   
+   1. Enumere en orden los caracteres devueltos por ~ungetc~ durante el *análisis léxico*
+   2. Escriba una *declaración* para que la *expresión* sea del *tipo puntero a char*
+   3. Escriba una *declaración que haga semánticamente incorrecta* a la expresión.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) el Scanner (analizador léxico) devuelve los sig. caracteres con ~ungetc~
+   1. ~.~ (porque luego de leer con getchar ~s~ (identificador) detecta que ~.~ no pertenece a ese TOKEN, then retrocede
+   2. ~[~ (luego de leer ~a~ (identificador) detecta que ~[~ no pertenece a esa Categoria Léxica, then retrocede
+   3. ~.~ idem cuando lee ~s~
+   4. ~]~ idem cuando lee ~i~
+   #+END_QUOTE
+
+   #+BEGIN_SRC c
+     struct {
+       char* a; // puntero a char (requerimiento)
+       int i; // evitamos error semántico, será valido para el operador [] en a[s.i]
+     }s;
+
+     // - el operador exp1[exp2] para acceder a un elemento de un array,
+     // espera como operando exp2 un entero, caso contrario arrojará error (semántico)
+     struct {
+       char* a;
+       double i; // esto la haría la expresión s.a[s.i] semánticamente incorrecta
+     }s;
+   #+END_SRC
+** Problema 11 (2020-10-13)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión C: ~lim( x --> 0 )~
+   
+   1. Si es *sintácticamente correcta* entonces escriba una *declaración* que lo haga también
+      *semánticamente correcto*, si no, justifique.
+   2. ¿La *expresión* calcula el límite de una función cuando x tiende a 0? Justifique.
+   3. ¿Agregar o quitar un espacio en algún lugar podría cambiar la *cantidad de lexemas*?
+   Justifique.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Si la función ~lim~  recibe por parámetro un entero, entonces podría ser *sintacticamente correcta*
+   Una posible declaración sería ~int x, lim(int);~
+   
+   (2) Falso, la expresión no calcula el limite, porque no existe el operador ~-->~
+   en la expresión dada son dos operadores, el decremental ~--~ y el relacional ~>~
+
+   (3) Si, depende en donde coloquemos los espacios, las únicas que varían la cantidad, no sin sintácticamente correctas
+   1. Si agregamos un espacio entre ~--~ y ~>~ no habria diferencia, seguiría habiendo 7 lexemas {lim,(x,--,>,0,)}
+   2. Otras posibilidades aunque con errores sintácticos (porque no se podrían derivar de la BNF de C) serían
+      - Si la dejamos como ~lim(x - - > 0)~ habría 8 lexemas {lim, x,-,-,>,0}
+      - Si la dejamos como ~lim(x - -> 0)~ habría 8 lexemas {lim, x,-,->,0}
+      - Si agregamos espacio entre alguno de los caracteres del identificador ~lim~ tendriamos más identificadores, por tanto más lexemas
+   #+END_QUOTE
+** [WAITING] [#A] Problema 12 (2020-03-03)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado el fragmento: ~0xF+F0x+0L+L0~
+   
+   1. Indique cuantos *tokens* tiene:
+   2. Indique cuantos *tipos de tokens o categorías léxicas* tiene. Justifique:
+   3. Indique cuantas invocaciones a ~getchar~ se necesitan para su análisis:
+   4. Indique cuantas invocaciones a ~ungetc~ se necesitan para su análisis:
+   5. Indique la *categoría sintáctica* a la que pertenece el fragmento (Declaración, Expresión, Sentencia o Error sintáctico)
+   6. Escriba la o las *declaraciones* necesarias para que sea un fragmento *semánticamente correcto*
+      con tipo ~double~ y valor 15.
+   7. Escriba la o las *declaraciones* necesarias para que sea un fragmento *semánticamente incorrecto*
+      por *error de tipo*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: punto 4
+   (4) el scanner realiza 7 invocaciones a ~ungetc~, la secuencia de caracteres devueltos por ~ungetc~ es
+   1. +
+   2. F
+   3. +
+   4. 0
+   5. +
+   6. L
+   7. eof <--- no ?????
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Tiene 7 tokens (categorías léxicas)
+   1. ~0xF~ (constante entera hexadecimal)
+   2. ~+~ (operador)
+   3. ~F0x~ (identificador) <- empiezan con una letra o guión bajo, seguido ó no de numeros,letras,guiones en cualquier orden
+   4. ~+~ (operador)
+   5. ~0L~ (constante entera)
+   6. ~+~ (operador)
+   7. ~L0~ (identificador, por empezar con una letra)
+
+   (3) el scanner hace 20 invocaciones a ~getchar~
+   - una invocación por cada caracter leído,
+   - dos invocaciones a ~getchar~ si el siguiente caracter no pertenece al TOKEN del anterior
+     porque hace ~ungetc~ para retroceder y volver a leer ese caracter
+   - la secuencia de lectura para ~0xF+F0x+0L+L0~ sería
+     1) 0xF+ (4 lecturas, e invoca a ~ungetc~ porque ~+~ no pertenece al tipo de TOKEN identificadores)
+     2) +F (2 lecturas, e invoca a ~ungetc~ porque ~F~ no pertenece al tipo de TOKEN operadores)
+     3) F0x+ (4 lecturas, ungetc por +)
+     4) +0 (2 lecturas, ungetc por 0)
+     5) 0L+ (3 lecturas, ungetc por +)
+     6) +L (2lecturas, ungetc por L)
+     7) L0 (2 lecturas)
+   - Si sumamos la cant. de invocaciones a ~getchar~ nos da 4+2+4+2+3+2+2 = 20
+      
+   (2) tiene 3 tipos de tokens (identificador, constante entera, operador)
+
+   (5) el fragmento ~0xF+F0x+0L+L0~ pertenece a la ctegoria sintáctica Expresión,
+   ya que una expresión es una secuencia de operandos y operadores,
+   en este caso los operadores son sólo tres ~+~
+   y los operandos son identificadores (F0, L0) y constantes enteras (0xF, 0L)
+   #+END_QUOTE
+
+   #+BEGIN_SRC C
+     // - La siguiente declaración hace a la expresión semánticamente correcta,
+     // porque F0x y L0 son identificadores (por empezar con una letra)
+     // - Inicializamos en 0, para que el resultado sea 15 (requerimiento)
+     double F0x=0, L0=0;
+
+     // 15 + 0 + 0 + 0, resultado = 15
+     0xF+F0x+0L+L0;
+
+     // - La siguiente declaración hace a la expresión anterior
+     // semanticamente incorrecta, ya que el tipo struct no es un operando
+     // válido para usar con el operador '+'
+     struct {} F0x, L0;
+   #+END_SRC
+** [WAITING] [#B] Problema 13 (2020-02-18)
+*** Enunciado
+   #+BEGIN_SRC C
+     {
+       int f; // renglón #1
+       f+=42; // renglón #2
+       f(); // renglón #3
+     }
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Dada la anterior *sentencia compuesta*
+   
+   1. *Analice léxicamente* los tres renglones. Indique cuantos *tokens* hay:
+   2. *Analice sintáctimente* cada renglón y clasifique como Error sintáctico, Expresión, Sentencia, ó Declaración.
+   3. *Analice semánticamente* la *sentencia compuesta*. Indique si hay un *error semántico* o no y
+      justifique. En el caso de haber error semántico indique en qué renglón lo detecta el compilador.
+   4. *Analice pragmáticamente* el renglón #2 en el contexto del renglón #1. Indique si hay un error
+   pragmático o no. Justifique.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: El scanner siempre detecta a los caracteres ~(~ y ~)~ como punctuator?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Cant. de TOKENS: 11
+    1. ~int~ (palabra reservada)
+    2. ~f~ (identificador)
+    3. ~;~ (caracter de puntuación)
+    4. ~f~ (identificador)
+    5. ~+=~ (operador)
+    6. ~42~ (constante entera decimal)
+    7. ~;~ (caracter de puntuación)
+    8. ~f~ (identificador)
+    9. ~(~ (caracter de puntuación)
+    10. ~)~ (caracter de puntuación)
+    11. ~;~ (caracter de puntuación)
+
+   (2) Usamos de referencia que en Categorías Sintácticas están las Declaraciones, Expresiones, Sentencias
+   - Renglon 1: declaración
+   - Renglon 2: sentencia expresión
+   - Renglon 3: sentencia expresión
+
+   (3) Hay error semántico en el renglon 3, al evaluar la expresión ~f()~,
+   ya que el identificador ~f~ se usó previamente para declarar una variable,
+   y el operador ~()~ para invocar funciones sólo puede tener como operando el identificador de una función,
+   no el de una variable.
+   
+   (4) En la declaración ~int f~, al no inicializar ~f~ y hacer ~f+=42~,
+   lo que hará será sumarle 42 a un valor basura que tiene por defecto ~f~
+   #+END_QUOTE
+** [WAITING] [#A] Problema 14  (2020-02-12)
+*** Enunciado
+   #+BEGIN_SRC C
+     int f(int x){
+       if(0)return 1;
+       return 42;
+     }
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Analice la anterior función:
+   
+   1. Dentro del *cuerpo de la función*, sin contar las llaves:
+      1. Indique cuántas *expresiones* hay
+      2. Indique en total cuantas *sentencias* y *subsentencias* hay
+      3. Indique cuántas *declaraciones* hay
+      4. Indique cuántas invocaciones a ~ungetc~ son necesarias para *analizar léxicamente* el cuerpo de la función
+      5. Indique cuantas invocaciones a ~getchar~ son necesarias para detectar el *lexema* ~42~
+   2. Escriba y justifique un posible error pragmático (i.e., warning) que un compilador pueda informar. Justifique.
+   3. Escriba y justifique otro posible error pragmático. Justifique.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   Antes de resolverlo, recordamos la sintáxis según la BNF de C de algunas de las sentencias es:
+
+   La sentencia de Seleccción:
+   ~<sentencia de seleccion> -> if(exp) <sentencia> | if(<exp>) <sentencia> else <sentencia> | switch(<exp>) <sentencia>~
+
+   La sentencia de Expresión:
+   ~<sentencia expresion> -> <exp>?;~
+
+   La sentencia de salto:
+   ~<sentencia de salto> -> continue; | break; | return <expresion>? | goto <identificador>;~
+   #+END_QUOTE
+
+   #+BEGIN_COMMENT
+   <<DUDA>>: punto 1.4
+   Cant. de invocaciones a ~ungetc~: seis
+
+   alternativa 1? <-- creo que esta?
+   1. if( <-- ungetc por el ~(~
+   2. (0 <-- ungetc por el ~0~
+   3. 0) <-- ungetc por el ~)~
+   4. )r <-- ungetc por la ~r~
+   5. return 1; <--- ungetc por ~;~
+   6. return 42; <-- ungetc por el ~;~
+
+   alternativa 2?
+   1. ~(~
+   2. ~)~
+   3. (el espacio)
+   4. ~;~
+   5. (el espacio)
+   6. ~;~
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE   
+   (1)
+   Cant. de expresiones: 3
+   1. dos expresiones en la primera sentencia, y en la subsentencia: ~if(exp1)return exp2~
+   2. una expresión en la segunda sentencia: ~return exp3~
+
+   Cant. de sentencias: 2, Cant de Subsentencias: 1
+   1. sentencia de selección: ~if(0)return 1;~
+   2. subsentencia (sentencia de salto) ~return 1;~
+   3. sentencia de salto ~return 42;~
+
+   Cant. de declaraciones: 0
+
+   Cant. de invocaciones a ~getchar~ para leer el lexema ~42~: tres
+   1. ~4~ (primera invocación, lee la constante 4)
+   2. ~2~ (segunda invocación)
+   3. ~;~ (tercera invocación), cuando detecta el caracter de puntuación ~;~ sabe que terminó la secuencia
+
+   (2) Que el parámetro con identificador ~x~ no se está utilizando, en el cuerpo de la funcion
+   
+   (3) Que el comportamiento de ~f~ es retornar siempre 42, ya que la condición de if nunca se cumple
+   al pasarle ~0~
+   #+END_QUOTE
+** Problema 15 (2019-12-18)
+*** Enunciado
+   #+BEGIN_SRC C
+     /*1*/ int h(int x){
+       /*2*/ int y=0;
+       /*3*/ y=f(x);
+       /*4*/ y=g(y);
+       /*5*/ return y;}
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Considerando ~int f(int),g(int);~ con ~f~ y ~g~ definidas, analice la anterior función:
+   
+   1. Indique cuantas *sentencias* tienen la *sentencia compuesta* de la función ~h~.
+   2. Analice la *sentencia* de la línea 3:
+      1. Enumere cada operación realizada e indique la *precedencia*, uno es la menor.
+      2. Escriba en renglones diferentes las *subexpresiones que tiene la expresión*
+   3. El compilador emite en la línea tres el mensaje: “se asigna un valor que no es utilizado”.
+      1. Si coincide con el mensaje categorice el tipo de error. Justifique.
+      2. Proponga una solución para evitar el error. Justifique. 
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Cant. de sentencias del cuerpo de la función h: 3
+   1. sentencia expresión: ~y=f(x);~ (/que contiene una expresión de asignación/)
+   2. sentencia expresión: ~y=g(y);~ (/que contiene una expresión de asignación/)
+   3. sentencia de salto ~return y;~
+
+   (2) Las operaciones de la sentencia expresión ~y=f(x);~
+   - La secuencia es
+     1. Se invoca a la función ~f~ pasandole un parámetro ~x~ con ~f(x)~
+     2. Se le asigna el retorno de ~f(x)~ a ~y~ con ~y=f(x)~
+   - La precedencia de los operadores es
+     1. precedencia=1 (menor prioridad) el ~=~ operador de asignación de un valor a una variable
+     2. precedencia=2 (mayor prioridad) el ~()~ operador para invocar una función
+   - Hay 4 subexpresiones en la expresión de asignación ~y=f(x)~
+     1) ~y~ es una *expresión primaria* (si derivamos <expresión unaria> -> <expresion sufijo> -> <expresion primaria> -> <identificador>)
+     2) ~f~ es una *expresión primaria* (por ser identificador)
+     3) ~x~ es una *expresión primaria* (por ser identificador)
+     4) ~f(x)~ es una *expresión sufijo* (por invocar una función)
+      
+   (3) Sería un *error pragmático*, y surje de la declaración del renglón 2 que inicializa ~y~ con el valor ~0~,
+   ese valor no se utiliza, sólo se pisa con el resultado que devuelve ~f(x)~.
+   Una posible solución sería reducir las sentencias en una única *sentencia de salto* ~return g(f(x));~
+   #+END_QUOTE
+
+   #+BEGIN_QUOTE
+   Agregamos parte de la BNF de C, relacionada con ~y=f(x)~ ya que ésta es una *expresión de asignación*,
+   si nos guíamos con la gramática de la BNF (reglás sintácticas de C) vemos que los identificadores ~y~, ~f~ y ~x~ son *expresiones primarias*
+   ~<expresión unaria> --> <expresion sufijo> --> <expresion primaria> --> <identificador>~
+   
+   y que ~f(x)~ es una *expresión sufijo* 
+   ~<expresión unaria> --> <expresion sufijo> --> <expresión sufijo> (<lista de argumentos>?)~
+   
+   <expresión de asignación> ->
+     <expresión condicional> |
+     <expresión unaria> <operador asignación> <expresión de asignación>
+     
+   <expresión unaria> ->
+     <expresión sufijo> |
+     ++ <expresión unaria> |
+     -- <expresión unaria> |
+     <operador unario> <expresión de conversión> |
+     sizeof <expresión unaria> |
+     sizeof (<nombre de tipo>)
+     
+   <expresión sufijo> ->
+     <expresión primaria> |
+     <expresión sufijo> [<expresión>] | /* arreglo */
+     <expresión sufijo> (<lista de argumentos>?) | /* invocación */
+     <expresión sufijo> . <identificador> |
+     <expresión sufijo> -> <identificador> |
+     <expresión sufijo> ++ |
+     <expresión sufijo> --
+     
+   <expresión primaria> ->
+     <identificador> |
+     <constante> |
+     <constante cadena> |
+     (<expresión>)
+   #+END_QUOTE
 * Nivel Léxico
 ** Problema 1
 *** Enunciado
@@ -804,6 +1150,23 @@
    #+BEGIN_COMMENT
    <<DUDA>>: La última estará ok (???)
    #+END_COMMENT
+** [TODO] Problema 3 (2020-03-03)
+*** Enunciado
+   #+BEGIN_QUOTE
+   1. Indique el valor de verdad de la siguiente afirmación y justifique:
+      *La sintaxis de C especifica el orden de evaluación de los operandos* y *la precedencia de los operadores*
+   2. Escriba un fragmento breve que sea sintáctimente válido tanto en C y como en C++, pero
+      que tenga diferente semántica para cada LP.  
+   #+END_QUOTE
+*** Respuesta
+** [TODO] Problema 4 (2020-02-12) (2020-02-18)
+*** Enunciado
+   #+BEGIN_QUOTE
+   1. Ejemplifique brevemente un aspecto sintáctico en el cual el LP C es
+      diferente a otro LP que usted conozca. Justifique.
+   2. Indique y justifique el valor de verdad de la siguiente afirmación:
+      Los LP C y C++ tienen la misma sintaxis.
+   #+END_QUOTE
 * Errores de Compilación
 ** Errores Léxicos
 ** Errores Sintácticos
@@ -830,6 +1193,13 @@
 **** Constantes enteras
    - Las constantes enteras sin sufijo se pueden representar con la (ER) ~0(0+1+2+3+4+5+6+7)*~
 **** Sentencias
+* Regex
+** [TODO] Problema 1 (2020-10-14)
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión C: ~s.a[s.i]~
+   
+    Puede esta *expresión* considerarse una *regex*? Justifique
+   #+END_QUOTE
 * BNF de C
 ** Declaración
    #+BEGIN_QUOTE
@@ -871,6 +1241,158 @@
      <"struct" o "union"> <identificador>
      
    <"struct" o "union"> -> struct | union
+   
+   <decla "struct"> ->
+     <decla> |
+     <decla>? : <expresión constante>
+   
+   <decla> -> <puntero>? <declarador directo>
+   
+   <puntero> ->
+     * <lista calificadores tipos>? |
+     * <lista calificadores tipos>? <puntero>
+   #+END_QUOTE
+** Expresión
+   #+BEGIN_QUOTE
+   <expresión> ->
+     <expresión de asignación> |
+     <expresión> , <expresión de asignación>
+     <expresión de asignación> ->
+     <expresión condicional> |
+     <expresión unaria> <operador asignación> <expresión de asignación>
+   
+   <expresión condicional> ->
+     <expresión O lógico> |
+     <expresión O lógico> ? <expresión> : <expresión condicional>
+     
+   <operador asignación> -> uno de
+     = *= /= %= += -= <<= >>= &= ^= |=
+     
+   <expresión O lógico> ->
+     <expresión Y lógico> |
+     <expresión O lógico> || <expresión Y lógico>
+     
+   <expresión Y lógico> ->
+     <expresión O inclusivo> |
+     <expresión Y lógico> && <expresión O inclusivo>
+     
+   <expresión O inclusivo> ->
+     <expresión O excluyente> |
+     <expresión O inclusivo> | <expresión O excluyente>
+     
+   <expresión O excluyente> ->
+     <expresión Y> |
+     <expresión O excluyente> ^ <expresión Y>
+     
+   <expresión Y> ->
+     <expresión de igualdad> |
+     <expresión Y> & <expresión de igualdad>
+     
+   <expresión de igualdad> ->
+     <expresión relacional> |
+     <expresión de igualdad> == <expresión relacional> |
+     <expresión de igualdad> != <expresión relacional>
+     
+   <expresión relacional> ->
+     <expresión de corrimiento> |
+     <expresión relacional> < <expresión de corrimiento> |
+     <expresión relacional> > <expresión de corrimiento> |
+     <expresión relacional> <= <expresión de corrimiento> |
+     <expresión relacional> >= <expresión de corrimiento>
+     
+   <expresión aditiva> ->
+     <expresión multiplicativa> |
+     <expresión aditiva> + <expresión multiplicativa> |
+     <expresión aditiva> - <expresión multiplicativa>
+     
+   <expresión multiplicativa> ->
+     <expresión de conversión> |
+     <expresión multiplicativa> * <expresión de conversión> |
+     <expresión multiplicativa> / <expresión de conversión> |
+     <expresión multiplicativa> % <expresión de conversión>
+     
+   <expresión de conversión> ->
+     <expresión unaria> |
+     (<nombre de tipo>) <expresión de conversión>
+     
+   <expresión unaria> ->
+     <expresión sufijo> |
+     ++ <expresión unaria> |
+     -- <expresión unaria> |
+     <operador unario> <expresión de conversión> |
+     sizeof <expresión unaria> |
+     sizeof (<nombre de tipo>)
+     
+   <nombre de tipo> 
+   
+   <operador unario> -> uno de & * + - ~ !
+   
+   <expresión sufijo> ->
+     <expresión primaria> |
+     <expresión sufijo> [<expresión>] | /* arreglo */
+     <expresión sufijo> (<lista de argumentos>?) | /* invocación */
+     <expresión sufijo> . <identificador> |
+     <expresión sufijo> -> <identificador> |
+     <expresión sufijo> ++ |
+     <expresión sufijo> --
+     
+   <expresión primaria> ->
+     <identificador> |
+     <constante> |
+     <constante cadena> |
+     (<expresión>)
+   #+END_QUOTE
+** Sentencia
+   #+BEGIN_QUOTE
+   <sentencia> ->
+     <sentencia expresión> |
+     <sentencia compuesta> |
+     <sentencia de selección> |
+     <sentencia de iteración> |
+     <sentencia etiquetada> |
+     <sentencia de salto>
+   
+   <sentencia expresión> ->
+     <expresión>? ;
+   
+   <sentencia compuesta> ->
+     {<lista de declaraciones>? <lista de sentencias>?}
+     
+   <lista de declaraciones> ->
+     <declaración> |
+     <lista de declaraciones> <declaración>
+     
+   <lista de sentencias> ->
+     <sentencia> |
+     <lista de sentencias> <sentencia>
+     - La sentencia compuesta también se denomina bloque.
+
+   <sentencia de selección> ->
+     if (<expresión>) <sentencia> |
+     if (<expresión>) <sentencia> else <sentencia> |
+     switch (<expresión>) <sentencia>
+     La expresión e controla un switch debe ser de tipo entero.
+   
+   <sentencia de iteración> ->
+     while (<expresión>) <sentencia> |
+     do <sentencia> while (<expresión>) ; |
+     for (<expresión>? ; <expresión>? ; <expresión>?) <sentencia>
+     
+   <sentencia etiquetada> ->
+     case <expresión constante> : <sentencia> |
+     default : <sentencia> |
+     <identificador> : <sentencia>
+     Las sentencias case y default se utilizan solo dentro de una sentencia switch.
+     
+   <sentencia de salto> ->
+     continue ; |
+     break ; |
+     return <expresión>? ; |
+     goto <identificador> ;
+     - La sentencia continue solo debe aparecer dentro del cuerpo de un
+     ciclo. La sentencia break solo debe aparecer dentro de un switch
+     o en el cuerpo de un ciclo. La sentencia return con una expresión
+     no puede aparecer en una función void.
    #+END_QUOTE
 * [WAITING] Automatas
 ** Ejemplo 1
@@ -903,4 +1425,26 @@
    #+END_QUOTE
 * Diagramas
 ** Automatas
-** Arboles sintácticos
+** [TODO] Arboles sintácticos
+*** Problema 1 (2020-10-14)
+**** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión C: ~s.a[s.i]~
+   
+   Nivel sintáctico
+   1. Indique *la raíz y las hojas* del *árbol de expresión*
+   2. Escriba todas las *subexpresiones de la expresión*
+   #+END_QUOTE
+*** Problema 2 (2019-12-18)
+**** Enunciado
+   #+BEGIN_SRC C
+     /*1*/ int h(int x){
+       /*2*/ int y=0;
+       /*3*/ y=f(x);
+       /*4*/ y=g(y);
+       /*5*/ return y;}
+   #+END_SRC
+
+   #+BEGIN_QUOTE
+   Analice la *sentencia* de la línea 3, dibuje el *árbol asociado a la expresión*
+   #+END_QUOTE
