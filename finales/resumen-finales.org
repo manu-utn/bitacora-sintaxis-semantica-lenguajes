@@ -665,40 +665,56 @@ Chequear por "sintesis" del compilador
    #+END_QUOTE
 *** Respuesta
    #+BEGIN_COMMENT
-   <<DUDA>>: punto 4
-   (4) el scanner realiza 7 invocaciones a ~ungetc~, la secuencia de caracteres devueltos por ~ungetc~ es
-   1. +
-   2. F
-   3. +
-   4. 0
-   5. +
-   6. L
-   7. eof <--- no ?????
+   <<DUDA>>:
+   El scanner para leer ~0xF+F0x+0L+L0~ hace 7 invocaciones a ungetc según la resolución, y yo veo 6
+   el 7 será el EOF?
    #+END_COMMENT
-   
-   #+BEGIN_QUOTE
-   (1) Tiene 7 tokens (categorías léxicas)
-   1. ~0xF~ (constante entera hexadecimal)
-   2. ~+~ (operador)
-   3. ~F0x~ (identificador) <- empiezan con una letra o guión bajo, seguido ó no de numeros,letras,guiones en cualquier orden
-   4. ~+~ (operador)
-   5. ~0L~ (constante entera)
-   6. ~+~ (operador)
-   7. ~L0~ (identificador, por empezar con una letra)
 
-   (3) el scanner hace 20 invocaciones a ~getchar~
+   #+BEGIN_QUOTE
+   (3) (4) el scanner hace 20 invocaciones a ~getchar~ (cant. de invocaciones nos da 4+2+4+2+3+2+2 = 20)
    - una invocación por cada caracter leído,
-   - dos invocaciones a ~getchar~ si el siguiente caracter no pertenece al TOKEN del anterior
-     porque hace ~ungetc~ para retroceder y volver a leer ese caracter
-   - la secuencia de lectura para ~0xF+F0x+0L+L0~ sería
-     1) 0xF+ (4 lecturas, e invoca a ~ungetc~ porque ~+~ no pertenece al tipo de TOKEN identificadores)
-     2) +F (2 lecturas, e invoca a ~ungetc~ porque ~F~ no pertenece al tipo de TOKEN operadores)
-     3) F0x+ (4 lecturas, ungetc por +)
-     4) +0 (2 lecturas, ungetc por 0)
-     5) 0L+ (3 lecturas, ungetc por +)
-     6) +L (2lecturas, ungetc por L)
-     7) L0 (2 lecturas)
-   - Si sumamos la cant. de invocaciones a ~getchar~ nos da 4+2+4+2+3+2+2 = 20
+   - dos invocaciones a ~getchar~
+     - si el siguiente caracter no pertenece al TOKEN del anterior
+     - hace ~ungetc~ para retroceder y volver a leer ese caracter
+   
+   La secuencia de lectura para ~0xF+F0x+0L+L0~ sería
+   |--------------------------------+----------------+--------------------------------+----------------------------------------------------------------------------|
+   | Secuencia de caracteres leídos | Cant. lecturas | Caracter devuelto por ~ungetc~ | Motivo para invocar a ~ungetc~                                             |
+   |--------------------------------+----------------+--------------------------------+----------------------------------------------------------------------------|
+   | 0xF+                           |              4 | +                              | invoca a ~ungetc~ porque ~+~ no pertenece al tipo de TOKEN identificadores |
+   |--------------------------------+----------------+--------------------------------+----------------------------------------------------------------------------|
+   | +F                             |              2 | F                              | invoca a ~ungetc~ porque ~F~ no pertenece al tipo de TOKEN operadores      |
+   |--------------------------------+----------------+--------------------------------+----------------------------------------------------------------------------|
+   | F0x+                           |              4 | +                              | ungetc por ~+~                                                             |
+   |--------------------------------+----------------+--------------------------------+----------------------------------------------------------------------------|
+   | +0                             |              2 | 0                              | ungetc por ~0~                                                             |
+   |--------------------------------+----------------+--------------------------------+----------------------------------------------------------------------------|
+   | 0L+                            |              3 | +                              | ungetc por ~+~                                                             |
+   |--------------------------------+----------------+--------------------------------+----------------------------------------------------------------------------|
+   | +L                             |              2 | L                              | ungetc por ~L~                                                             |
+   |--------------------------------+----------------+--------------------------------+----------------------------------------------------------------------------|
+   | L0                             |              2 |                                |                                                                            |
+   |--------------------------------+----------------+--------------------------------+----------------------------------------------------------------------------|
+   
+   (1) Tiene 7 tokens (categorías léxicas)
+   |-------------------------+------------------------------------------------------------------------------------------------------------------|
+   | Secuencia de Caracteres | Tipo de Token (ó Categoría Léxica a la que pertenece)                                                            |
+   |-------------------------+------------------------------------------------------------------------------------------------------------------|
+   | ~0xF~                   | Constante entera hexadecimal                                                                                     |
+   |-------------------------+------------------------------------------------------------------------------------------------------------------|
+   | ~+~                     | Operador                                                                                                         |
+   |-------------------------+------------------------------------------------------------------------------------------------------------------|
+   | ~F0x~                   | Identificador (/empiezan con una letra o guión bajo, seguido ó no de numeros,letras,guiones en cualquier orden/) |
+   |-------------------------+------------------------------------------------------------------------------------------------------------------|
+   | ~+~                     | Operador                                                                                                         |
+   |-------------------------+------------------------------------------------------------------------------------------------------------------|
+   | ~0L~                    | Constante entera octal                                                                                           |
+   |-------------------------+------------------------------------------------------------------------------------------------------------------|
+   | ~+~                     | Operador                                                                                                         |
+   |-------------------------+------------------------------------------------------------------------------------------------------------------|
+   | ~L0~                    | Identificado (/por empezar con una letra/)                                                                       |
+   |-------------------------+------------------------------------------------------------------------------------------------------------------|
+
       
    (2) tiene 3 tipos de tokens (identificador, constante entera, operador)
 
@@ -744,7 +760,8 @@ Chequear por "sintesis" del compilador
    #+END_QUOTE
 *** Respuesta
    #+BEGIN_COMMENT
-   <<DUDA>>: El scanner siempre detecta a los caracteres ~(~ y ~)~ como punctuator?
+   <<DUDA>>: El scanner siempre detecta a los caracteres ~(~ y ~)~ como punctuator?,
+   en algún momento sabe que son operador ~()~ ?
    #+END_COMMENT
    
    #+BEGIN_QUOTE
@@ -810,32 +827,16 @@ Chequear por "sintesis" del compilador
    #+END_QUOTE
 
    #+BEGIN_COMMENT
-   <<DUDA>>: punto 1.4
-   Cant. de invocaciones a ~ungetc~: seis
-
-   alternativa 1? <-- creo que esta?
-   1. if( <-- ungetc por el ~(~
-   2. (0 <-- ungetc por el ~0~
-   3. 0) <-- ungetc por el ~)~
-   4. )r <-- ungetc por la ~r~
-   5. return 1; <--- ungetc por ~;~
-   6. return 42; <-- ungetc por el ~;~
-
-   alternativa 2?
-   1. ~(~
-   2. ~)~
-   3. (el espacio)
-   4. ~;~
-   5. (el espacio)
-   6. ~;~
+   <<DUDA>>: No estoy seguro si estará ok el de ungetc y getchar, la respuesta coincide con la resolución
+   pero la misma sólo da la cantidad, no detalla
    #+END_COMMENT
    
-   #+BEGIN_QUOTE   
+   #+BEGIN_QUOTE
    (1)
    Cant. de expresiones: 3
    1. dos expresiones en la primera sentencia, y en la subsentencia: ~if(exp1)return exp2~
    2. una expresión en la segunda sentencia: ~return exp3~
-
+   
    Cant. de sentencias: 2, Cant de Subsentencias: 1
    1. sentencia de selección: ~if(0)return 1;~
    2. subsentencia (sentencia de salto) ~return 1;~
@@ -843,15 +844,37 @@ Chequear por "sintesis" del compilador
 
    Cant. de declaraciones: 0
 
-   Cant. de invocaciones a ~getchar~ para leer el lexema ~42~: tres
-   1. ~4~ (primera invocación, lee la constante 4)
-   2. ~2~ (segunda invocación)
-   3. ~;~ (tercera invocación), cuando detecta el caracter de puntuación ~;~ sabe que terminó la secuencia
+   Cant. de invocaciones a ~ungetc~: seis
+   |-------------------------+------------------------------------------------------------------------------|
+   | Secuencia de caracteres | Motivo por el que el Scanner invocó al ~ungetc~                              |
+   |-------------------------+------------------------------------------------------------------------------|
+   | f(                      | ungetc por el ~(~ no pertenece al tipo de Token Identificador                |
+   |-------------------------+------------------------------------------------------------------------------|
+   | (0                      | ungetc por el ~0~ no pertenece al tipo de Token Caracter de Puntuación       |
+   |-------------------------+------------------------------------------------------------------------------|
+   | 0)                      | ungetc por el ~)~ no pertenece al tipo de Token Caracter de Constante Entera |
+   |-------------------------+------------------------------------------------------------------------------|
+   | )r                      | ungetc por la ~r~ no pertenece al tipo de Token Caracter de Puntuación       |
+   |-------------------------+------------------------------------------------------------------------------|
+   | 1;                      | ungetc por ~;~ no pertenece al tipo de Token Constante Entera                |
+   |-------------------------+------------------------------------------------------------------------------|
+   | 2;                      | ungetc por el ~;~ no pertenece al tipo de Token Constante Entera             |
+   |-------------------------+------------------------------------------------------------------------------|
 
-   (2) Que el parámetro con identificador ~x~ no se está utilizando, en el cuerpo de la funcion
+   Cant. de invocaciones a ~getchar~ para leer el lexema ~42~: tres
+   |-------------------------+-------------------------------------------------------------------------------------------|
+   | Secuencia de caracteres |                                                                                           |
+   |-------------------------+-------------------------------------------------------------------------------------------|
+   | ~4~                     | 1º invocación, lee la constante entera 4                                                  |
+   |-------------------------+-------------------------------------------------------------------------------------------|
+   | ~2~                     | 2º invocación, lee la constante entera 2                                                  |
+   |-------------------------+-------------------------------------------------------------------------------------------|
+   | ~;~                     | 3º invocación, cuando detecta el caracter de puntuación ~;~ sabe que terminó la secuencia |
+   |-------------------------+-------------------------------------------------------------------------------------------|
    
-   (3) Que el comportamiento de ~f~ es retornar siempre 42, ya que la condición de if nunca se cumple
-   al pasarle ~0~
+   (2) Que el parámetro con identificador ~x~ no se está utilizando, en el cuerpo de la función
+   
+   (3) Que el comportamiento de ~f~ es retornar siempre 42, ya que la condición de if nunca se cumple al pasarle ~0~
    #+END_QUOTE
 ** Problema 15 (2019-12-18)
 *** Enunciado
@@ -934,6 +957,61 @@ Chequear por "sintesis" del compilador
      <constante cadena> |
      (<expresión>)
    #+END_QUOTE
+** [WAITING] Problema 16 (2019-12-18)
+*** Enunciado
+   #+BEGIN_QUOTE
+   1. Indique el orden de las *etapas fuera y dentro del proceso de compilación*, donde uno (1) es la
+      primera. Si no corresponde indíquelo con un guión:
+      - Vinculación.
+      - Análisis léxico.
+      - Previnculación.
+      - Análisis sintáctico.
+      - Preprocesamiento.
+      - Análisis semántico.
+      - Generación de código
+   2. Tilde todas las afirmaciones verdaderas acerca de C:
+      - Una *definición de variable* implica reserva de memoria.
+      - Una *declaración de variable* implica reserva de memoria.
+      - Las *variables static (estáticas)* de tipo int se inicializan por defecto en cero cuando no tienen *inicializador explícito*
+      - Las *variables static (estáticas)* definidas externamente (fuera de toda función) siempre son accesibles desde toda la UT.
+      - Para compilar con éxito una *unidad de traducción (UT)* debe tener las *definiciones de todos los identificadores* que aparecen en la misma  
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: Chequear con alguien las respuestas 2.2, 2.4, y 2.5
+   #+END_COMMENT
+
+   #+BEGIN_QUOTE
+   (1) etapas
+   |---+----------------------+---------------+-----------------------------------------------------------------------------------------------------------|
+   |   | Nombre de etapa      | Realizada por | Descripción                                                                                               |
+   |---+----------------------+---------------+-----------------------------------------------------------------------------------------------------------|
+   | 1 | Preprocesamiento     | Preprocesador | Por el preprocesador, aplica las directivas (#if, #else, #define, #include, ...), remueve los comentarios |
+   |---+----------------------+---------------+-----------------------------------------------------------------------------------------------------------|
+   | 2 | Análisis léxico      | Compilador    | Lee la secuencia de caracteres de los archivos, los agrupa (lexemas) y los clasifica por tipo de TOKEN    |
+   |---+----------------------+---------------+-----------------------------------------------------------------------------------------------------------|
+   | 3 | Análisis sintáctico  | Compilador    | Recibe los TOKENs generados por el Analizador Lexico                                                      |
+   |   |                      |               | Analiza si el conjunto de TOKENs se pueden derivar de las reglas sintácticas BNF de c                     |
+   |---+----------------------+---------------+-----------------------------------------------------------------------------------------------------------|
+   | 4 | Análisis semántico   | Compilador    | Recibe los Lexemas generados por el Analizador Lexico                                                     |
+   |   |                      |               | Analiza el contexto (Ej. redeclaración, la invocación de una función coincide con su firma, ...)          |
+   |   |                      |               | Analiza las reglas semánticas (Ej. el operando del operador [] debe ser una constante entera)             |
+   |---+----------------------+---------------+-----------------------------------------------------------------------------------------------------------|
+   | 5 | Generación de código |               | Los archivos fuente (.c) y archivos de cabecera (.h) en objetos (.o)                                      |
+   |---+----------------------+---------------+-----------------------------------------------------------------------------------------------------------|
+   | 6 | Vinculación          | Linker        | El Linker/Enlazador enlaza los objetos (.o) con las bibliotecas externas, ...                             |
+   |---+----------------------+---------------+-----------------------------------------------------------------------------------------------------------|
+      
+    No existe la etapa de Previnculación
+
+   (2)
+   1) VERDADERO, porque definir una variable implíca memoria. (Ej. ~int edad = 5;~)
+   2) FALSO, porque declarar una variable no implíca reserva de memoria (Ej. declaramos una variable del tipo struct, ~struct {} a;~)
+   3) VERDADERO, porque las variables ~static~ se inicializan en 0 por defecto, si no se inicializan explicitamente
+   4) FALSO, porque las variables definidas ~static~ sólo se pueden usar (scope/ámbito) en el archivo fuente donde se definió,
+      no en toda la (UT) *Unidad de Traducción* que está formado por uno ó varios .c con uno ó varios archivos .h
+   5) FALSO, la (UT) puede tener sólo las declaraciones de los identificadores para compilar correctamente
+   #+END_QUOTE
 * Nivel Léxico
 ** Problema 1
 *** Enunciado
@@ -962,17 +1040,17 @@ Chequear por "sintesis" del compilador
    #+END_QUOTE
 *** Respuesta
    #+BEGIN_QUOTE
-   La secuencia de caracteres ~"hola\"~ no es léxicamente correcta,
+   (2) La secuencia de caracteres ~"hola\"~ no es léxicamente correcta,
    al usar el ~\~ se escapa las comillas dobles y las toma como un caracter común,
    para ser *literal cadena* los caracteres deben estar delimitadas entre comillas dobles
    
-   El *lexema* ~main~ NO es una *palabra reservada*,
+   (3) El *lexema* ~main~ NO es una *palabra reservada*,
    podríamos escribir la sig. declaración sin problema ~struct main{ int x; }~
 
-   A partir de diferentes *lexemas* (Ej. for, while, ...) puede generar el mismo TOKEN,
+   (4) A partir de diferentes *lexemas* (Ej. for, while, ...) puede generar el mismo TOKEN,
    Ej. for, while son lexemas diferentes pero se genera el mismo TOKEN (palabra reservada)
    
-   El *analizador léxico* no sabe si un símbolo actúa como *operador* ó *caracter de puntuación*,
+   (5) El *analizador léxico* no sabe si un símbolo actúa como *operador* ó *caracter de puntuación*,
    porque no sabe del contexto, ni la sintáxis del lenguaje.
    Este sólo lee caracter por caracter de una secuencia de caracteres
    según el contexto se podría saber si actúa como *punctuator* u *operador* pero.. el Scanner no sabe de eso.
@@ -1010,6 +1088,250 @@ Chequear por "sintesis" del compilador
    (5) FALSO. El Analizador léxico, no sabe del contexto ni sintáxis,
    por tanto no sabe si el operador ~*~ actúa como operador binario o unario,
    sólo sabe que es un operador
+   #+END_QUOTE
+** [WAITING] Problema 4 (2019-12-11)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca del *análisis léxico*
+   
+   1. Puede implementarse con un *AF*
+   2. Procesa su entrada caracter a caracter.
+   3. ~s(printf)~ es siempre *léxicamente correcto*
+   4. Un *lexema* dado puede generar diferentes *lexemas*
+   5. Diferencia entre *identificadores* y *palabras clave (keywords)*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: Como justificar mejor la 4, 5 (?)
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) VERDADERO, el Scanner (analizador léxico) se puede implementar con un AF,
+   donde la transición de un estado a otro depende de la secuencia de caracteres leídos
+   
+   (2) VERDADERO, porque el Scanner lee caracter a caracter
+
+   (3) VERDADERO, porque ~s(printf)~
+   - cada palabra pertenece a un LR de las Categorías Léxicas (Identificador, Operador, ...)
+   - si clasificamos esos lexemas por tipo de Token tenemos identificador,punctuator,identificador,punctuator
+
+   (4) FALSO, 
+
+   (5) VERDADERO, son son distintos LRs
+   #+END_QUOTE
+
+   #+BEGIN_QUOTE
+   Para tener de referencia, nos guiamos con la siguiente *Gramática Léxica* para los TOKENs
+   
+   <token> ->
+     <palabra reservada> |
+     <identificador> |
+     <constante> |
+     <literal de cadena> |
+     <punctuator>
+   
+   <token de preprocesamiento> ->
+     <nombre de encabezado> |
+     <identificador> |
+     <número de preprocesador>|
+     <constante carácter> |
+     <literal de cadena> |
+     <punctuator> |
+     cada uno de los caracteres no-espacio-blanco que no sea uno de los anteriores
+
+   <palabra reservada> -> una de
+      auto break case char const continue default do
+      double else enum extern float for goto if
+      int long register return short signed sizeof static
+      struct switch typedef union unsigned void volatile while
+
+   <identificador> -> <no dígito> | <identificador> <no dígito> | <identificador> <dígito>
+     <no dígito> -> uno de _ a b c d e f g h i j k l m n o p q r s t u v
+       w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+     <dígito> -> uno de 0 1 2 3 4 5 6 7 8 9
+   #+END_QUOTE
+** Problema 5 (2019-12-04)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca del *análisis léxico*
+   
+   1. *Recibe lexemas* y *genera tokens*
+   2. ~ungetc~ devuelve al flujo el último token leido.
+   3. Un *token* puede ser generado por *diferentes lexemas*
+   4. En C, ~prontf("hola")~, es siempre *léxicamente correcto*
+   5. Se puede determinar el operador que representa el lexema asterisco (*).
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) FALSO, el Scanner recibe una secuencia de caracteras y genera tokens (para el Parser) y lexemas (para el analizador semantico)
+
+   (2) FALSO, cuando el Scanner invoca el ~ungetc~, éste devuelve el último caracter leído,
+   suponiendo que éste no pertenece al tipo de TOKEN de la secuencia de caracteres leidos que le precede
+
+   (3) VERDADERO, un TOKEN del tipo Identificador podría ser generador por varios lexemas
+   (Ej. estos tres lexemas edad, nombre, apellido son identificadores)
+
+   (4) VERDADERO, ~prontf("hola")~ para el Scanner está formado por identificador,punctuator,literal cadena, punctuator
+   porque lee caracter por caracter invocando ~getchar~ y por cada caracter que no pertenece a la gramática de la secuencia leida
+   invoca a ~ungetc~ y continúa leyendo, por tanto reconoceria cada lexema
+
+   (5) FALSO, el Scanner no sabe del contexto y no puede determinar que tipo de operador es
+   el lexema asterisco ~*~ solo reconoce el tipo de TOKEN, en este caso operador
+   #+END_QUOTE
+* Nivel Sintáctico
+** [WAITING] Problema 1 (2021-03-10)
+*** Enunciado
+   #+BEGIN_QUOTE
+    Indique todas las afirmaciones verdaderas acerca del *Análisis Sintáctico*
+    
+    1. Recibe una *secuencia de tokens*
+    2. Un *parser* diferencia *expresiones de sentencias*
+    3. Puede detectar el error de variable no declarada.
+    4. ~printf(main)~ es siempre *sintácticamente correcto*
+    5. Aplica el *orden de evaluación* del *operador ternario* ~?:~
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   El Parser no sabe si una variable fue declarada o no, porque no conoce el contexto
+   (el analizador semántico si, por tanto si ocurriera sería un error semántico)
+   #+END_QUOTE
+
+   #+BEGIN_COMMENT
+   <<DUDA>>: está ok esto?
+   El *analizador sintáctico* recibe una secuencia de *TOKENS*
+   (generados por el analizador léxico, pero los guarda el Parser en la TS TAbla de Simbolos (???) <- no?
+   
+   <<DUDA>>: está ok esto?
+   El Parser diferencia entre *expresiones* y *sentencias*, porque es parte de las reglas sintácticas de la BNF de c <--- no?  (???)
+
+   <<DUDA>>: está ok esto?
+   la expresión ~printf(main)~ es sintácticamente correcta porque se puede derivar de la BNF de C,
+   pero es semanticamente incorrecta porque la firma de printf espera una cadena de caracteres como primer argumento
+   
+   <<DUDA>>: está ok esto?
+   C especifica que el *orden de evaluación del operador ternario* ~exp1 ? exp2 : exp3~ es de de izq. a derecha,
+   el Parser evalúa de Izq a Der ó Der a Izq según la precedencia/asociatividad de los operadores en las
+   reglas sintácticas de la BNF de c
+   #+END_COMMENT
+** [TODO] Problema 2 (2021-02-17) <- pendiente yacc/bison
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique todas las afirmaciones verdaderas sobre el *análisis sintáctico*:
+   
+   1. Detecta un error en ~printf()~
+   2. Recibe una *secuencia de caracteres*
+   3. Lo puede realizar la salida de *yacc/bison*
+   4. Puede diferenciar si un *token* se usa como *puntuación* u *operador*
+   5. Puede detectar un error en la cantidad de argumentos usados al invocar una función.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) FALSO. Es un error semántico, que lo detecta el Analizador Semántico
+
+   (2) FALSO. El analizador sintáctico recibe una secuencia de TOKENs (generados por el analizador léxico)
+
+   (4) VERDADERO. En las reglas sintácticas de la BNF de C (ó constructos sintácticos)
+
+   (5) FALSO. Es el analizador semántico, que chequea la cant. de argumentos de invocar una función,
+   comparando con la firma de la función
+   #+END_QUOTE
+
+   #+BEGIN_COMMENT
+   <<DUDA>>: La última estará ok (???)
+   #+END_COMMENT
+** [TODO] Problema 3 (2020-03-03)
+*** Enunciado
+   #+BEGIN_QUOTE
+   1. Indique el valor de verdad de la siguiente afirmación y justifique:
+      *La sintaxis de C especifica el orden de evaluación de los operandos* y *la precedencia de los operadores*
+   2. Escriba un fragmento breve que sea sintáctimente válido tanto en C y como en C++, pero
+      que tenga diferente semántica para cada LP.  
+   #+END_QUOTE
+*** Respuesta
+** [TODO] Problema 4 (2020-02-12) (2020-02-18)
+*** Enunciado
+   #+BEGIN_QUOTE
+   1. Ejemplifique brevemente un aspecto sintáctico en el cual el LP C es
+      diferente a otro LP que usted conozca. Justifique.
+   2. Indique y justifique el valor de verdad de la siguiente afirmación:
+      Los LP C y C++ tienen la misma sintaxis.
+   #+END_QUOTE
+** [WAITING] [#A] Problema 5 (2019-12-11) <- pendiente PAS
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca del *análisis sintáctico*
+   
+   1. Un *parser* procesa *expresiones*
+   2. Un *PAS* puede invocar al *scanner*
+   3. ~s(printf)~ es siempre *sintácticamente correcto*
+   4. El *operador de acceso a miembro* ~(.)~ *es conmutativo*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: (1) está ok la justificación?
+
+   <<DUDA>>: (3) como la derivamos de la BNF?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) FALSO, procesa una secuencia de TOKENs (son lexemas, que el Scanner generó según las reglas léxicas de una secuencia de caracteres)
+   
+   (3) VERDADERO, la expresión ~s(printf)~ la podemos derivar de la BNF de C
+   
+   (4) FALSO, el operador ~.~ de acceso a miembro no es conmutativo,
+   el operando de la derecha es el miembro al que se accederá del operando de la izquierda
+   (/Ej. struct { int x, y; } pos; no es lo mismo pos.x que x.pos/)
+   #+END_QUOTE
+
+   #+BEGIN_QUOTE
+   <expresión> ->
+     <expresión de asignación> |
+     <expresión> , <expresión de asignación>
+     
+   <expresión de asignación> ->
+     <expresión condicional> |
+     <expresión unaria> <operador asignación> <expresión de asignación>
+     
+   <operador asignación> -> uno de
+     = *= /= %= += -= <<= >>= &= ^= |=
+
+   <expresión unaria> ->
+     <expresión sufijo> |
+     ++ <expresión unaria> |
+     -- <expresión unaria> |
+     <operador unario> <expresión de conversión> |
+     sizeof <expresión unaria> |
+     sizeof (<nombre de tipo>)
+     <expresión sufijo> ->
+
+   <expresión primaria> |
+     <expresión sufijo> [<expresión>] | /* arreglo */
+     <expresión sufijo> (<lista de argumentos>?) | /* invocación */
+     <expresión sufijo> . <identificador> |
+     <expresión sufijo> -> <identificador> |
+     <expresión sufijo> ++ |
+     <expresión sufijo> --
+
+   <expresión primaria> ->
+     <identificador> |
+     <constante> |
+     <constante cadena> |
+     (<expresión>)
+   #+END_QUOTE
+** [TODO] Problema 6 (2019-12-04) <- pendiente YACC
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca del *análisis sintáctico*
+   
+   1. *Yacc* es un *parser*
+   2. Un parser procesa una *secuencia de tokens*
+   3. En C, ~prontf("hola")~ es siempre *sintácticamente correcto*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (2) VERDADERO, el Parser ó Analizador Sintáctico lee una secuencia de tokens (generados por el Scanner)
+
+   (5) VERDADERO
    #+END_QUOTE
 * Nivel Semántico
 ** Problema 1 (2021-08-04)
@@ -1092,80 +1414,56 @@ Chequear por "sintesis" del compilador
    La (4) es un warning que arroja el compilador,
    se necesita saber más detalle de eso?
    #+END_COMMENT
-* Nivel Sintáctico
-** [WAITING] Problema 1 (2021-03-10)
+** Problema 4 (2019-12-11)
 *** Enunciado
    #+BEGIN_QUOTE
-    Indique todas las afirmaciones verdaderas acerca del *Análisis Sintáctico*
-    
-    1. Recibe una *secuencia de tokens*
-    2. Un *parser* diferencia *expresiones de sentencias*
-    3. Puede detectar el error de variable no declarada.
-    4. ~printf(main)~ es siempre *sintácticamente correcto*
-    5. Aplica el *orden de evaluación* del *operador ternario* ~?:~
+   Tilde todas las afirmaciones verdaderas acerca del *análisis semántico*
+   
+   1. Tiene en cuenta el contexto.
+   2. Hay un *error semántico* en ~while++~
+   3. Detecta errores de programación (bugs).
+   4. Usa los *prototipos* para validar las invocaciones.
+   5. ~s(printf)~ es siempre *semánticamente correcto*
    #+END_QUOTE
 *** Respuesta
    #+BEGIN_QUOTE
-   El Parser no sabe si una variable fue declarada o no, porque no conoce el contexto
-   (el analizador semántico si, por tanto si ocurriera sería un error semántico)
-   #+END_QUOTE
+   (1) VERDADERO, en el Análisis Semántico se chequea el contexto (Ej. puede analizar si al invocar una función, ésta respeta su firma)
 
-   #+BEGIN_COMMENT
-   <<DUDAS>>
-   El *analizador sintáctico* recibe una secuencia de *TOKENS*
-   (generados por el analizador léxico, pero los guarda el Parser en la TS TAbla de Simbolos (???) <- no?
-   
-   El Parser diferencia entre *expresiones* y *sentencias*, porque es parte de las reglas sintácticas de la BNF de c <--- no?  (???)
-   
-   la expresión ~printf(main)~ es sintácticamente correcta, pero semanticamente incorrecta,
-   porque printf espera una cadena de caracteres como primer argumento <--- no? (???)
-   
-   C especifica que el *orden de evaluación del operador ternario* ~exp1 ? exp2 : exp3~ es de de izq. a derecha,
-   el Parser evalúa de Izq a Der ó Der a Izq según la precedencia/asociatividad de los operadores en las
-   reglas sintácticas de la BND de c <-- no? (???)
-   #+END_COMMENT
-** [TODO] Problema 2 (2021-02-17) <- pendiente yacc/bison
+   (2) FALSO, ~while++~ es un *error SINTACTICO*,
+   porque el Parser al derivar de la BNF sabe que luego del ~while~ no espera un operador ~++~
+
+   (3) FALSO,
+
+   (4) VERDADERO, en el Analisis Semántico se usa los prototipos para validar las invocaciones
+   porque se tiene en cuenta el contexto
+
+   (5) FALSO, ~s(printf)~ no es *semanticamente correcto*
+   porque la firma/prototipo de ~printf~ espera al menos un parámetro
+   #+END_QUOTE
+** [DOING] Problema 5 (2019-12-04)
 *** Enunciado
    #+BEGIN_QUOTE
-   Indique todas las afirmaciones verdaderas sobre el *análisis sintáctico*:
+   Tilde todas las afirmaciones verdaderas acerca del *análisis semántico*
    
-   1. Detecta un error en ~printf()~
-   2. Recibe una *secuencia de caracteres*
-   3. Lo puede realizar la salida de *yacc/bison*
-   4. Puede diferenciar si un *token* se usa como *puntuación* u *operador*
-   5. Puede detectar un error en la cantidad de argumentos usados al invocar una función.
+   1. Es parte del compilador.
+   2. Detecta un error en ~printf("%d")~ <-- Ojo..!
+   3. Vincula con las funciones de biblioteca.
+   4. Detecta inconsistencias de tipo de dato.
+   5. En C, ~prontf("hola")~ es siempre *semánticamente correcto*
    #+END_QUOTE
 *** Respuesta
    #+BEGIN_QUOTE
-   (1) FALSO. Es un error semántico, que lo detecta el Analizador Semántico
+   (1) VERDADERO, es la 3º etapa (1ro léxico, 2do sintáctico, 3ro semántico)
 
-   (2) FALSO. El analizador sintáctico recibe una secuencia de TOKENs (generados por el analizador léxico)
+   (2) FALSO, devuelve un valor basura
 
-   (4) VERDADERO. En las reglas sintácticas de la BNF de C (ó constructos sintácticos)
+   (3) FALSO, es el Linker/Enlazador quien vincula con funciones de biblioteca
 
-   (5) FALSO. Es el analizador semántico, que chequea la cant. de argumentos de invocar una función,
-   comparando con la firma de la función
-   #+END_QUOTE
+   (4) VERDADERO, el Analizador Semantico verifica si el operador espera un tipo especifico de operando
+   (Ej. un error semántico sería ~int a[5];~  porque el operador ~[]~ espera una *constante entera* no una *constante real*)
 
-   #+BEGIN_COMMENT
-   <<DUDA>>: La última estará ok (???)
-   #+END_COMMENT
-** [TODO] Problema 3 (2020-03-03)
-*** Enunciado
-   #+BEGIN_QUOTE
-   1. Indique el valor de verdad de la siguiente afirmación y justifique:
-      *La sintaxis de C especifica el orden de evaluación de los operandos* y *la precedencia de los operadores*
-   2. Escriba un fragmento breve que sea sintáctimente válido tanto en C y como en C++, pero
-      que tenga diferente semántica para cada LP.  
-   #+END_QUOTE
-*** Respuesta
-** [TODO] Problema 4 (2020-02-12) (2020-02-18)
-*** Enunciado
-   #+BEGIN_QUOTE
-   1. Ejemplifique brevemente un aspecto sintáctico en el cual el LP C es
-      diferente a otro LP que usted conozca. Justifique.
-   2. Indique y justifique el valor de verdad de la siguiente afirmación:
-      Los LP C y C++ tienen la misma sintaxis.
+   (5) FALSO, depende del contexto, ~prontf("hola")~ puede ser semánticamente incorrecto,
+   si el prototipo de ~prontf~ espera otro tipo que no sea una cadena de caracteres
    #+END_QUOTE
 * Errores de Compilación
 ** Errores Léxicos
@@ -1394,6 +1692,18 @@ Chequear por "sintesis" del compilador
      o en el cuerpo de un ciclo. La sentencia return con una expresión
      no puede aparecer en una función void.
    #+END_QUOTE
+* [TODO] Yacc/Bison
+** Problema 1 (2019-12-11)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la siguiente gramática:
+   E → E + T | T
+   T → T * F | F
+   F → 1 | 2 | 3
+   
+   Indique si las siguientes afirmaciones son verdaderas o falsas y justifique su respuesta   
+   1. Puede ser implementada directamente, es decir, sin aplicar ninguna transformación a la gramática, por *Yacc/Bison*
+   #+END_QUOTE
 * [WAITING] Automatas
 ** Ejemplo 1
 *** Problema
@@ -1447,4 +1757,24 @@ Chequear por "sintesis" del compilador
 
    #+BEGIN_QUOTE
    Analice la *sentencia* de la línea 3, dibuje el *árbol asociado a la expresión*
+   #+END_QUOTE
+*** Problema 3 (2019-12-11)
+**** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca del *análisis sintáctico*
+   
+   1. En un *árbol de derivación*, los nodos internos son variables.
+   #+END_QUOTE
+*** Problema 4 (2019-12-04)
+**** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca del *análisis sintáctico*
+   
+   1. En un *árbol de derivación*, las hojas son *tokens*
+   2. En C, la expresión ~a+b+c~ tiene un único *árbol de derivación*
+   #+END_QUOTE
+*** Problema 5 (2019-12-04)
+**** Enunciado
+   #+BEGIN_QUOTE
+   Dibuje el *árbol de expresión* para ~f(x).a[i]~
    #+END_QUOTE
