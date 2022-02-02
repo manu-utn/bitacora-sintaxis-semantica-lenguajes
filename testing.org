@@ -761,6 +761,94 @@
        return 0;
      }
    #+END_SRC
+** Probando 12
+   #+BEGIN_SRC C
+     #include <stdio.h>
+     #include <stdlib.h>
+
+     //struct { S s;}S;
+     //struct S{ struct S x; };
+
+     struct P{}; struct { struct P x; } p;
+
+     int a(){}; //int(*)() = &a; // anda
+
+     struct { int b; } arr[10];
+     const struct { int b; } vector[10];
+
+     void s(int(*) (const char*, ...)){ }
+
+     int sumar(){}
+
+     struct { int x; } X;
+
+     struct PE{ int *x; } *pe;
+     struct { int x[10]; int y[10]; } po = {0};
+
+     int main(){
+             pe = malloc(sizeof(struct PE));
+             pe->x = malloc(sizeof(int));
+             ,*pe->x = 50;
+             ,*(pe->x) = 40; // `->` mas precedencia que `*`
+             printf("pe->x = %d\n", *(pe->x)); // `->` mas precedencia que `*`
+             printf("pe->x[0]=%d\n", pe->x[0]);
+             printf("++pe->x[0]=%d\n", ++pe->x[0]); // prioridad: ->, [], ++
+
+             printf("\n\n");
+
+             printf("po.x[0]=%d \t ++po.x[0]=%d\n", po.x[0], ++po.x[0]);
+             printf("po.y[0]=%d \t po.y[0]++=%d\n", po.y[0], po.y[0]++);
+             //5 = 1; if(1);
+             //5=1;
+             //X++;
+
+             //char* opcion;
+             //switch(opcion);
+
+             int n =0;
+             n++;
+             //n[0];
+
+             char* palabra = "hola";
+             //palabra = 'a';
+
+             char cadena[] = "ABC";
+             cadena[0] = 'a';
+             ,*cadena = 'a';
+             ,*(cadena+0) = 'a';
+             //cadena = 'a';
+             //cadena+1 = 'a';
+
+             sumar + 5;
+             printf("%p\n", sumar);
+             //printf("%d %s %c");
+
+             s(printf);
+             a(printf);
+
+             printf;
+             // while(1) printf;
+
+             int c = vector[0].b;
+             a;
+
+             arr[1].b = 5;
+ 
+             printf;
+
+             if(1);
+             if(1) 2;
+             if(0.5);
+             if('a');
+             if("aa");
+             int* ptr; if(ptr);
+             int v[5]; if(v);
+
+             printf("hola\n");
+
+             return 0;
+     }
+   #+END_SRC
 * Referencias
   1. https://www.tenouk.com/cpluscodesnippet/chardecimalhexoctal.html
   2. https://slidetodoc.com/parsing-tools-introduction-to-bison-and-flex-1/
