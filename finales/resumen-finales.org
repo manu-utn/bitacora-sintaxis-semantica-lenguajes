@@ -1012,6 +1012,119 @@ Chequear por "sintesis" del compilador
       no en toda la (UT) *Unidad de Traducción* que está formado por uno ó varios .c con uno ó varios archivos .h
    5) FALSO, la (UT) puede tener sólo las declaraciones de los identificadores para compilar correctamente
    #+END_QUOTE
+** [WAITING] [#A] Problema 17 (2019-09-24)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Sea ~char v[]="ABC";~ tilde todas las expresiones que sí son *ValorL*:
+   
+   1. v
+   2. *v
+   3. v+1
+   4. v[3]
+   5. v<v+1
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: porque ~v~ es lvalue? no representa al objeto osea una posición de memoria, por tanto un valor numérico
+
+   <<DUDA>>: porque ~v+1~ es lvalue? no es un valor numérico?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   |-------+-----------------------------------------------------------------------------------|
+   | *v    | SI es lvalue, apunta al primer elemento del arreglo es equivalente a ~v[0]~       |
+   |-------+-----------------------------------------------------------------------------------|
+   | v[3]  | SI es lvalue, es equivalente a ~*(v+3)~                                           |
+   |-------+-----------------------------------------------------------------------------------|
+   | v<v+1 | NO es lvalue, porque devuelve una constante entera como resultado de la expresión |
+   |-------+-----------------------------------------------------------------------------------|
+   #+END_QUOTE
+** [WAITING] [#A] Problema 18 (2019-09-24)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todos los conceptos que se pueden definir con el *BNF del LF Expresiones de C*:
+   
+   1. *Efecto de lado* de la expresión.
+   2. *Precedencia* de los operadores.
+   3. *Asociatividad* de los operadores.
+   4. *Orden de evaluación* de los operandos.
+   5. *Aridad* (cantidad de operandos) de los operadores
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: Donde está definido el efecto de lado de C? En el MROC?
+   
+   <<DUDA>>: La asociatividad y la precedencia, indican el orden de las operaciones (osea la *Secuenciación*) ?
+
+   <<DUDA>>: yo tenía anotado que...
+   la SEMÁNTICA especifíca el orden de evaluación de los operandos ?
+   y la SINTAXIS especifíca la asociatividad y precedencia de los operadores ?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) FALSO
+
+   (2) VERDADERO
+
+   (3) VERDADERO
+
+   (4) FALSO, de los operadores
+   
+   (5) VERDADERO
+   #+END_QUOTE
+** Problema 19 (2019-09-24)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión: ~a[i]+s.m~      
+   
+   1) A nivel sintáctico: Enumere los *operadores* y su *precedencia* relativa en la expresión dada; cero es la menor precedencia:
+   2) A nivel semántico: Escriba las declaraciones que hagan semánticamente correcta a la expresión:
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1)  (a[i])  + (s.m)
+   |-------------+----------|
+   | Precedencia | Operador |
+   |-------------+----------|
+   |         0   | +        |
+   |         1   | .        |
+   |         1   | []       |
+   |-------------+----------|
+   #+END_QUOTE
+
+   #+BEGIN_SRC C
+     int i, a[10];
+     struct { int m; } s;
+   #+END_SRC
+** Problema 20 (2019-07-29)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Sea la expresión ~++automata->finales[i]~
+   
+  1. Reescriba la *expresión* con *paréntesis redundantes* que expliciten la *precedencia y la asociatividad*
+  2. Escriba las *declaraciones* para que sea *semánticamente correcta*
+   #+END_QUOTE
+*** Respuesta
+  #+BEGIN_QUOTE
+  | 1 | ++automata->finales[i]     |                                                                                    |
+  |---+----------------------------+------------------------------------------------------------------------------------|
+  | 2 | ++(automata->finales)[i]   | el ~->~ tiene más precedencia que los tres, accede al miembro del puntero a struct |
+  |---+----------------------------+------------------------------------------------------------------------------------|
+  | 3 | ++((automata->finales)[i]) | el ~[]~ tiene más precedencia que ~++~, accede al elemento del arreglo             |
+  |---+----------------------------+------------------------------------------------------------------------------------|
+  | 4 | ++((automata->finales)[i]) | el ~++~ es el de menor precedencia                                                 |
+
+  Por tanto la expresión quedaría ~++ ( ( automata -> finales ) [i])~
+  #+END_QUOTE
+
+  #+BEGIN_SRC C
+    // otra manera..: struct { int finales; } *automata;
+
+    int i;
+    struct Estado{ /*...*/ };
+    struct { Estado* finales; } Automata;
+    Automata* automata;
+  #+END_SRC
 * Nivel Léxico
 ** Problema 1
 *** Enunciado
@@ -1351,7 +1464,7 @@ Chequear por "sintesis" del compilador
      // - es lvalue porque b es un miembro del struct a, y es un operando
      // válido para el operador de asignacion =
      // - no es modificable porque el struct lo impide, es de sólo lectura por ser const
-     a[1].b = 5;
+     c = a[1].b;
    #+END_SRC
 ** Problema 2 (2021-03-10)
 *** Enunciado
@@ -1437,10 +1550,10 @@ Chequear por "sintesis" del compilador
    (4) VERDADERO, en el Analisis Semántico se usa los prototipos para validar las invocaciones
    porque se tiene en cuenta el contexto
 
-   (5) FALSO, ~s(printf)~ no es *semanticamente correcto*
-   porque la firma/prototipo de ~printf~ espera al menos un parámetro
+   (5) FALSO, ~s(printf)~ podría no ser *semanticamente correcto* si el prototipo de ~s~ es ~int s(int)~ ó ~int s(char)~
+   pero sería válido si fuese ~int s()~ ó ~int s(int(*) (const char*, ...))~
    #+END_QUOTE
-** [DOING] Problema 5 (2019-12-04)
+** Problema 5 (2019-12-04)
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde todas las afirmaciones verdaderas acerca del *análisis semántico*
@@ -1465,21 +1578,173 @@ Chequear por "sintesis" del compilador
    (5) FALSO, depende del contexto, ~prontf("hola")~ puede ser semánticamente incorrecto,
    si el prototipo de ~prontf~ espera otro tipo que no sea una cadena de caracteres
    #+END_QUOTE
+** Problema 6 (2019-07-29)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Escriba un ejemplo de una *expresión C* con por lo menos un *error semántico*. Justifique
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_SRC C
+     // Tiene error semántico, porque al invocar printf debe coincidir con su prototipo
+     // y espera al menos una cadena de caracteres como primer parámetro
+     printf();
+
+     printf(1); // error semántico, idem anterior
+
+     // Tiene error semántico porque el `1` es una constante entera por tanto
+     // no es un lvalue válido para el operador `++`
+     1++;
+
+     // Tiene error semántico porque se está declarado dos veces el mismo identificador
+     // en el mismo scope/ámbito
+     int a; char a;
+
+     int n;
+     n[0]; // error semántico porque `n` no es vector ni puntero
+
+     char* opcion;
+     switch(opcion); // error semántico porque `opcion` no es un entero
+
+     struct {} X;
+     X++; // error semántico, un `struct` no es un tipo válido como operando para `++`
+
+     5 = 10; // el `5` no es un lvalue válido para `=`
+   #+END_SRC
+** [WAITING] Problema 7 (2019-07-15)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Escriba un ejemplo de una *declaración C* con por lo menos un *error semántico*. Justifique.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   Los dos de abajo son de la resolución, deberian estar bien, pero no son errores sintácticos?
+   
+   <<DUDA>>: ~int double valor;~ no es error sintactico? // <-- multiples tipos en los especificadores de tipo de la declaración (es int ó double, no ambos)
+   
+   <<DUDA>>: ~static auto int edad;~ no es error sintáctico? // <-- multiples clases de almacenamiento en el especificador de la declaración (es static ó auto, no ambos)
+   #+END_COMMENT
+   
+   #+BEGIN_SRC C
+     // redeclaración de un identificador en el mismo scope
+     int a, a;
+     struct {int x; int x;} X;
+
+     // el tamaño del vector no es un tipo entero
+     int b[0.5];
+   #+END_SRC
 * Errores de Compilación
+** Mix
+   #+BEGIN_SRC C
+     printf("%d");  // OK, devuelve un valor basura
+
+     struct{ } printf; // no produce error, `printf` no es una keyword
+     struct{ } main; // no produce error, `main` no es una keyword
+
+     int a(){ }
+     a; // no produce error
+     
+     int b(int x){ return x; }
+     b; // no produce error
+     b('a'); // no produce error, porque 'a' es un caracter y representa un valor númerico de la tabla ascii
+   #+END_SRC
 ** Errores Léxicos
 ** Errores Sintácticos
-** Errores Semánticos
-*** Ejemplo 1
    #+BEGIN_QUOTE
-   Analizar la siguiente declaración: ~int f ( int ) ;~
-   y escriba, con la mínima cantidad de *tokens*, una *sentencia semánticamente correcta* que use ~f~
+   <sentencia> -> <sentencia expresión> | <sentencia compuesta> | <sentencia de selección> | <sentencia de iteración> | <sentencia etiquetada> | <sentencia de salto>
+   
+   <sentencia de selección> ->
+     if (<expresión>) <sentencia> |
+     if (<expresión>) <sentencia> else <sentencia> |
+     switch (<expresión>) <sentencia>
+     La expresión e controla un switch debe ser de tipo entero.
+   
+   <sentencia expresión> -> <expresión>? ;
    #+END_QUOTE
    
    #+BEGIN_SRC C
-     f(0); // sentencia expresión
+          // - no es error sintáctico porque se puede derivar de la BNF
+          // - es error semántico, porque el prototipo de printf espera una cadena de caracteres como primer parámetro
+          printf(main); 
+          printf(); // idem que el anterior
+          printf(printf); // idem que el anterior
 
-     f; // <-- alternativa interesante, no arroja error
+     // ERROR sintáctico, al derivar de la BNF no espera el operador `-` seguido de la keyword `for`,
+     for-while ;     
+   #+END_sRC
+** Errores Semánticos
+   #+BEGIN_SRC C
+     printf("%d"); // Ok, no produce error, imprime un valor basura
+     
+     // - NO es error semántico. Es error sintáctico, debe ser del tipo `while(exp) sentencia` ó `while(exp){ sentencia }`
+     while++;
+
+     // Es error semántico según el contexto, Ej. si fue declarada previamente en el mismo scope/ámbito
+     int v[5];
+
+     // Es error semántico según el contexto,
+     // - ERROR semántico si el prototipo de s es `int s(char);`
+     // - NO es error si el prototipo de s es `int s()`
+     // - NO es error si el prototipo de es `s(int(*) (const char*, ...))`
+     s(printf);
+
+
+     // -----------------------------------------------------------------------------------------------------
+
+     // - ERROR Semántico, porque tiene que ser del tipo `if(expresion)`
+     if();
+
+     // - estos otros no producen error porque son del tipo `if(expresion)`
+     if(1); if(0.5); if('a'); if("abc"); // ok
+     int* ptr; if(ptr); // ok
+     int v[5]; if(v); // ok
+
+     // -----------------------------------------------------------------------------------------------------
+
+     // - ERROR Semántico, tipo de dato incompleto. NO es error sintáctico porque puede derivar
+     struct S{struct S m;};
+
+     // - No produce error, se declaró la estructura `P` y luego se declaró `x` que es del tipo `struct P`
+     struct P{}; struct { struct P x; } p;
+
+     // -----------------------------------------------------------------------------------------------------
+
+     int b(int x){ return x; }
+     b; // no arroja error, es una sentencia semanticamente correcta, que usa la minima cantidad de TOKENs
+     b(0); // sentencia expresión
+     b("hola"); // ERROR semántico, la invocación de `b` no coincide con su prototipo
+
+     // -----------------------------------------------------------------------------------------------------
+
+     prontf("hi"); // Es error semántico según el contexto, arroja error si el prototipo de `prontf` no coincide con su invocación
+
+     // - es error semántico, porque el prototipo de printf espera una cadena de caracteres como primer parámetro
+     printf(main);
+     printf(); // idem que el anterior
+
+               // -----------------------------------------------------------------------------------------------------
+
+               // - La expresión `c = a[1].b` es semánticamente válida
+               // - La expresión `a[0].b` es un lvalue NO MODIFICABLE
+     int c;
+     const struct { int b; } a[10];
+     c = a[1].b;
+
+     // -----------------------------------------------------------------------------------------------------
+
+     // Alternativa #1 - No produce error semántico en `c=a[1].b`
+     int c; struct { int b; } a[10];
+     c = a[1].b; // no es error semańtico, por el contexto
+
+     // Alternativa #2 - ERROR semántico en `c=a[1].b`
+     // - porque `a` no es un arreglo del tipo struct
+     int c, a;
+     c = a[1].b; // ERROR semańtico, por el contexto
    #+END_SRC
+* Etapas compilación
+** [TODO] Problema 1 (2019-07-29)
+   #+BEGIN_QUOTE
+   Indique cuál es la entrada a la parte (o proceso) de *síntesis de un compilador*
+   #+END_QUOTE
 * Lenguajes Formales
 ** Conceptos básicos
 *** Relación con la BNF de C
@@ -1691,7 +1956,7 @@ Chequear por "sintesis" del compilador
      ciclo. La sentencia break solo debe aparecer dentro de un switch
      o en el cuerpo de un ciclo. La sentencia return con una expresión
      no puede aparecer en una función void.
-   #+END_QUOTE
+   #+END_QUOTE 
 * [TODO] Yacc/Bison
 ** Problema 1 (2019-12-11)
 *** Enunciado
