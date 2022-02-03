@@ -1,5 +1,5 @@
 * Pruebas en C
-** Probando 1
+** Aritmética de Punteros + ungetc + valorL no modificable
 #+BEGIN_SRC C
   #include <stdio.h>
   #include <ctype.h>
@@ -37,11 +37,11 @@
           //
           // ptr2 = &numero2;
 
-          // diferencias???
+          // lvalue no modificables, por ser const
           const int n1 = 5; // constante entera, no se puede modificar su valor después
           int const n2 = 5; // apunta a 5, y no puede cambiar su dirección x tanto tmpc su valor
           // ambos darán error "asignación a variable de sólo lectura"
-          //n1 = 2; 
+          //n1 = 2;
           //n2 = 1;
 
           // --------------------------------------------------------------------
@@ -117,7 +117,7 @@
           return 0;
   }
 #+END_SRC
-** Probando 2
+** Orden de Evaluación de operadores (Asociatividad+Precedencia)
    #+BEGIN_SRC C
      #include <stdio.h>
 
@@ -146,7 +146,7 @@
        return 0;
      }
    #+END_SRC
-** Probando 3
+** Puntero a Struct + Operador Ternario + Arimética de Punteros
    #+BEGIN_SRC C
      #include <stdio.h>
      #include <stdlib.h>
@@ -265,7 +265,7 @@
              return 0;
      }
    #+END_SRC
-** Probando 4
+** Structs + Identificadores Vs Constantes Enteras/Reales
    #+BEGIN_SRC C
      #include <stdio.h>
 
@@ -348,7 +348,7 @@
              return 0;
      }
    #+END_SRC
-** Probando 5
+** Scope/Ambito + Unidad de Traducción + Errores Semánticos
    #+BEGIN_SRC C
      #include <stdio.h>
 
@@ -375,7 +375,7 @@
        return 0;
      }
    #+END_SRC
-** Probando 6
+** Scope/Ambito + Punteros
    #+BEGIN_SRC C
      #include <stdio.h>
 
@@ -408,7 +408,7 @@
        return 0;
      }
    #+END_SRC
-** Probando 7
+** Expresiones validas, Evaluar expresiones, Operadores (Precedencia y Asociatividad)
    #+BEGIN_sRC C
      #include <stdio.h>
 
@@ -490,7 +490,7 @@
              return 0;
      }
    #+END_SRC
-** Probando 8
+** Evaluación de expresiones con Operadores como prefijo y sufijo
    #+BEGIN_sRC C
      #include <stdio.h>
 
@@ -522,7 +522,7 @@
        return 0;
      }
    #+END_SRC
-** Probando 9
+** Punteros + Simbolos como Punctuator/Operador + Operadores Precedencia y Asociatividad
    #+BEGIN_SRC C
      #include <stdio.h>
 
@@ -659,7 +659,7 @@
              return 0;
      }
    #+END_SRC
-** Probando 10
+** Identificadores Válidos + Tipos de Constantes
    #+BEGIN_SRC C
      #include <stdio.h>
      #include <string.h>
@@ -730,7 +730,7 @@
              return 0;
      }
    #+END_SRC
-** Probando 11
+** Jugando con Printf
    #+BEGIN_sRC C
      #include <stdio.h>
 
@@ -761,7 +761,7 @@
        return 0;
      }
    #+END_SRC
-** Probando 12
+** Precedencia de Operadores y Expresiones Sintacticamente Correctas
    #+BEGIN_SRC C
      #include <stdio.h>
      #include <stdlib.h>
@@ -833,7 +833,7 @@
              a;
 
              arr[1].b = 5;
- 
+
              printf;
 
              if(1);
@@ -845,6 +845,171 @@
              int v[5]; if(v);
 
              printf("hola\n");
+
+             return 0;
+     }
+   #+END_SRC
+** Errores semánticos
+   #+BEGIN_SRC C
+     #include <stdio.h>
+     #include <stdlib.h>
+
+     int main(){
+             // (1==1) ? "a" : 'b';
+
+             // ---------------------------------------
+
+             int*a,*b,*ptr,c;
+             a=malloc(sizeof(int));b=malloc(sizeof(int));
+             c=9;*a=5,*b=10;printf("a=%d, b=%d, c=%d\n",*a,*b,c);
+
+             // (ptr  == &c) es verdadero, porque `ptr` apunta a la dirección de `c`
+             // (&ptr == &c) es falso, porque `&ptr` apunta a la dirección de `ptr` (de la variable/objeto)
+             ptr=&c;printf("ptr=%x, &ptr=%x\nc=%x, &c=%x\n",ptr,&ptr,c,&c);
+
+             printf("\n");
+             // ---------------------------------------
+
+             char* cadena = "abc";
+             printf(cadena); // ok, sin error porque espera como primer parámetro un char*
+             printf("%c\n", "\n"); // el valor de \n
+
+             void*p;printf(p); // ok, sin error
+
+             printf(0); // ok, sin error
+             // printf(7); // error semántico, error de tipo
+             //printf((char*) 'a'); // error semántico, error de tipo
+
+
+             //static int f;printf(f); // error, aunque f esté inicializado en 0 por ser static
+
+             printf("\n");
+             // ---------------------------------------
+
+             int x=3,y=7,z=y;y+=x++<=3;z+=++x<=3;printf("x=%d, y=%d, z=%d\n",x,y,z);
+
+             return 0;
+     }
+   #+END_SRC
+** Errores Semánticos y Valor-L Modificables Vs Valor-L NO modificables
+   #+BEGIN_SRC C
+     #include <stdio.h>
+     #include <stdlib.h>
+
+     struct X{int x;}X1; // `X` es un lvalue modificable
+     //struct{const int y; int z;}Y;
+     struct Y{const int y; int yy;}Y1;
+     int main(){
+             int n[5]={0}, m[5]={1};
+
+             // -----------------------------------------
+             const int r; // el identificador `x` es un lvalue NO modificable
+             const int vector[10]; // hacemos a `vector` un lvalue NO modificable
+
+             char a[10]; // declaración de `a`
+             // los siguientes son lvalue modificables, porque apuntan a una dirección de memoria
+             //a; // puntero, `a` apunta al principio de la dirección del array, a la dir. del primer elemento osea &a[0]
+             a;
+
+             a[0]; // expresión de subindice [], no se evalúa como arreglo completo porque apunta a la dirección del primer elemento
+             a[0]=1; // es lvalue porque podemos hacer esto
+
+             ,*a; // expresión de direccionamiento, el operando es `a`, la exp apunta a la dirección del primer elemento
+             ,*a=0; // es lvalue porque podemos hacer esto
+
+             ,*(a+0); // expresión de direccionamiento, apunta a la dirección del primer elemento
+             ,*(a+0)=0; // es lvalue porque podemos hacer esto
+
+             struct B{int x;}*b; // declaración de `b`, tipo puntero a struct B
+             // los siguientes son lvalue modificables
+             b; // puntero, apunta a `b`
+             ,*b; // expresión de direccionamiento unario, el operando es `b`
+             b->x; // expresión de selección de miembro, los operandos son b,x
+             (*b).x; // expresión de selección de miembro, con subexpresión de direccionamiento unario
+
+             b=malloc(sizeof(struct B));
+             struct B b1={1};
+             b[0]=b1;
+
+             // -----------------------------------------
+
+             int x; // `x` es un lvalue modificable
+             const int y; // `y` es un lvalue NO modificable
+
+             x=1;
+             //X1 = 5; // error semántico, tipos incompatibles
+
+             Y1.yy=1;
+             //Y1.y=5; // error semántico, el miembro `y` es un lvalue NO modificable
+
+             struct Y Y2={2,2};
+             printf("Y1.y=%d, Y1.yy=%d\n",Y1.y,Y1.yy);
+             printf("Y2.y=%d, Y2.yy=%d\n",Y2.y,Y2.yy);
+
+             printf("\n");
+             // -----------------------------------------
+
+             char cadena[10];
+
+             // - el identificador `cadena` es un lvalue modificable,
+             // porque apunta a una dirección de memoria (es un objeto)
+             // - apunta al primer elemento del array
+             // - pero sólo es un operando válido para asignarle valor con [] ó *
+             cadena;
+
+             ,*cadena=2;*(cadena+0)=3;cadena[0]=3;
+
+             // `cadena[0]` también es lvalue modificable,
+             // apunta a la dirección del primer elemento
+             cadena[0];
+
+             // &cadena[0] es equivalente a &(cadena[0])
+             printf("cadena=%x, &cadena[0]=%x\n", cadena, &cadena[0]);
+             return 0;
+     }
+   #+END_SRC
+** Expresión de Asignación con multiples expresiones + Constantes Reales
+   #+BEGIN_SRC C
+     #include <stdio.h>
+
+     int main(){
+             {
+             int x,y,z,n;
+
+             x=0;
+             y=(x,1); // se le asigna la última expresión evaluada osea el 1
+             z=(x,(x,1),9); // la última expresión evaluada es 9
+             n=(x,(x,1),(1,5)); // la última expresión evaluada es 5
+
+             printf("x=%d, y=%d, z=%d, n=%d\n\n", x,y,z,n);
+             }
+
+             // ---------------------------------------------------
+
+             {
+             float a=0,x,y,z;
+             x=a+.1; // .1 es una constante real
+             y=.1+x;
+             z=.1+.1;
+
+             printf("x=%f, y=%f, z=%f\n\n",x,y,z);
+
+             x, .1, x+.1; // las expresiones son válidas
+
+             x,1==5; // las expresiones son válidas
+             }
+
+             // ---------------------------------------------------
+
+             {
+             int x=1LU; // constante entera (no haría efecto el LU, "creo")
+             long unsigned int y=1LU; // constante entera long unsigned
+
+             printf("x=%d, y=%d\n",x,y);
+
+             1LU+.1+0; // son expresiones válidas, son todos enteros
+             }
+
 
              return 0;
      }
