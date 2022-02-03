@@ -89,6 +89,18 @@ Chequear por "sintesis" del compilador
    La evaluación de la expresión ~f('A')?f('B'):f('C')~ es de Izq. a Derecha porque
    - La asociatividad del operador ternario ~exp1?exp2:exp3~ es de Izq a Der.
    #+END_QUOTE
+** Problema 3 (2019-07-015)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Sea la función ~int f(int a,int b){return&a==&b?b:a;}~, calcule ~f(x,y)~ siendo ~x~ e ~y~ *expresiones de tipo int*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   El resultado es valor ~x~ porque ~&a==&b ? b : a~ porque
+   1. Verifica si dirección de memoria de ambos parámetros es la misma
+   2. El resultado de ~&a==&b~ será ~0~ (false) porque no se cumple la condición
+   3. El operador ternario ~exp1:exp2?exp3~ evalúa la expresion3 porque el valor de la expresion1 es 0 (false)
+   #+END_QUOTE
 * Nivel Léxico + Sintactico + Semántico
 ** Conceptos básicos
 *** Constructos de un (LP)
@@ -1012,7 +1024,7 @@ Chequear por "sintesis" del compilador
       no en toda la (UT) *Unidad de Traducción* que está formado por uno ó varios .c con uno ó varios archivos .h
    5) FALSO, la (UT) puede tener sólo las declaraciones de los identificadores para compilar correctamente
    #+END_QUOTE
-** [WAITING] [#A] Problema 17 (2019-09-24)
+** [#A] Problema 17 (2019-09-24)
 *** Enunciado
    #+BEGIN_QUOTE
    Sea ~char v[]="ABC";~ tilde todas las expresiones que sí son *ValorL*:
@@ -1024,20 +1036,18 @@ Chequear por "sintesis" del compilador
    5. v<v+1
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: porque ~v~ es lvalue? no representa al objeto osea una posición de memoria, por tanto un valor numérico
-
-   <<DUDA>>: porque ~v+1~ es lvalue? no es un valor numérico?
-   #+END_COMMENT
-   
    #+BEGIN_QUOTE
-   |-------+-----------------------------------------------------------------------------------|
-   | *v    | SI es lvalue, apunta al primer elemento del arreglo es equivalente a ~v[0]~       |
-   |-------+-----------------------------------------------------------------------------------|
-   | v[3]  | SI es lvalue, es equivalente a ~*(v+3)~                                           |
-   |-------+-----------------------------------------------------------------------------------|
-   | v<v+1 | NO es lvalue, porque devuelve una constante entera como resultado de la expresión |
-   |-------+-----------------------------------------------------------------------------------|
+   |-------+-------------------------------------------------------------------------------------------------------------------------------------|
+   | v     | SI es un lvalue porque es una dirección de memoria, pero es un *lvalue NO MODIFICABLE* (/no podemos asignarle un valor ej. v=1/)    |
+   |-------+-------------------------------------------------------------------------------------------------------------------------------------|
+   | v+1   | SI es un lvalue porque también es una dir. de memoria, pero es un *lvalue NO MODIFICABLE* (/mismo caso que con el identificador v/) |
+   |-------+-------------------------------------------------------------------------------------------------------------------------------------|
+   | *v    | SI es lvalue, es una expresión de direccionamiento que apunta al primer elemento del arreglo es equivalente a ~v[0]~                |
+   |-------+-------------------------------------------------------------------------------------------------------------------------------------|
+   | v[3]  | SI es lvalue, es una expresión de subindice [] que no evalúa al arreglo completo, es equivalente a ~*(v+3)~                         |
+   |-------+-------------------------------------------------------------------------------------------------------------------------------------|
+   | v<v+1 | NO es lvalue, porque devuelve una constante entera como resultado de la expresión                                                   |
+   |-------+-------------------------------------------------------------------------------------------------------------------------------------|
    #+END_QUOTE
 ** [WAITING] [#A] Problema 18 (2019-09-24)
 *** Enunciado
@@ -1125,6 +1135,72 @@ Chequear por "sintesis" del compilador
     struct { Estado* finales; } Automata;
     Automata* automata;
   #+END_SRC
+** Problema 21 (2019-07-15)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Sea la declaración ~int x=3,y=7;~ analice la expresión ~y+=x++<=3~
+   
+   1. Enumere los tokens.
+   2. Indique si tiene *efectos sobre variables*, en ese caso, descríbalos.
+   3. Indique el *tipo y el valor de la expresión*
+   #+END_QUOTE
+*** Respuesta
+  #+BEGIN_QUOTE
+  (1) Tokens de ~y+=x++<=3~ son seis
+  |--------+-------------------------------------|
+  | lexema | tipo de token                       |
+  |--------+-------------------------------------|
+  | y      | identificador                       |
+  | +=     | operador                            |
+  | x      | identificador                       |
+  | ++     | operador (incremento como postfijo) |
+  | <=     | operador (relacional)               |
+  | 3      | constante (entera)                  |
+  |--------+-------------------------------------|
+
+  (2) Los efectos que se producen en ~y+=x++<=3~ son
+  | expresión | descripción del efecto producido                                                                    |
+  |-----------+-----------------------------------------------------------------------------------------------------|
+  | x++       | incrementa en 1 el valor de ~x~ luego de evaluar la expresión donde está contenida                  |
+  | y+=x++<=3 | se incrementa el valor de ~y~ en 1, si el ~++~ estuviera como prefijo se mantendría el valor de ~y~ |
+  |-----------+-----------------------------------------------------------------------------------------------------|
+
+  (3) El resultado de evaluar ~y+=x++<=3~ es un dato del tipo entero, y su valor es 8
+  1. y+=x++<=3
+  2. y+=3<=3
+  3. y+=1
+  4. y=7+1
+  5. y=8
+  #+END_QUOTE
+** [DOING] Problema 22 (2019-05-23)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado el siguiente fragmento de código C: ~x.1==1LU++LU~
+   
+   1. Enumere los *lexemas* en orden de aparición y separados por coma.
+   2. Justifique si el fragmento es una *expresión sintácticamente correcta* o no.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: En la resolución dice que "luego del operador sufijo ~++~ no se espera una expresión",
+   no se referirá a que no espera antes del operador una "constante real"?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Los lexemas de ~x.1==1LU++LU~ son
+   | Lexema | Tipo de Token (no lo pide)                      |
+   |--------+-------------------------------------------------|
+   | x      | identificador                                   |
+   | .1     | constante real (es double, porque no tiene ~f~) |
+   | ==     | operador                                        |
+   | 1LU    | constante entera (long unsigned)                |
+   | ++     | operador                                        |
+   | LU     | identificador                                   |
+
+   (2) La expresión ~x.1==1LU++LU~ NO es sintacticamente correcta,
+   porque al derivarla de las reglas sintácticas (BNF) luego del identificador ~x~ no se espera una constante real ~.1~,
+   por lo cual el compilador arroja un error sintáctico y no sigue evaluando el resto de la expresión.
+   #+END_QUOTE
 * Nivel Léxico
 ** Problema 1
 *** Enunciado
@@ -1610,7 +1686,7 @@ Chequear por "sintesis" del compilador
 
      5 = 10; // el `5` no es un lvalue válido para `=`
    #+END_SRC
-** [WAITING] Problema 7 (2019-07-15)
+** [WAITING] [#A] Problema 7 (2019-07-15)
 *** Enunciado
    #+BEGIN_QUOTE
    Escriba un ejemplo de una *declaración C* con por lo menos un *error semántico*. Justifique.
@@ -1631,6 +1707,40 @@ Chequear por "sintesis" del compilador
 
      // el tamaño del vector no es un tipo entero
      int b[0.5];
+   #+END_SRC
+** [#A] Problema 8 (2019-05-23)
+*** Enunciado
+   #+BEGIN_QUOTE
+   *Declare un arreglo* y luego dé un *ejemplo semánticamente correcto de valor-l NO MODIFICABLE*
+   que use ese arreglo
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_SRC C
+     int x[5];
+
+     // las siguientes sentencias son semanticamente correctas,
+     // y tienen expresiones lvalue NO MODIFICABLES
+
+     x; // apunta a la dirección del principio de `x` pero no se le puede asignar un valor Ej. x=1
+
+     x+1; // apunta a la dirección siguiente de fin del arreglo, pero tampoco se le puede asignar un valor
+   #+END_SRC
+** [WAITING] [#A] Problema 9 (2019-05-23)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la declaración ~struct{double x,y;}p;~ escriba una *expresión semánticamente incorrecta*
+   utilizando como *operandos solo constantes (literales)* y los *identificadores* declarados en la
+   anterior *declaración*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: El enunciado pide "como operandos constantes (literales) y en la resolución
+   hace ~0=p.x+p.y~ dónde está la constante literal ahi..?
+   #+END_COMMENT
+   
+   #+BEGIN_SRC C
+     p.x="y";
+     p.y="b";
    #+END_SRC
 * Errores de Compilación
 ** Mix
@@ -1744,6 +1854,37 @@ Chequear por "sintesis" del compilador
 ** [TODO] Problema 1 (2019-07-29)
    #+BEGIN_QUOTE
    Indique cuál es la entrada a la parte (o proceso) de *síntesis de un compilador*
+   #+END_QUOTE
+** [WAITING] [#A] Problema 2 (2019-07-15)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique las *fases de la parte de análisis de un compilador*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   Me parece que te falta desarrollar un poco más...
+   <<DUDA>>: En el *análisis sintáctico* se especifica el orden de evaluación de los OPERADORES?
+   si tienen igual precedencia, se evalúa por asociatividad ?
+
+   <<DUDA>>: En el análisis semántico, que tiene de entrada? lexemas?
+
+   <<DUDA>>: En el análisis semántico se verifica las restricciones en (LN) de la BNF,
+   y también de la (GSC) que la BNF no puede representar?
+
+   <<DUDA>>: En el *MROC* aparecen las *restricciones* sobre los constructos definidos
+    en la "Sintaxis" y que la BNF ó una GIC no podría representar de forma clara?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   1. Análisis Léxico (Scanner)
+      - recibe y procesa una secuencia de caracteres, los agrupa en lexemas y clasifica por tipo de TOKENs
+   2. Análisis Sintáctico (Parser)
+      - recibe y procesa una secuencia de TOKENs, analiza si cumplen con las reglas sintácticas de la BNF
+      - verifica la precedencia y asociatividad de los operadores
+      - sólo entiende TOKENs (son LRs, generados por GRs)
+      - se especifíca la precedencia y asociatividad de los OPERADORES
+   3. Análisis Semántico
+      - se especifíca el orden de evaluación de los OPERANDOS
    #+END_QUOTE
 * Lenguajes Formales
 ** Conceptos básicos
