@@ -2,6 +2,40 @@
 #+BEGIN_COMMENT
 Chequear por "sintesis" del compilador
 #+END_COMMENT
+* [WAITING] BNF de C
+** Problema 1 (2019-02-25)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde la afirmación falsa con respecto a BNF:
+
+   1. Es un *meta lenguaje*
+   2. Posee *metasímbolos*
+   3. Es útil para definir *LP*
+   4. Puede describir cualquier *LF tipo 2*
+   5. Puede describir el *LF identificadores de C*
+   6. Puede describir el *LF expresiones de C semánticamente correctas*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: La BNF no puede describir un LF tipo 1 osea (LSC), no?
+   #+END_COMMENT
+
+   #+BEGIN_QUOTE
+   (1) Verdadero, la BNF es un *meta lenguaje*
+
+   (2) Verdadero, la BNF de C tiene como metasímbolo el ~:~ actúa como el ~->~ para las producciones,
+   aunque no posee el ~|~ para las opciones se agregan en una nueva linea
+
+   (3) Verdadero una BNF sirve para definir y documentar un LP
+
+   (4) Verdadero, la BNF puede describir cualquier (LF) tipo 2 osea un (LIC),
+   en la BNF de C se describen las *Categorias Léxicas* (TOKENS, son LRs)
+   y las *Categorías Sintácticas* del lenguaje y sus restricciones
+
+   (5) Verdadero
+
+   (6) Falso, una BNF podría no representar ciertas restricciones que si podría una (GSC)
+   #+END_QUOTE
 * Evaluar expresiones
 ** Problema 1 (2020-12-14)
 *** Enunciado
@@ -1172,7 +1206,7 @@ Chequear por "sintesis" del compilador
   4. y=7+1
   5. y=8
   #+END_QUOTE
-** [DOING] Problema 22 (2019-05-23)
+** Problema 22 (2019-05-23)
 *** Enunciado
    #+BEGIN_QUOTE
    Dado el siguiente fragmento de código C: ~x.1==1LU++LU~
@@ -1201,6 +1235,175 @@ Chequear por "sintesis" del compilador
    porque al derivarla de las reglas sintácticas (BNF) luego del identificador ~x~ no se espera una constante real ~.1~,
    por lo cual el compilador arroja un error sintáctico y no sigue evaluando el resto de la expresión.
    #+END_QUOTE
+** [WAITING] Problema 23 (2019-02-25)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente declaración: ~int var;~
+   
+   1. Lexicamente. ¿Cúantas invocaciones a ~getchar~ son necesarias para realizar su *análisis léxico*?
+      Asuma que todas las invocaciones son exitosas y que la última retorna ~EOF~. Justifique.
+   2. ¿Es semánticamente correcta? Justifique.
+   3. Lexicamente y Sintacticamente, si se eliminan los espacios, ¿sigue siendo un *constructo sintáctico válido*? Justifique.
+   4. Sintacticamente, si el *lexema* ~int~ se reemplaza por ~T~ ¿sigue siendo una *declaración*? Justifique.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: si los identificadores de las variables, funciones, comparten el mismo namespaces,
+   porque si tengo una función y una variable con mismo identificador no rompe al compilar?
+
+   <<DUDA>>: si los identificadores y las constantes de enumeración y los alias de tipo (typedef)
+   comparten namespace porque no rompe al compilar?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Para la declaración ~int var;~ se necesitan 11 invocaciones a ~getchar~
+   
+   | Lexema  | Cant. invocaciones a ~getchar~ | Motivo                                                            |
+   |---------+--------------------------------+------------------------------------------------------------------------|
+   | int     | 3 invocaciones                 | una invocacion por cada caracter                                       |
+   |---------+--------------------------------+------------------------------------------------------------------------|
+   | espacio | 2 invocaciones                 | dos porque en la 1ra invocación hizo ungetc al no ser un Identificador |
+   |---------+--------------------------------+------------------------------------------------------------------------|
+   | var     | 3 invocaciones                 | una invocacion por cada caracter                                       |
+   |---------+--------------------------------+------------------------------------------------------------------------|
+   | ;       | (2 invocaciones                | dos porque en la 1ra invocación hizo ungetc al no ser un Identificador |
+   |---------+--------------------------------+------------------------------------------------------------------------|
+   | EOF     | (1 invocación                  |                                                                        |
+   |---------+--------------------------------+------------------------------------------------------------------------|
+
+   (2) Es semánticamente correcta, según el contexto apesar que sea sintácticamente correcta (se puede derivar de las reglas sintacticas de la BNF),
+   - Es semánticamente incorrecta si... en el mismo *Scope/Ambito/Alcance* hay otra variable con el mismo identificador
+   - Es semánticamente incorrecta si... en el *Espacio de Nombres* se repite el nombre
+
+   (3) Si, Lexicamente sería un identificador ~intvar~ seguido de un Caracter de Puntuación ~,~
+   y Sintácticamente pasaría de ser una *Declaración* a una *Sentencia Expresión* donde ~intvar~ es una *expresión primaria* (identificador)
+   Suponemos que previamente se declaró una variable ~intvar~
+
+   (4) Sintacticamente ~T var;~ sería correcto, suponiendo que previamente se usó un ~typedef~ para crear el alias ~T~
+   a un tipo de dato ó estructura, y si seguiría siendo una *declaración*
+   #+END_QUOTE
+** Problema 24 (2019-02-25)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la expresión ~a.b[42].c~
+   
+   1. Enumere los operadores
+   2. Escriba las *declaraciones* para que sea una *expresión* ~int~
+   3. Resuelva el anterior ítem utilizando una sola *declaración*, que no use ~typedef~, y haga
+   que el valor de expresión sea cero.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Los operadores de la expresión ~a.b[42].c~ son tres
+   1. ~.~ (para acceder a un miembro de una estructura ó union)
+   2. ~[]~ (para accedera un elemento de un arreglo)
+   3. ~.~ (para acceder a un miembro de una estructura ó union)
+   #+END_QUOTE
+
+   #+BEGIN_SRC C
+     // (2)
+     struct B{ int c; };
+     struct{ struct B b[42+1]; }a;
+
+     // (3)
+     struct{ struct { int c; }b[42+1]; }a = {0};
+   #+END_SRC
+** Problema 25 (2019-02-18)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la siguiente sección de código C: ~x=f(4)[2]~
+   
+   1. Indique cuantos ~ungetc~ son necesarios para detectar los *lexemas*
+   2. Si es una *expresión sintáctimante correcta* escriba una *declaración* que la
+      haga *semánticamente correcta*, si no, justifique.
+   3. Escriba una *definición de f* que haga que la sección sea *semánticamente correcta*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Se necesita invocar cinco veces a ~ungetc~
+   |--------------+----------------------------------------------------------------------------|
+   | lexema leído | motivo para invocar ~ungetc~                                               |
+   |--------------+----------------------------------------------------------------------------|
+   | x=           | ungetc por el ~=~ no pertenece al token de los Identificadores             |
+   |--------------+----------------------------------------------------------------------------|
+   | =f           | ungetc por ~f~  no pertenece al token de los Operadores                    |
+   |--------------+----------------------------------------------------------------------------|
+   | f(           | ungetc por ~(~   no pertenece al token de los Identificadores              |
+   |--------------+----------------------------------------------------------------------------|
+   | 4)           | ungetc por ~)~  no pertenece al token de las constantes numericas enteras  |
+   |--------------+----------------------------------------------------------------------------|
+   | 2]           | ungtec por ~]~   no pertenece al token de las constantes numericas enteras |
+   |--------------+----------------------------------------------------------------------------|
+   #+END_QUOTE
+
+   #+BEGIN_SRC C
+     // (2)
+     char x, *f(int);
+
+     // (3) -> Solución semanticamente correcta
+     char* f(int x){
+       static char* palabra = "hola";
+       return palabra + 1;
+     }
+
+     // (3) -> Solución semanticamente correcta, pero pragmaticamente dudosa
+     char* f(int x){
+       char* ptr; return ptr;
+     }
+   #+END_SRC
+** [WAITING] Problema 26 (2019-02-11)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente declaración: ~int f ( int ) ;~
+
+   1. A nivel léxico, indique cuantos *lexemas* tiene si se remueven todos los espacios:
+   2. Escriba, con la mínima cantidad de *tokens*, una *sentencia semánticamente correcta* que use ~f~
+   3. Escriba una *expresión* que use ~f~ pero que sea *semánticamente incorrecta*. Justifique: 
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: Si el identificador de un arreglo porque apunta a una dirección de memoria
+   se considera lvalue no modificable..
+   
+   el identificador de una función también apunta a una dir. de memoria, pero no es lvalue,
+   por tanto sería una excepción a ser lvalue?
+   Ej. Si f es una función entonces en estas expresiones f no es lvalue, no? f++; f=1;
+
+   <<DUDA>>:
+   porque las sig. definición, y la sentencia no arrojan error de tipo incompatibles?
+   int x="hola";
+   int f(int x){}; f("hola");
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Si a la declaración ~int f ( int ) ;~ le removemos los espacios,
+   nos queda la siguiente sentencia expresión ~intf(int);~ que contiene 5 lexemas
+   1. ~intf~ <-- identificador
+   2. ~(~ <-- caracter de puntuación
+   3. ~int~ <-- palabra reservada
+   4. ~)~ <-- caracter de puntuación
+   5. ~;~ <-- caracter de puntuación
+   #+END_QUOTE
+
+   #+BEGIN_SRC C
+     // (2)
+     // - sentencia expresión que usa la minima cant. de tokens (identificador y caracter de puntuación)
+     // - la expresión que contiene es un identificador que representa la dir. de memoria de la variable `f`
+     f;
+
+     // (2)
+     // otra alternativa, invocar la función pero.. usaríamos 2 tokens más
+     f(0);
+
+
+     // (3) - Las sig. sentencias contienen expresiones que son semanticamente incorrectas,
+     // usando el contexto de que `f` es una función
+
+     f++; // error semántico, f no es un lvalue
+     f=1; // error semántico, f no es un lvalue
+     f[0]; // error semántico, f no es un arreglo
+     f.a; // error semántico, f no es un struct ó union
+   #+END_SRC
 * Nivel Léxico
 ** Problema 1
 *** Enunciado
@@ -1521,6 +1724,35 @@ Chequear por "sintesis" del compilador
    (2) VERDADERO, el Parser ó Analizador Sintáctico lee una secuencia de tokens (generados por el Scanner)
 
    (5) VERDADERO
+   #+END_QUOTE
+** [WAITING] Problema 7 (2019-02-11)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique con Verdadero/Falso los *conceptos asociados a la sintaxis*
+   
+   1. BNF.
+   2. Orden de tokens.
+   3. Valor-l modificable.
+   4. Precedencia de operadores.
+   5. Orden de evaluación de operandos  
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: En la (2) es Verdadero... sería el orden en que los recibe/lee?
+
+   <<DUDA>>: la (3) y (5) esta ok la justificación?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Verdadero, la BNF contiene las reglas/constructos sintácticas del lenguaje
+
+   (3) Falso, si un valorl es modificable o no, es a nivel semántico.
+
+   (4) Verdadero, la sintaxis indica la precedencia de los operadores en la BNF.
+   Más cerca está del axioma, menos es su precedencia(prioridad).
+
+   (5) Falso, la sintaxis no especifíca el orden de evaluación de los operandos,
+   pero si el de los operadores en la BNF.
    #+END_QUOTE
 * Nivel Semántico
 ** Problema 1 (2021-08-04)
@@ -1850,62 +2082,56 @@ Chequear por "sintesis" del compilador
      int c, a;
      c = a[1].b; // ERROR semańtico, por el contexto
    #+END_SRC
-* Etapas compilación
-** [TODO] Problema 1 (2019-07-29)
-   #+BEGIN_QUOTE
-   Indique cuál es la entrada a la parte (o proceso) de *síntesis de un compilador*
-   #+END_QUOTE
-** [WAITING] [#A] Problema 2 (2019-07-15)
-*** Enunciado
-   #+BEGIN_QUOTE
-   Indique las *fases de la parte de análisis de un compilador*
-   #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   Me parece que te falta desarrollar un poco más...
-   <<DUDA>>: En el *análisis sintáctico* se especifica el orden de evaluación de los OPERADORES?
-   si tienen igual precedencia, se evalúa por asociatividad ?
+* Tips
+** Operador Vs Caracter de Puntuación
+*** Ejemplo 1
+   - Si te piden de ~f()+1~ los TOKENs (nivel léxico), tenés
+     1) f  <-- identificador
+     2) (  <-- caracter de puntuación
+     3) )  <-- caracter de puntuación
+     4) +  <-- operador
+     5) 1  <-- constante numérica entera
+   - Si te piden de ~f()+1~ los operadores, tenés
+     1) ()
+     2) +
+*** Ejemplo 2
+   - Si te piden de ~x[0]=1~ los TOKENs (nivel léxico), tenés
+     1. x  <-- identificador
+     2. [  <-- caracter de puntuación
+     3. 0  <-- constante numérica entera
+     4. ]  <-- caracter de puntuación 
+     5. =  <-- operador
+     6. 1  <-- constante numérica enteraaaa
+   - Si te piden de ~x[0]=1~ los operadores, tenés
+     1) []
+     2) =
+*** Ejemplo 3
+   - Si te piden de la expresión ~a[i]+s.m~ los operadores, y su precedencia (siendo 0 la menor)
+     1) + (precedencia=0)
+     2) . (precedencia=1)
+     3) [] (precedencia=1)
+   - Si te piden de la expresión ~a[i]+s.m~ los TOKENs
+     1) a  <-- identificador
+     2) [  <-- caracter de puntuación
+     3) i  <-- identificador
+     4) ]  <-- caracter de puntuación
+     5) +  <-- operador
+     6) s  <-- identificador
+     7) .  <-- caracter de puntuación (?)
+     8) m  <-- identificador
+** Categorias sintácticas
+   - Las Categorías Sintácticas son las Declaraciones, Expresiones, Sentencias
+   - Son generadas por (GICs) Gramáticas Independientes del Contexto, y presentan (LICs)
 
-   <<DUDA>>: En el análisis semántico, que tiene de entrada? lexemas?
-
-   <<DUDA>>: En el análisis semántico se verifica las restricciones en (LN) de la BNF,
-   y también de la (GSC) que la BNF no puede representar?
-
-   <<DUDA>>: En el *MROC* aparecen las *restricciones* sobre los constructos definidos
-    en la "Sintaxis" y que la BNF ó una GIC no podría representar de forma clara?
-   #+END_COMMENT
+   #+BEGIN_SRC C
+   // En el siguiente fragmento tenemos 2 sentencias de expresión, y 1 declaración
    
-   #+BEGIN_QUOTE
-   1. Análisis Léxico (Scanner)
-      - recibe y procesa una secuencia de caracteres, los agrupa en lexemas y clasifica por tipo de TOKENs
-   2. Análisis Sintáctico (Parser)
-      - recibe y procesa una secuencia de TOKENs, analiza si cumplen con las reglas sintácticas de la BNF
-      - verifica la precedencia y asociatividad de los operadores
-      - sólo entiende TOKENs (son LRs, generados por GRs)
-      - se especifíca la precedencia y asociatividad de los OPERADORES
-   3. Análisis Semántico
-      - se especifíca el orden de evaluación de los OPERANDOS
-   #+END_QUOTE
-* Lenguajes Formales
-** Conceptos básicos
-*** Relación con la BNF de C
-**** Conceptos
-   - Si X es (LR) => por definición es posible escribir una (GIC) que lo genere => es posible escribir una BNF que lo defina
-**** Declaraciones
-   - No son (LR) por tener *paréntesis balanceados*
-   - En C se definen con notación BNF, que se puede representar con (LIC)
-**** Constantes enteras
-   - Las constantes enteras sin sufijo se pueden representar con la (ER) ~0(0+1+2+3+4+5+6+7)*~
-**** Sentencias
-* Regex
-** [TODO] Problema 1 (2020-10-14)
-   #+BEGIN_QUOTE
-   Analice la siguiente expresión C: ~s.a[s.i]~
-   
-    Puede esta *expresión* considerarse una *regex*? Justifique
-   #+END_QUOTE
-* BNF de C
-** Declaración
+   int f;
+   f+=42;
+   f(); // error semántico, no se puede invocar una variable
+   #+END_SRC
+** GIC - Gramática BNF de C - Constructos/Categorías/Reglas Sintácticas
+*** Declaración
    #+BEGIN_QUOTE
    <declaración> ->
      <especificadores de declaración> <lista de declaradores>?
@@ -1956,7 +2182,7 @@ Chequear por "sintesis" del compilador
      * <lista calificadores tipos>? |
      * <lista calificadores tipos>? <puntero>
    #+END_QUOTE
-** Expresión
+*** Expresión
    #+BEGIN_QUOTE
    <expresión> ->
      <expresión de asignación> |
@@ -2046,7 +2272,7 @@ Chequear por "sintesis" del compilador
      <constante cadena> |
      (<expresión>)
    #+END_QUOTE
-** Sentencia
+*** Sentencia
    #+BEGIN_QUOTE
    <sentencia> ->
      <sentencia expresión> |
@@ -2098,6 +2324,60 @@ Chequear por "sintesis" del compilador
      o en el cuerpo de un ciclo. La sentencia return con una expresión
      no puede aparecer en una función void.
    #+END_QUOTE 
+* Etapas compilación
+** [TODO] Problema 1 (2019-07-29)
+   #+BEGIN_QUOTE
+   Indique cuál es la entrada a la parte (o proceso) de *síntesis de un compilador*
+   #+END_QUOTE
+** [WAITING] [#A] Problema 2 (2019-07-15)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique las *fases de la parte de análisis de un compilador*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   Me parece que te falta desarrollar un poco más...
+   <<DUDA>>: En el *análisis sintáctico* se especifica el orden de evaluación de los OPERADORES?
+   si tienen igual precedencia, se evalúa por asociatividad ?
+
+   <<DUDA>>: En el análisis semántico, que tiene de entrada? lexemas?
+
+   <<DUDA>>: En el análisis semántico se verifica las restricciones en (LN) de la BNF,
+   y también de la (GSC) que la BNF no puede representar?
+
+   <<DUDA>>: En el *MROC* aparecen las *restricciones* sobre los constructos definidos
+    en la "Sintaxis" y que la BNF ó una GIC no podría representar de forma clara?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   1. Análisis Léxico (Scanner)
+      - recibe y procesa una secuencia de caracteres, los agrupa en lexemas y clasifica por tipo de TOKENs
+   2. Análisis Sintáctico (Parser)
+      - recibe y procesa una secuencia de TOKENs, analiza si cumplen con las reglas sintácticas de la BNF
+      - verifica la precedencia y asociatividad de los operadores
+      - sólo entiende TOKENs (son LRs, generados por GRs)
+      - se especifíca la precedencia y asociatividad de los OPERADORES
+   3. Análisis Semántico
+      - se especifíca el orden de evaluación de los OPERANDOS
+   #+END_QUOTE
+* Lenguajes Formales
+** Conceptos básicos
+*** Relación con la BNF de C
+**** Conceptos
+   - Si X es (LR) => por definición es posible escribir una (GIC) que lo genere => es posible escribir una BNF que lo defina
+**** Declaraciones
+   - No son (LR) por tener *paréntesis balanceados*
+   - En C se definen con notación BNF, que se puede representar con (LIC)
+**** Constantes enteras
+   - Las constantes enteras sin sufijo se pueden representar con la (ER) ~0(0+1+2+3+4+5+6+7)*~
+**** Sentencias
+* Regex
+** [TODO] Problema 1 (2020-10-14)
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión C: ~s.a[s.i]~
+   
+    Puede esta *expresión* considerarse una *regex*? Justifique
+   #+END_QUOTE
 * [TODO] Yacc/Bison
 ** Problema 1 (2019-12-11)
 *** Enunciado
