@@ -1014,6 +1014,141 @@
              return 0;
      }
    #+END_SRC
+** Errores semánticos + punteros
+   #+BEGIN_SRC C
+     #include <stdio.h>
+
+     int main(){
+       int a=5;void* v=&a;
+       printf("%d\n\n", *(int*)v);
+       ,*(int*)v=1; // ok, porque al castear a (int*), estamos desreferenciamos un puntero a entero
+       printf("%d\n\n", *(int*)v);
+
+       //*v=&a; // error semántico, NO se puede desreferenciar un puntero a void
+
+       //--------------------------------------------------------------
+
+       int x=2, *p=&x, y=5,*ptr=&x;
+
+       printf("*ptr=%d\n\n", *ptr);
+       ptr++; printf("x=%d,*ptr=%d\n\n",x,*ptr);
+       ptr++; printf("x=%d,*ptr=%d\n\n",x,*ptr);
+       //*ptr*1;
+
+
+       //ptr = &x.y; // error semántico, &x no es un tipo struct
+       // &x=0; // error semantico, &x no es lvalue
+
+       printf("ptr[0]=%d\n", ptr[0]);
+       //printf("&x[0]=%d\n", x[0]); // error semántico, el subindice `x` no es un arreglo ni puntero
+
+       ptr=NULL;
+       // *ptr = 0; // produce segmentation fault, se perdió la referencia al asignarle NULL
+       return 0;
+     }
+   #+END_SRC
+** Errores semánticos
+   #+BEGIN_SRC C
+     #include <stdio.h>
+
+     char *a, *b(int);
+
+     char* b(int x){
+             return "hola";
+     }
+
+     char* test(){
+             return "\0";
+             return NULL;
+     }
+     char* nombreCompleto(int x){
+             static char* palabra = "hola";
+             return palabra + 1;
+     }
+
+     int* numero(int x){
+             static int y = 0;
+             y = y + x;
+             return &y;
+     }
+
+     char* puntero(){
+             char*p; return p;
+     }
+
+     int hola(int x){ return 0; }
+     int main(){
+             int z, *h;
+             h = &z;
+
+             // mmmmmh...
+             int m = "hola"; // porque no lo toma como error de tipos incompatibles (?)
+             hola("a"); // porque no lo toma como error de firma e invocación con distintos argumentos (?)
+
+             //hola(1)=1; // error semántico, el operando de la izq. no es lvalue
+             //hola=1; // error semántico, el operando de la izq. no es lvalue
+             //hola++; // error semántico, el operando de la izq. no es lvalue
+
+             puntero();
+             printf("%d\n", puntero());
+
+             a="abc";
+             printf("b(1)=%s, a=%s\n\n", b(1),a);
+
+             printf("%c\n", ""[0]); // ok, devuelve vacío
+             printf("%c\n", "h"[1]); // Ok
+             printf("%d\n", ""[0] == "h"[1]); // ok, devuelve 1 (true)
+
+             printf("x%c\n", test());
+
+             printf("%c\n", nombreCompleto(0)[0]); // devuelve 'o'
+
+             printf("%d\n", numero('a')); // devuelve una dir. de memoria
+
+             return 0;
+     }
+   #+END_SRC
+** Errores semánticos + Scopes + Espacios de Nombres
+   #+BEGIN_SRC C
+     #include <stdio.h>
+
+     // - no genera problemas con la declaración `int x,y`
+     // porque no comparten el espacio de nombres con los identificadores
+     struct x{int x, y;};
+     struct y{int x, y;};
+
+     enum dia{LUNES,MARTES};
+     // error semántico, los structs/union/enums comparten el "espacio de nombres"
+     // struct x{int x, y;};
+
+     typedef int ENTERO;
+     struct z{ int x;}x;
+
+     int f(){}
+
+     struct{ struct { int c; }b[42+1]; }a = {0};
+
+     int main(){
+       printf("%d\n\n", a.b[42].c);
+
+       int ENTERO;
+       char f = 'a';
+       f;
+       f(); // error semántico, no se puede declarar una variable
+
+       x.x = 5; // ok, mientras esté antes de la declaración `int x`
+
+       int x, y;
+       // x.x = 5; // error
+
+       printf("%d\n", LUNES); // toma el valor 0 de la constante enumeración
+       int LUNES = 1; // ok, no genera error
+       printf("%d\n", LUNES); // toma el valor 1 del identificador
+
+       struct x X = {1,1};
+       return 0;
+     }
+   #+END_SRC
 * Referencias
   1. https://www.tenouk.com/cpluscodesnippet/chardecimalhexoctal.html
   2. https://slidetodoc.com/parsing-tools-introduction-to-bison-and-flex-1/
