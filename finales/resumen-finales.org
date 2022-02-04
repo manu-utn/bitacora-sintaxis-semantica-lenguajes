@@ -36,6 +36,34 @@ Chequear por "sintesis" del compilador
 
    (6) Falso, una BNF podría no representar ciertas restricciones que si podría una (GSC)
    #+END_QUOTE
+** [WAITING] [#A] Problema 2 (2018-12-10)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todos los conceptos que se pueden definir con el *BNF del LF Expresiones de C*
+   1. *Efecto de lado* de la expresión.
+   2. *Precedencia* de los OPERADORES.
+   3. *Asociatividad* de los OPERADORES.
+   4. *Orden de evaluación* de los OPERANDOS.
+   5. Aridad (cantidad de operandos) de los OPERADORES.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: Donde está definido el efecto de lado de C? En el MROC?
+   Yo creí que era Verdadero, porque.. como estaba la expresión de asignación (?)
+   
+   <<DUDA>>: La asociatividad y la precedencia, indican el orden de las operaciones (osea la *Secuenciación*) ?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (2) Verdadero, la BNF del LF expresiones de C define la precedencia de los OPERADORES (por cercanía o no al axioma)..
+   Más cercano esté del axioma, menos precedencia(prioridad)
+
+   (3) Verdadero, la asociatividad está marcada si la regla/producción es a izquierda ó derecha
+
+   (4) FALSO. La BNF no define el *orden de evaluacion de los OPERANDOS*, sólo de los OPERADORES.
+
+   (5) Verdadero, la regla lo indica explícitamente Ej. si el operador es unario tendrá sólo un operando
+   #+END_QUOTE
 * Evaluar expresiones
 ** Problema 1 (2020-12-14)
 *** Enunciado
@@ -1404,6 +1432,43 @@ Chequear por "sintesis" del compilador
      f[0]; // error semántico, f no es un arreglo
      f.a; // error semántico, f no es un struct ó union
    #+END_SRC
+** [WAITING] [#A] Problema 27 (2018-12-17)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión: ~a[i]=f(i)~
+   1. Nivel léxico — Indique por lo menos tres *tokens* que no requieran ~ungetc~ para su detección
+   2. Nivel sintáctico — Enumere los *operadores* y su *precedencia* relativa en la expresión dada; cero es la menor precedencia
+   3. Nivel semántico — Escriba una *declaración* que haga *semánticamente correcta* a la expresión
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: (1) la resolución dice que son: [, ], (, )
+   pero yo detecté que era a,=,) y.. que algunos de los que menciona si requerían ungetc para ser detectados
+   1. a[ <-- ungetc por [ <--
+   2. [i <-- ungetc por i
+   3. i] <-- ungetc por ] <--
+   4. ]=f <-- ungetc por f
+   5. f( <-- ungetc por ( <--
+   6. (i <-- ungetc por i
+   7. i) <-- ungetc por )
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (2) Los operadores de ~a[i]=f(i)~ son
+   |----------+-----------------------|
+   | operador |           precedencia |
+   |----------+-----------------------|
+   | =        | 0 (menor precedencia) |
+   |----------+-----------------------|
+   | []       |                     1 |
+   |----------+-----------------------|
+   | ()       |                     1 |
+   |----------+-----------------------|
+   #+END_QUOTE
+
+   #+BEGIN_SRC C
+     int i, a[10], f(int);
+   #+END_SRC
 * Nivel Léxico
 ** Problema 1
 *** Enunciado
@@ -1974,6 +2039,84 @@ Chequear por "sintesis" del compilador
      p.x="y";
      p.y="b";
    #+END_SRC
+** Problema 10 (2018-12-17)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Sea ~int i=0,j=1,*p=&i;~ analice cada una de las siguientes *expresiones* y si es *semánticamente incorrecta* describa el error,
+   si no escriba correcto:
+   1) ~&i=&j~
+   2) ~&p=&i~
+   3) ~p=&i.j~
+   3) ~p[0]==&i[0]~
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   1) ~&i=&j~ <- error semántico, porque ~&i~ no es un lvalue
+   2) ~&p=&i~ <- error semántico, porque ~&p~ no es un lvalue
+   3) ~p=&i.j~ <- error semántico, al evaluar ~&i.~ porque ~&i~ no es un tipo struct, no es un operando válido para el operador ~.~
+   4) ~p[0]==&i[0]~ <- error semántico al evaluar ~i[0]~ porque ~i~ no es un puntero ni tampoco un arreglo
+   #+END_QUOTE
+** [WAITING] [#A] Problema 11 (2018-12-10)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique cuál error no es detectable durante el análisis semántico:
+   1. Redefinición de variable.
+   2. Identificador no declarado.
+   3. Desreferencia de puntero nulo.
+   4. Asignación a expresión que no es l-value modificable.
+   5. Demasiados argumentos con respecto a la declaración ó prototipo.
+   6. Operador punto aplicado a expresión que no es estructura ni unión.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: La (2) según la resolución no se detectaen el analisis semántico, por que?
+   Si se utiliza un identificador que no fue declarado, no es error semántico, porque debe analizar el contexto?
+   #+END_COMMENT
+
+   #+BEGIN_QUOTE
+   (1) La redefinición de variable es un error detectable en el fase del Analisis Semantico,
+   porque debe ver el contexto..
+
+   (3) Desreferenciar un puntero nulo, también es un error que se detecta en el Analisis semántico
+   porque debe conocer el contexto para saber si es nulo
+
+   (4) La asignación a expresión que no es lvalue modificable, es un error que se detecta en la fase de Analisis semántico,
+   Ej. chequea en el contexto si el operando izquierdo es const
+
+   (5) Si no coincide la cantidad de argumentos entre la declaración y prototipo de una función,
+   es un error que se detecta en el Analisis Semántico,
+   porque al invocar la funcion, se revisa el prototipo de la misma.
+
+   (6) Si la expresión no es estructura ni unión y se usa como operando del operador punto,
+   se detecta como error en el Analisis semántico,
+   porque debe ver en el contexto el tipo de dato del operando cuando se declaró
+   #+END_QUOTE
+** Problema 12 (2018-12-03)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Sea ~int i=1;void*p=&i;~ describa el *error semántico* en cada *sentencia* o escriba correcto si no lo hay:
+   1. ~{ ++p; }~
+   2. ~{ *p=i; }~
+   3. ~{ double i=42; i=p*i; }~
+   4. ~{ int *p=malloc(sizeof i); }~
+   5. ~Describa el posible error pragmático de una de las sentencias.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) ~{ ++p; }~
+   *NO se puede determinar al siguiente objeto al que apuntará el puntero*
+
+   (2) ~{ *p=i; }~
+   ERROR semantico, NO se puede desreferenciar un puntero a void..
+   pero.. se puede castear puntero a un tipo y luego desreferenciar ese tipo (Ej. ~*(int*)p=i~ )
+
+   3. ~{ double i=42; i=p*i; }~
+   ERROR semántico, el operador binario ~*~ sólo opera con tipos ariméticos
+   pero.. se podría primero desreferenciar el puntero (Ej. ~i=*p*i~)
+
+   4. ~{ int *p=malloc(sizeof i); }~
+   *MEMORY LEAK..* NO se puede liberar los recursos asignados al puntero luego de esa sentencia compuesta
+   #+END_QUOTE
 * Errores de Compilación
 ** Mix
    #+BEGIN_SRC C
@@ -2389,6 +2532,19 @@ Chequear por "sintesis" del compilador
    
    Indique si las siguientes afirmaciones son verdaderas o falsas y justifique su respuesta   
    1. Puede ser implementada directamente, es decir, sin aplicar ninguna transformación a la gramática, por *Yacc/Bison*
+   #+END_QUOTE
+** Problema 2 (2018-12-10)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente gramática en BNF tipo Yacc, donde + y Entero son tokens:
+   Expresión
+   : Expresión "+" Entero
+   l Entero
+   ;
+   
+   1. Indique si es LL(1) o no; si es justifique, si no, reescríbala para que sí sea:
+   2. Indique si el lenguaje generado es regular o no, justifique:
+   3. Escriba las reglas Lex para los dos tokens:
    #+END_QUOTE
 * [WAITING] Automatas
 ** Ejemplo 1
