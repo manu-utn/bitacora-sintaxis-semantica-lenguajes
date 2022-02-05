@@ -1149,6 +1149,157 @@
        return 0;
      }
    #+END_SRC
+** Errores semánticos + puntero a void + vectores
+   #+BEGIN_SRC C
+     #include <stdio.h>
+
+     // struct{void *x;};
+     int main(){
+             // Scope (dentro de main)
+             char cadena[] = "abc";
+
+             cadena[0]='z'; printf("cadena=%s\n", cadena);
+
+             // al agregar el caracter especial \0 como como segundo elemento,
+             // al imprimir el string sólo imprimirá el primer caracter 'a'
+             // porque el \0 indica fin de cadena
+             // (de igual forma podemos imprimir el tercer caracter con cadena[2])
+             cadena[1]='\0'; printf("cadena=%s, cadena[2]=%c\n", cadena, cadena[2]);
+
+             // el identificador `cadena` apunta al comienzo del bloque reservado para el array,
+             // y &cadena[0] al ser el primer elemento tendrá la misma dirección
+             printf("cadena=%x, cadena+1=%x, &cadena[0]=%x, (cadena==&cadena[0])=%d\n",
+                     cadena, cadena+1, &cadena[0], cadena==&cadena[0]);
+             cadena+1;
+
+             printf("\n");
+
+             // -------------------- 
+
+             // Scope #1
+             {
+             void* a; struct{}b; char c;
+
+             // *a=0; // ERROR SEMANTICO! no se puede desreferenciar un puntero a void
+             // *b; // ERROR SEMANTICO! NO se puede desreferenciar un struct
+             // *c; // ERROR SEMANTICO! Sólo se puede desreferenciar un puntero ó vector
+             }
+
+             // -------------------- 
+
+             // Scope #2
+             {
+             char* a; char* b="abc"; char c[3]="zxc"; int d[10];
+
+             // OK, cada identificador es un objeto que representa la dir. de memoria
+             a, b, c, d;
+
+             ,*a; // OK, desreferenciamos un puntero a char
+             ,*b; // OK, dereferenciamos un puntero a char
+             ,*c; // OK, desrefereciamos un arreglo de caracteres
+             ,*d; // OK, desreferenciamos un arreglo de enteros
+
+             // *d es equivalente a d[0] ó *(d+0)
+             printf("*d=%d, d[0]=%d, *(d+0)=%d\n",
+                     ,*d, d[0], *(d+0));
+
+             }
+             return 0;
+     }
+   #+END_SRC
+** Orden de evaluación de los operadores
+   #+BEGIN_SRC C
+     #include <stdio.h>
+
+     int main(){
+             // --------------------------------------------
+
+             int x=5, *p=&x;
+             printf("*p=%d\n", *p);
+             //printf("*p++=%d\n",*++p); // *p++ es equivalente a *(p++)
+             printf("*p++=%d\n",*p++); // *p++ es equivalente a *(p++)
+             printf("x=%d, *p=%d\n\n",x,*p);
+
+             printf("1<*p=%d\n", 1<*p); printf("1>*p=%d\n", 1>*p);
+             printf("1>*p++=%d\n",1>*p++);
+             printf("\n");
+
+             &p;
+             //p++;
+             //++*p; // ok, se evalúa como ++(*p) <- 1ro desreferencia y luego incrementa
+             // &p++; // error semántico, p++ no es lvalue.. se evalúa como &(p++)
+
+             printf("x=%d, *p=%d\n", x, *p);
+             // - Si usamos los paréntesis, podemos cambiar el orden de evaluación
+             // de los operadores..
+             (*p)++; printf("x=%d, *p=%d\n", x, *p);
+             (*p)++; printf("x=%d, *p=%d\n", x, *p);
+             printf("\n");
+
+             // --------------------------------------------
+
+             int y=1, *p1=&y;
+
+             printf("y=%d, *p1=%d\n", y, *p1);
+             // - la expresión *p1++ se evalúa como *(p1++),
+             // NO se conoce el siguiente objeto al que apuntará el puntero p1 con ++
+             // y que luego desreferenciará con *
+             // - el valor que se desreferencia de p1++ podrá ser cualquier valor
+             ,*p1++; printf("y=%d, *p1=%d\n", y, *p1);
+
+             ,*p1++; printf("y=%d, *p1=%d\n", y, *p1);
+             // --------------------------------------------
+
+             printf; main;
+             //return ;
+
+             return 0;
+     }
+   #+END_SRC
+** Evaluando diferentes expresiones con el Operador Lógico && (AND)
+   #+BEGIN_SRC C
+     #include <stdio.h>
+
+     // Si usas typedef para crear un alias de un struct,
+     // no podés usar el alias dentro del struct...
+     // Para eso debes usar el nombre del struct (en este caso S)
+     typedef struct S{ int m1; struct S *m2; } T;
+
+     int main(){
+             int a,b,c,d,e;
+             a,b,c;
+
+             // error sintáctico, se espera un caracter puntuación u operador luego de los identificadores
+             //a b c;
+
+             printf("%f, %f\n", 1.0, 1.0f);
+
+             //for(;;) ;
+
+             {unsigned x = -10; printf("(unsigned) x=%d\n", x);}
+             {int x = -10; printf("(int) x=%d\n", x);}
+             printf("\n");
+
+             // Usamos el caracter de puntuación `,` para agrupar las expresiones a evaluar
+
+             // (1 && cualquier valor distinto de cero ó NULL) = 1 (true)
+             printf,printf("1&&5=%d\n", 1&&5),
+             printf("1&&-1=%d\n", 1&&(-1)),
+             printf("1&&'a'=%d\n", 1&&'a'),
+             printf("1&&\"abc\"=%d\n", 1&&"abc"),
+             printf("\n");
+
+             // Al comparar con NULL, el caracter especial '\0' ó la constante entera 0 
+             // la condición no se cumplirá (false)
+             printf,
+             printf("1&&NULL=%d\n", 1&&NULL),
+             printf("1&&'\\0'=%d\n", 1&&'\0'),
+             printf("1&&0=%d\n", 1&&0),
+             printf("\n");
+
+             return 0;
+     }
+   #+END_SRC
 * Referencias
   1. https://www.tenouk.com/cpluscodesnippet/chardecimalhexoctal.html
   2. https://slidetodoc.com/parsing-tools-introduction-to-bison-and-flex-1/
