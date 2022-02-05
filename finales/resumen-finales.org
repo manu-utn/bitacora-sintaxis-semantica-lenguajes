@@ -1797,6 +1797,34 @@ Chequear por "sintesis" del compilador
    | }      | Caracter de Puntuación      |
    |--------+-----------------------------|
    #+END_QUOTE
+** Problema 29 (2018-02-19)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado el fragmento: ~{ T v,*p; v =f(1.0 ) ;switch( v.m1){p= v .m2;} }~
+   Analice léxicamente y tilde la afirmación falsa:
+   1. Es léxicamente correcto.
+   2. Contiene dos tokens punto (.).
+   3. Los espacios son intrascendentes en el análisis léxico.
+   4. Al remover todos los espacios la cantidad de tokens varía.
+   5. Agregar un espacio en cualquier lugar lo mantiene léxicamente correcto.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Verdadero
+
+   (2) Verdadero, tiene dos tokens ~.~
+   - ~v.m1~
+   - ~v.m2~
+
+   (3) FALSO, los espacios pueden generar menos ó mayor cantidad de lexemas.
+   Ej. Si la palabra reservada ~switch~ y pasaría a ser 6 identificadores ~s w i t c h~,
+   sin tener en cuenta si es sintacticamente ó semánticamente correcta o no.
+
+   (4) Verdadero,
+   Ej. ~T v~ son dos identificadores, si removemos los espacios sería ~Tv~ por tanto sería 1 identificador
+
+   (5) Verdadero
+   #+END_QUOTE
 * Nivel Sintáctico
 ** [WAITING] Problema 1 (2021-03-10)
 *** Enunciado
@@ -2051,6 +2079,44 @@ Chequear por "sintesis" del compilador
      <constante> |
      <constante cadena> |
      (<expresión>)
+   #+END_QUOTE
+** [WAITING] Problema 9 (2018-02-19)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado el fragmento: ~{ T v,*p; v =f(1.0 ) ;switch( v.m1){p= v .m2;} }~
+   Analice sintácticamente y tilde la afirmación falsa:
+   1. Contiene una *declaración*
+   2. Contiene dos *invocaciones*
+   3. Contiene tres *expresiones completas*
+   4. Contiene por lo menos tres *sentencias*
+   5. Contiene por lo menos cinco *subexpresiones*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: (3) la resolución dice que es verdadera, por que? cuales son?
+   para mi habian dos y eran las *expresiones de asignación*
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Verdadero
+   La declaración es ~T v, *p;~ declara ~v~ y ~*p~ del tipo ~T~ (usando typedef para definir el alias T de un tipo de dato)
+
+   (2) FALSO.
+   Sólo una y es ~f(1.0 )~
+
+   (4) Verdadero
+   1. ~v=f(1.0)~ (sentencia expresión)
+   2. ~switch(v.m1){...}~ (sentencia iteración switch)
+   3. ~p=v .m2;~ (Sentencia expresión)
+
+   (5) Verdadero
+   tenemos como mínimo 5, si contamos las *expresiones primarias* (identificadores, constantes, literal cadena)
+   1. v
+   2. *p
+   3. f
+   4. m1
+   5. m2
+   6. 1.0
    #+END_QUOTE
 * Nivel Semántico
 ** Problema 1 (2021-08-04)
@@ -2377,114 +2443,325 @@ Chequear por "sintesis" del compilador
      // no se puede desreferenciar (a menos que se castee a un puntero a un tipo, previo a desreferenciar)
      void* p;
    #+END_SRC
-* Errores de Compilación
-** Mix
-   #+BEGIN_SRC C
-     printf("%d");  // OK, devuelve un valor basura
-
-     struct{ } printf; // no produce error, `printf` no es una keyword
-     struct{ } main; // no produce error, `main` no es una keyword
-
-     int a(){ }
-     a; // no produce error
-     
-     int b(int x){ return x; }
-     b; // no produce error
-     b('a'); // no produce error, porque 'a' es un caracter y representa un valor númerico de la tabla ascii
-   #+END_SRC
-** Errores Léxicos
-** Errores Sintácticos
+** Problema 14 (2018-02-19)
+*** Enunciado
    #+BEGIN_QUOTE
-   <sentencia> -> <sentencia expresión> | <sentencia compuesta> | <sentencia de selección> | <sentencia de iteración> | <sentencia etiquetada> | <sentencia de salto>
-   
-   <sentencia de selección> ->
-     if (<expresión>) <sentencia> |
-     if (<expresión>) <sentencia> else <sentencia> |
-     switch (<expresión>) <sentencia>
-     La expresión e controla un switch debe ser de tipo entero.
-   
-   <sentencia expresión> -> <expresión>? ;
+   Dado el fragmento: ~{ T v,*p; v =f(1.0 ) ;switch( v.m1){p= v .m2;} }~
+   Escriba las *declaraciones* de los siguientes *identificadores* para que el fragmento sea semánticamente correcto:
+   1. De ~T~
+   2. De ~f~
    #+END_QUOTE
-   
+*** Respuesta
    #+BEGIN_SRC C
-          // - no es error sintáctico porque se puede derivar de la BNF
-          // - es error semántico, porque el prototipo de printf espera una cadena de caracteres como primer parámetro
-          printf(main); 
-          printf(); // idem que el anterior
-          printf(printf); // idem que el anterior
+     // (1): Declaración de T
+     // - Lo hacemos del tipo struct porque en el fragmento se usa
+     // el operador (.) para acceder a los miembros de la `v`
+     // - Usamos typedef para crear el alias porque declara dos variables
+     // de la sig manera `T v, *p`
+     // - El miembro `m1` debe ser `int` porque la expresión del switch
+     // debe ser entero
+     // - El miembro 'm2' lo hacemos del tipo puntero a `struct S` porque en la
+     // expresión de asignación `p=v.m2` le asigna un valor que es del mismo tipo que `p`
+     typedef struct S{int m1; struct S *m2;} T;
 
-     // ERROR sintáctico, al derivar de la BNF no espera el operador `-` seguido de la keyword `for`,
-     for-while ;     
-   #+END_sRC
-** Errores Semánticos
-   #+BEGIN_SRC C
-     printf("%d"); // Ok, no produce error, imprime un valor basura
-     
-     // - NO es error semántico. Es error sintáctico, debe ser del tipo `while(exp) sentencia` ó `while(exp){ sentencia }`
-     while++;
-
-     // Es error semántico según el contexto, Ej. si fue declarada previamente en el mismo scope/ámbito
-     int v[5];
-
-     // Es error semántico según el contexto,
-     // - ERROR semántico si el prototipo de s es `int s(char);`
-     // - NO es error si el prototipo de s es `int s()`
-     // - NO es error si el prototipo de es `s(int(*) (const char*, ...))`
-     s(printf);
-
-
-     // -----------------------------------------------------------------------------------------------------
-
-     // - ERROR Semántico, porque tiene que ser del tipo `if(expresion)`
-     if();
-
-     // - estos otros no producen error porque son del tipo `if(expresion)`
-     if(1); if(0.5); if('a'); if("abc"); // ok
-     int* ptr; if(ptr); // ok
-     int v[5]; if(v); // ok
-
-     // -----------------------------------------------------------------------------------------------------
-
-     // - ERROR Semántico, tipo de dato incompleto. NO es error sintáctico porque puede derivar
-     struct S{struct S m;};
-
-     // - No produce error, se declaró la estructura `P` y luego se declaró `x` que es del tipo `struct P`
-     struct P{}; struct { struct P x; } p;
-
-     // -----------------------------------------------------------------------------------------------------
-
-     int b(int x){ return x; }
-     b; // no arroja error, es una sentencia semanticamente correcta, que usa la minima cantidad de TOKENs
-     b(0); // sentencia expresión
-     b("hola"); // ERROR semántico, la invocación de `b` no coincide con su prototipo
-
-     // -----------------------------------------------------------------------------------------------------
-
-     prontf("hi"); // Es error semántico según el contexto, arroja error si el prototipo de `prontf` no coincide con su invocación
-
-     // - es error semántico, porque el prototipo de printf espera una cadena de caracteres como primer parámetro
-     printf(main);
-     printf(); // idem que el anterior
-
-               // -----------------------------------------------------------------------------------------------------
-
-               // - La expresión `c = a[1].b` es semánticamente válida
-               // - La expresión `a[0].b` es un lvalue NO MODIFICABLE
-     int c;
-     const struct { int b; } a[10];
-     c = a[1].b;
-
-     // -----------------------------------------------------------------------------------------------------
-
-     // Alternativa #1 - No produce error semántico en `c=a[1].b`
-     int c; struct { int b; } a[10];
-     c = a[1].b; // no es error semańtico, por el contexto
-
-     // Alternativa #2 - ERROR semántico en `c=a[1].b`
-     // - porque `a` no es un arreglo del tipo struct
-     int c, a;
-     c = a[1].b; // ERROR semańtico, por el contexto
+     // (2)
+     // - Retorna un struct para que en la expresión de asignación
+     // `v=f(1.0)` no haya problemas de tipo
+     // - Recibe por parámetro un double, porque en la invocación `f(1.0)`
+     // si a una Constante numérica real no se agrega el sufijo `f`
+     // por default es del tipo `double` (doble precisión)
+     T f(double);
    #+END_SRC
+* Etapas compilación
+** [TODO] Problema 1 (2019-07-29)
+   #+BEGIN_QUOTE
+   Indique cuál es la entrada a la parte (o proceso) de *síntesis de un compilador*
+   #+END_QUOTE
+** [WAITING] [#A] Problema 2 (2019-07-15)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique las *fases de la parte de análisis de un compilador*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   Me parece que te falta desarrollar un poco más...
+   <<DUDA>>: En el *análisis sintáctico* se especifica el orden de evaluación de los OPERADORES?
+   si tienen igual precedencia, se evalúa por asociatividad ?
+
+   <<DUDA>>: En el análisis semántico, que tiene de entrada? lexemas?
+
+   <<DUDA>>: En el análisis semántico se verifica las restricciones en (LN) de la BNF,
+   y también de la (GSC) que la BNF no puede representar?
+
+   <<DUDA>>: En el *MROC* aparecen las *restricciones* sobre los constructos definidos
+    en la "Sintaxis" y que la BNF ó una GIC no podría representar de forma clara?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   1. Análisis Léxico (Scanner)
+      - recibe y procesa una secuencia de caracteres, los agrupa en lexemas y clasifica por tipo de TOKENs
+   2. Análisis Sintáctico (Parser)
+      - recibe y procesa una secuencia de TOKENs, analiza si cumplen con las reglas sintácticas de la BNF
+      - verifica la precedencia y asociatividad de los operadores
+      - sólo entiende TOKENs (son LRs, generados por GRs)
+      - se especifíca la precedencia y asociatividad de los OPERADORES
+   3. Análisis Semántico
+      - se especifíca el orden de evaluación de los OPERANDOS
+   #+END_QUOTE
+** [WAITING] Problema 3 (2018-07-30)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas con respecto al proceso de compilación:
+   1) Detecta errores semánticos.
+   2) Incluye un backend y un front end.
+   3) Incluye una etapa de vinculación (link).
+   4) Incluye una etapa de preprocesamiento.
+   5) Incluye una etapa de análisis y otra de síntesis.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: (2) la resolución dice que es verdadera (?)
+
+   <<DUDA>>: (5) sintesis? 
+   UN fragmento del apunte de ferreiros..
+   "la segunda etapa del compilador — la Síntesis — y del programa objeto que se obtiene, como hemos visto en el capítulo 
+   anterior, aunque éstos no sean temas para profundizar en este libro. "
+
+   Otro fragmento del apunte de ferreiros..
+   ArchivoFuente (.c) -> Analisis (Léxico, Sintáctico, Semántico) -> Sintesis -> Ensamblado -> Enlazado -> ArchivoEjecutable (.exe)
+   #+END_COMMENT
+
+   #+BEGIN_QUOTE
+   (1) Verdadero. La última etapa del proceso de compilación es el *Analisis Semántico*,
+   y en este se detectan los *errores semánticos*
+
+   (3) FALSO. La etapa de vinculación es externa al compilador,
+   la realiza el Linker/Enlazador para generar el ejecutable (.exe ó .out)
+   a partir de los objetos (.o) generados a partir de los archivos fuente (.c) y archivos de cabecera (.h).
+
+   (4) FALSO. La etapa preprocesamiento, es externa al compilador,
+   la realiza el Preprocesador de C, que remueve los comentarios, y aplica las directivas (#define, #if, #include, ...)
+   #+END_QUOTE
+** Problema 4 (2018-06-07)
+*** Enunciado
+   #+BEGIN_QUOTE
+   V/F? En un programa la línea ~#include <stdio.h>~ permite vincularlo (link) con la biblioteca estándar.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: está ok lo del preprocesador?
+   #+END_COMMENT
+
+   #+BEGIN_QUOTE
+   FALSO. El Linker/Enlazador no recibe la cabecera.
+   La directiva ~#include~ es analizada por el *Preprocesador de C*, éste se encarga de las directivas
+   #+END_QUOTE
+** [WAITING] Problema 5 (2018-02-19)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique el orden en el cual se ejecutan los siguientes procesos o subprocesos:
+   -  Parser
+   -  Linker
+   -  Scanner
+   -  Backend
+   -  Preprocesamiento
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: Qué es el backend?
+   #+END_COMMENT
+
+   #+BEGIN_QUOTE
+   - (1) Preprocesamiento
+   - (2) Scanner
+   - (3) Parser
+   - (4) *Backend* <--
+   - (5) Linker
+   #+END_QUOTE
+* Regex
+** [TODO] Problema 1 (2020-10-14)
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión C: ~s.a[s.i]~
+   
+    Puede esta *expresión* considerarse una *regex*? Justifique
+   #+END_QUOTE
+** [WAITING] Problema 2 (2018-06-07)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Escriba la regex resultante de la intersección entre las *constantes enteras decimales de C*
+   y el LF representado por la regex ~[0-9]*|a~
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: La resolución dice ~[1-9][0-9]*~ por que...?
+   yo había puesto ~[0-9]*~ ya que es lo único que tienen en común...
+
+   y que la Regex de las Constantes Decimales de C: [1-9]+[0-9]*
+   #+END_COMMENT
+
+   #+BEGIN_QUOTE
+   #+END_QUOTE
+* [TODO] Primero() + LL + PAS
+** Problema 1 (2018-02-26)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la gramática
+
+   sentencia-if:
+     if ( expresión ) sentencia
+     if ( expresión ) sentencia else sentencia
+
+   Indique si la gramática es *LL(1)*. Si lo es justifique, si no, reescríbala para que sí sea:
+   #+END_QUOTE
+** Problema 2 (2018-02-26)
+*** Enunciado
+   #+BEGIN_SRC C
+     void S(){
+       switch(GetProximoToken()){
+       case A: Match(A); S(); Match(C); return;
+       case B: Match(B); return;
+       default: // TODO
+       }
+     }
+   #+END_SRC
+
+   #+BEGIN_QUOTE
+   Dado el anterior PAS, resuelva los siguientes ítems:
+
+   1. V/F? El PAS es *sintácticamente correcto*
+   2. Dibuje el *árbol de expresión* de la *expresión de la sentencia etiquetada* con ~case B:~
+   3. La *sentencia etiquetada* con ~default~ no fue desarrollada por el programador original, por
+   eso tiene el comentario ~TODO~ (para hacer), complétela arriba, en el propio código.
+   4. Defina el *conjunto de las producciones de la gramática* asociada al PAS:
+   5. Escriba una *regex* que represente el asociado al PAS:
+   6. Calcule ~Primero(S)~
+   #+END_QUOTE
+** Problema 3 (2018-02-19)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Calcule , siendo el no terminal del BNF de C, es decir, la gramática de
+   las sentencias de iteración de C:
+   #+END_QUOTE
+* [TODO] Lex
+** Problema 1 (2018-07-30)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas con respecto al archivo de entrada de Lex.
+   1) Puede contener reglas.
+   2) Puede contener acciones.
+   3) Puede contener condiciones.
+   4) Puede contener partes en lenguaje C.
+   5) Puede contener partes en notación RegEx
+   #+END_QUOTE
+** Problema 2 (2018-06-07)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde la afirmación falsa con respecto a lex:
+   1) Entiende *regex*
+   2) Genera un *scanner*
+   3) Es un *analizador léxico*
+   4) Su salida es un programa.
+   5) Su entrada es un archivo con reglas.
+   #+END_QUOTE
+* [TODO] Yacc/Bison
+** Problema 1 (2019-12-11)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la siguiente gramática:
+   E → E + T | T
+   T → T * F | F
+   F → 1 | 2 | 3
+   
+   Indique si las siguientes afirmaciones son verdaderas o falsas y justifique su respuesta   
+   1. Puede ser implementada directamente, es decir, sin aplicar ninguna transformación a la gramática, por *Yacc/Bison*
+   #+END_QUOTE
+** Problema 2 (2018-12-10)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente gramática en BNF tipo Yacc, donde + y Entero son tokens:
+   Expresión
+   : Expresión "+" Entero
+   l Entero
+   ;
+   
+   1. Indique si es LL(1) o no; si es justifique, si no, reescríbala para que sí sea:
+   2. Indique si el lenguaje generado es regular o no, justifique:
+   3. Escriba las reglas Lex para los dos tokens:
+   #+END_QUOTE
+* [WAITING] Automatas
+** Ejemplo 1
+*** Problema
+   #+BEGIN_SRC c
+     while( EOF != (c=getchar()) ){
+       switch(state){
+       case INICIAL:
+         switch(c){
+         case 'a':
+           state=INICIAL;
+           continue;
+           // ...
+         }
+         // ...
+       }
+      }
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Asuma que el anterior fragmento es parte de la implementación de una *máquina de estado*, responda
+   considerando sólo la parte presentada:
+   
+   1) Indique el *tipo de máquina de estado*. Justifique.
+   2) Indique a qué conjunto pertenece ~INICIAL~
+   3) Indique a qué conjunto pertenece ~a~
+   4) Escriba la o las *transiciones* que representa.
+   5) Escriba una *ERX* análoga.
+   6) Escriba una *producción* análoga.
+   #+END_QUOTE
+* Diagramas
+** Automatas
+** [TODO] Arboles sintácticos
+*** Problema 1 (2020-10-14)
+**** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión C: ~s.a[s.i]~
+   
+   Nivel sintáctico
+   1. Indique *la raíz y las hojas* del *árbol de expresión*
+   2. Escriba todas las *subexpresiones de la expresión*
+   #+END_QUOTE
+*** Problema 2 (2019-12-18)
+**** Enunciado
+   #+BEGIN_SRC C
+     /*1*/ int h(int x){
+       /*2*/ int y=0;
+       /*3*/ y=f(x);
+       /*4*/ y=g(y);
+       /*5*/ return y;}
+   #+END_SRC
+
+   #+BEGIN_QUOTE
+   Analice la *sentencia* de la línea 3, dibuje el *árbol asociado a la expresión*
+   #+END_QUOTE
+*** Problema 3 (2019-12-11)
+**** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca del *análisis sintáctico*
+   
+   1. En un *árbol de derivación*, los nodos internos son variables.
+   #+END_QUOTE
+*** Problema 4 (2019-12-04)
+**** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca del *análisis sintáctico*
+   
+   1. En un *árbol de derivación*, las hojas son *tokens*
+   2. En C, la expresión ~a+b+c~ tiene un único *árbol de derivación*
+   #+END_QUOTE
+*** Problema 5 (2019-12-04)
+**** Enunciado
+   #+BEGIN_QUOTE
+   Dibuje el *árbol de expresión* para ~f(x).a[i]~
+   #+END_QUOTE
 * Tips
 ** Operador Vs Caracter de Puntuación
 *** Ejemplo 1
@@ -2674,6 +2951,13 @@ Chequear por "sintesis" del compilador
      <constante> |
      <constante cadena> |
      (<expresión>)
+
+   primary-expression: <- de otra fuente
+     identifier
+     constant
+     string-literal
+     ( expression )
+     generic-selection
    #+END_QUOTE
 *** Sentencia
    #+BEGIN_QUOTE
@@ -2727,241 +3011,122 @@ Chequear por "sintesis" del compilador
      o en el cuerpo de un ciclo. La sentencia return con una expresión
      no puede aparecer en una función void.
    #+END_QUOTE 
-* Etapas compilación
-** [TODO] Problema 1 (2019-07-29)
-   #+BEGIN_QUOTE
-   Indique cuál es la entrada a la parte (o proceso) de *síntesis de un compilador*
-   #+END_QUOTE
-** [WAITING] [#A] Problema 2 (2019-07-15)
-*** Enunciado
-   #+BEGIN_QUOTE
-   Indique las *fases de la parte de análisis de un compilador*
-   #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   Me parece que te falta desarrollar un poco más...
-   <<DUDA>>: En el *análisis sintáctico* se especifica el orden de evaluación de los OPERADORES?
-   si tienen igual precedencia, se evalúa por asociatividad ?
-
-   <<DUDA>>: En el análisis semántico, que tiene de entrada? lexemas?
-
-   <<DUDA>>: En el análisis semántico se verifica las restricciones en (LN) de la BNF,
-   y también de la (GSC) que la BNF no puede representar?
-
-   <<DUDA>>: En el *MROC* aparecen las *restricciones* sobre los constructos definidos
-    en la "Sintaxis" y que la BNF ó una GIC no podría representar de forma clara?
-   #+END_COMMENT
-   
-   #+BEGIN_QUOTE
-   1. Análisis Léxico (Scanner)
-      - recibe y procesa una secuencia de caracteres, los agrupa en lexemas y clasifica por tipo de TOKENs
-   2. Análisis Sintáctico (Parser)
-      - recibe y procesa una secuencia de TOKENs, analiza si cumplen con las reglas sintácticas de la BNF
-      - verifica la precedencia y asociatividad de los operadores
-      - sólo entiende TOKENs (son LRs, generados por GRs)
-      - se especifíca la precedencia y asociatividad de los OPERADORES
-   3. Análisis Semántico
-      - se especifíca el orden de evaluación de los OPERANDOS
-   #+END_QUOTE
-** [WAITING] Problema 3 (2018-07-30)
-*** Enunciado
-   #+BEGIN_QUOTE
-   Tilde todas las afirmaciones verdaderas con respecto al proceso de compilación:
-   1) Detecta errores semánticos.
-   2) Incluye un backend y un front end.
-   3) Incluye una etapa de vinculación (link).
-   4) Incluye una etapa de preprocesamiento.
-   5) Incluye una etapa de análisis y otra de síntesis.
-   #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: (2) la resolución dice que es verdadera (?)
-
-   <<DUDA>>: (5) sintesis? 
-   UN fragmento del apunte de ferreiros..
-   "la segunda etapa del compilador — la Síntesis — y del programa objeto que se obtiene, como hemos visto en el capítulo 
-   anterior, aunque éstos no sean temas para profundizar en este libro. "
-
-   Otro fragmento del apunte de ferreiros..
-   ArchivoFuente (.c) -> Analisis (Léxico, Sintáctico, Semántico) -> Sintesis -> Ensamblado -> Enlazado -> ArchivoEjecutable (.exe)
-   #+END_COMMENT
-
-   #+BEGIN_QUOTE
-   (1) Verdadero. La última etapa del proceso de compilación es el *Analisis Semántico*,
-   y en este se detectan los *errores semánticos*
-
-   (3) FALSO. La etapa de vinculación es externa al compilador,
-   la realiza el Linker/Enlazador para generar el ejecutable (.exe ó .out)
-   a partir de los objetos (.o) generados a partir de los archivos fuente (.c) y archivos de cabecera (.h).
-
-   (4) FALSO. La etapa preprocesamiento, es externa al compilador,
-   la realiza el Preprocesador de C, que remueve los comentarios, y aplica las directivas (#define, #if, #include, ...)
-   #+END_QUOTE
-** Problema 4 (2018-06-07)
-*** Enunciado
-   #+BEGIN_QUOTE
-   V/F? En un programa la línea ~#include <stdio.h>~ permite vincularlo (link) con la biblioteca estándar.
-   #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: está ok lo del preprocesador?
-   #+END_COMMENT
-
-   #+BEGIN_QUOTE
-   FALSO. El Linker/Enlazador no recibe la cabecera.
-   La directiva ~#include~ es analizada por el *Preprocesador de C*, éste se encarga de las directivas
-   #+END_QUOTE
-* Lenguajes Formales
-** Conceptos básicos
-*** Relación con la BNF de C
-**** Conceptos
+** Lenguajes Formales
+*** Conceptos básicos
+**** Relación con la BNF de C
+***** Conceptos
    - Si X es (LR) => por definición es posible escribir una (GIC) que lo genere => es posible escribir una BNF que lo defina
-**** Declaraciones
+***** Declaraciones
    - No son (LR) por tener *paréntesis balanceados*
    - En C se definen con notación BNF, que se puede representar con (LIC)
-**** Constantes enteras
+***** Constantes enteras
    - Las constantes enteras sin sufijo se pueden representar con la (ER) ~0(0+1+2+3+4+5+6+7)*~
-**** Sentencias
-* Regex
-** [TODO] Problema 1 (2020-10-14)
-   #+BEGIN_QUOTE
-   Analice la siguiente expresión C: ~s.a[s.i]~
-   
-    Puede esta *expresión* considerarse una *regex*? Justifique
-   #+END_QUOTE
-** [WAITING] Problema 2 (2018-06-07)
-*** Enunciado
-   #+BEGIN_QUOTE
-   Escriba la regex resultante de la intersección entre las *constantes enteras decimales de C*
-   y el LF representado por la regex ~[0-9]*|a~
-   #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: La resolución dice ~[1-9][0-9]*~ por que...?
-   yo había puesto ~[0-9]*~ ya que es lo único que tienen en común...
-
-   y que la Regex de las Constantes Decimales de C: [1-9]+[0-9]*
-   #+END_COMMENT
-
-   #+BEGIN_QUOTE
-   #+END_QUOTE
-* [TODO] Lex
-** Problema 1 (2018-07-30)
-*** Enunciado
-   #+BEGIN_QUOTE
-   Tilde todas las afirmaciones verdaderas con respecto al archivo de entrada de Lex.
-   1) Puede contener reglas.
-   2) Puede contener acciones.
-   3) Puede contener condiciones.
-   4) Puede contener partes en lenguaje C.
-   5) Puede contener partes en notación RegEx
-   #+END_QUOTE
-** Problema 2 (2018-06-07)
-*** Enunciado
-   #+BEGIN_QUOTE
-   Tilde la afirmación falsa con respecto a lex:
-   1) Entiende *regex*
-   2) Genera un *scanner*
-   3) Es un *analizador léxico*
-   4) Su salida es un programa.
-   5) Su entrada es un archivo con reglas.
-   #+END_QUOTE
-* [TODO] Yacc/Bison
-** Problema 1 (2019-12-11)
-*** Enunciado
-   #+BEGIN_QUOTE
-   Dada la siguiente gramática:
-   E → E + T | T
-   T → T * F | F
-   F → 1 | 2 | 3
-   
-   Indique si las siguientes afirmaciones son verdaderas o falsas y justifique su respuesta   
-   1. Puede ser implementada directamente, es decir, sin aplicar ninguna transformación a la gramática, por *Yacc/Bison*
-   #+END_QUOTE
-** Problema 2 (2018-12-10)
-*** Enunciado
-   #+BEGIN_QUOTE
-   Analice la siguiente gramática en BNF tipo Yacc, donde + y Entero son tokens:
-   Expresión
-   : Expresión "+" Entero
-   l Entero
-   ;
-   
-   1. Indique si es LL(1) o no; si es justifique, si no, reescríbala para que sí sea:
-   2. Indique si el lenguaje generado es regular o no, justifique:
-   3. Escriba las reglas Lex para los dos tokens:
-   #+END_QUOTE
-* [WAITING] Automatas
-** Ejemplo 1
-*** Problema
-   #+BEGIN_SRC c
-     while( EOF != (c=getchar()) ){
-       switch(state){
-       case INICIAL:
-         switch(c){
-         case 'a':
-           state=INICIAL;
-           continue;
-           // ...
-         }
-         // ...
-       }
-      }
-   #+END_SRC
-   
-   #+BEGIN_QUOTE
-   Asuma que el anterior fragmento es parte de la implementación de una *máquina de estado*, responda
-   considerando sólo la parte presentada:
-   
-   1) Indique el *tipo de máquina de estado*. Justifique.
-   2) Indique a qué conjunto pertenece ~INICIAL~
-   3) Indique a qué conjunto pertenece ~a~
-   4) Escriba la o las *transiciones* que representa.
-   5) Escriba una *ERX* análoga.
-   6) Escriba una *producción* análoga.
-   #+END_QUOTE
-* Diagramas
-** Automatas
-** [TODO] Arboles sintácticos
-*** Problema 1 (2020-10-14)
-**** Enunciado
-   #+BEGIN_QUOTE
-   Analice la siguiente expresión C: ~s.a[s.i]~
-   
-   Nivel sintáctico
-   1. Indique *la raíz y las hojas* del *árbol de expresión*
-   2. Escriba todas las *subexpresiones de la expresión*
-   #+END_QUOTE
-*** Problema 2 (2019-12-18)
-**** Enunciado
+***** Sentencias
+** Errores de Compilación
+*** Mix
    #+BEGIN_SRC C
-     /*1*/ int h(int x){
-       /*2*/ int y=0;
-       /*3*/ y=f(x);
-       /*4*/ y=g(y);
-       /*5*/ return y;}
-   #+END_SRC
+     printf("%d");  // OK, devuelve un valor basura
 
+     struct{ } printf; // no produce error, `printf` no es una keyword
+     struct{ } main; // no produce error, `main` no es una keyword
+
+     int a(){ }
+     a; // no produce error
+     
+     int b(int x){ return x; }
+     b; // no produce error
+     b('a'); // no produce error, porque 'a' es un caracter y representa un valor númerico de la tabla ascii
+   #+END_SRC
+*** Errores Léxicos
+*** Errores Sintácticos
    #+BEGIN_QUOTE
-   Analice la *sentencia* de la línea 3, dibuje el *árbol asociado a la expresión*
-   #+END_QUOTE
-*** Problema 3 (2019-12-11)
-**** Enunciado
-   #+BEGIN_QUOTE
-   Tilde todas las afirmaciones verdaderas acerca del *análisis sintáctico*
+   <sentencia> -> <sentencia expresión> | <sentencia compuesta> | <sentencia de selección> | <sentencia de iteración> | <sentencia etiquetada> | <sentencia de salto>
    
-   1. En un *árbol de derivación*, los nodos internos son variables.
-   #+END_QUOTE
-*** Problema 4 (2019-12-04)
-**** Enunciado
-   #+BEGIN_QUOTE
-   Tilde todas las afirmaciones verdaderas acerca del *análisis sintáctico*
+   <sentencia de selección> ->
+     if (<expresión>) <sentencia> |
+     if (<expresión>) <sentencia> else <sentencia> |
+     switch (<expresión>) <sentencia>
+     La expresión e controla un switch debe ser de tipo entero.
    
-   1. En un *árbol de derivación*, las hojas son *tokens*
-   2. En C, la expresión ~a+b+c~ tiene un único *árbol de derivación*
+   <sentencia expresión> -> <expresión>? ;
    #+END_QUOTE
-*** Problema 5 (2019-12-04)
-**** Enunciado
-   #+BEGIN_QUOTE
-   Dibuje el *árbol de expresión* para ~f(x).a[i]~
-   #+END_QUOTE
+   
+   #+BEGIN_SRC C
+          // - no es error sintáctico porque se puede derivar de la BNF
+          // - es error semántico, porque el prototipo de printf espera una cadena de caracteres como primer parámetro
+          printf(main); 
+          printf(); // idem que el anterior
+          printf(printf); // idem que el anterior
+
+     // ERROR sintáctico, al derivar de la BNF no espera el operador `-` seguido de la keyword `for`,
+     for-while ;     
+   #+END_sRC
+*** Errores Semánticos
+   #+BEGIN_SRC C
+     printf("%d"); // Ok, no produce error, imprime un valor basura
+     
+     // - NO es error semántico. Es error sintáctico, debe ser del tipo `while(exp) sentencia` ó `while(exp){ sentencia }`
+     while++;
+
+     // Es error semántico según el contexto, Ej. si fue declarada previamente en el mismo scope/ámbito
+     int v[5];
+
+     // Es error semántico según el contexto,
+     // - ERROR semántico si el prototipo de s es `int s(char);`
+     // - NO es error si el prototipo de s es `int s()`
+     // - NO es error si el prototipo de es `s(int(*) (const char*, ...))`
+     s(printf);
+
+
+     // -----------------------------------------------------------------------------------------------------
+
+     // - ERROR Semántico, porque tiene que ser del tipo `if(expresion)`
+     if();
+
+     // - estos otros no producen error porque son del tipo `if(expresion)`
+     if(1); if(0.5); if('a'); if("abc"); // ok
+     int* ptr; if(ptr); // ok
+     int v[5]; if(v); // ok
+
+     // -----------------------------------------------------------------------------------------------------
+
+     // - ERROR Semántico, tipo de dato incompleto. NO es error sintáctico porque puede derivar
+     struct S{struct S m;};
+
+     // - No produce error, se declaró la estructura `P` y luego se declaró `x` que es del tipo `struct P`
+     struct P{}; struct { struct P x; } p;
+
+     // -----------------------------------------------------------------------------------------------------
+
+     int b(int x){ return x; }
+     b; // no arroja error, es una sentencia semanticamente correcta, que usa la minima cantidad de TOKENs
+     b(0); // sentencia expresión
+     b("hola"); // ERROR semántico, la invocación de `b` no coincide con su prototipo
+
+     // -----------------------------------------------------------------------------------------------------
+
+     prontf("hi"); // Es error semántico según el contexto, arroja error si el prototipo de `prontf` no coincide con su invocación
+
+     // - es error semántico, porque el prototipo de printf espera una cadena de caracteres como primer parámetro
+     printf(main);
+     printf(); // idem que el anterior
+
+               // -----------------------------------------------------------------------------------------------------
+
+               // - La expresión `c = a[1].b` es semánticamente válida
+               // - La expresión `a[0].b` es un lvalue NO MODIFICABLE
+     int c;
+     const struct { int b; } a[10];
+     c = a[1].b;
+
+     // -----------------------------------------------------------------------------------------------------
+
+     // Alternativa #1 - No produce error semántico en `c=a[1].b`
+     int c; struct { int b; } a[10];
+     c = a[1].b; // no es error semańtico, por el contexto
+
+     // Alternativa #2 - ERROR semántico en `c=a[1].b`
+     // - porque `a` no es un arreglo del tipo struct
+     int c, a;
+     c = a[1].b; // ERROR semańtico, por el contexto
+   #+END_SRC
