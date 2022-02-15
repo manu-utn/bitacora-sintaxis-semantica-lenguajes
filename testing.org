@@ -1300,6 +1300,91 @@
              return 0;
      }
    #+END_SRC
+** Punteros a funciones
+   #+BEGIN_SRC c
+     #include <stdio.h>
+     #include <stdlib.h>
+
+     struct velocidad{int x,y;};
+
+     void saludar(){
+             printf("hola\n");
+     }
+
+     void saludarA(char* nombre){
+             printf("Hola %s\n", nombre);
+     }
+
+     int calcularEdad(int anioNacimiento){
+             return 9;
+     }
+
+     void saludarTipo(char* nombre, void(*tipo)(char*)){
+             tipo(nombre);
+     }
+
+     void saludoFormal(char* nombre){
+             printf("Hola señor %s\n", nombre);
+     }
+
+     void saludoInformal(char* nombre){
+             printf("ola %s\n", nombre);
+     }
+
+     int sumar(int x, int y){
+             return x + y;
+     }
+
+     int main(){
+             int num=10, *p=&num;
+
+             (*p)++; printf("*p=%d, num=%d\n", *p, num); // p apunta al 11 de num
+             ,*p++; printf("*p=%d, num=%d\n", *p, num); // no sabe sabe a donde apunta `p`
+
+             sumar(1,1);
+
+             char* sumar;
+             // - error semántico, se pisó la definición de la función sumar con la declaración de la variable
+              //sumar(1,1);
+             //sumar=5;
+             //printf("sumar=%d\n", sumar);
+
+             // --------------------------------------------------------------------
+
+             struct velocidad* vInicial = malloc(sizeof(struct velocidad));
+             vInicial->x = 0; // operador -> para acceder a un miembro de un ptr a struct
+             (*vInicial).x = 5; // desreferenciamos para luego acceder al miembro del stuct
+
+             // *(vInicial).x = 5; // WRONG, sería lo mismo que no poner los paréntesis
+
+             printf("x=%d\n", vInicial->x);
+             free(vInicial);
+
+             // --------------------------------------------------------------------
+
+             int (*ptr1)(int); // puntero a función tipo int que recibe 1 parámetro int
+             ptr1=calcularEdad; // el puntero a función apunta a calcularEdad
+             int edad = ptr1(1990);
+
+             printf("f(1990)=%d, edad=%d\n", ptr1(1990), edad);
+
+             void (*ptr2)(); // puntero a función tipo void, que no recibe parámetros
+             ptr2=saludar;
+             ptr2();
+
+
+             void (*ptr3)(char*); // puntero a una función tipo void, que recibe 1 parámetro tipo char*
+             ptr3=saludarA;
+             ptr3("carlos");
+
+             // funcion con 2 parámetos,
+             // el segundo es puntero a función void que recibe string
+             saludarTipo("carlos", saludoFormal);
+             saludarTipo("carlos", saludoInformal);
+
+             return 0;
+     }
+   #+END_SRC
 * Referencias
   1. https://www.tenouk.com/cpluscodesnippet/chardecimalhexoctal.html
   2. https://slidetodoc.com/parsing-tools-introduction-to-bison-and-flex-1/
