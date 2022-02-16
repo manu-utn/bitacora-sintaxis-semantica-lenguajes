@@ -1,0 +1,47 @@
+#+TITLE: Resumen de Finales - Etapas de Compilación
+* [TODO] Lex
+** Problema 1 (2018-07-30)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas con respecto al archivo de entrada de Lex.
+   1) Puede contener reglas.
+   2) Puede contener acciones.
+   3) Puede contener condiciones.
+   4) Puede contener partes en lenguaje C.
+   5) Puede contener partes en notación RegEx
+   #+END_QUOTE
+** Problema 2 (2018-06-07)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde la afirmación falsa con respecto a lex:
+   1) Entiende *regex*
+   2) Genera un *scanner*
+   3) Es un *analizador léxico*
+   4) Su salida es un programa.
+   5) Su entrada es un archivo con reglas.
+   #+END_QUOTE
+* [TODO] Yacc/Bison
+** Problema 1 (2019-12-11)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la siguiente gramática:
+   E → E + T | T
+   T → T * F | F
+   F → 1 | 2 | 3
+   
+   Indique si las siguientes afirmaciones son verdaderas o falsas y justifique su respuesta   
+   1. Puede ser implementada directamente, es decir, sin aplicar ninguna transformación a la gramática, por *Yacc/Bison*
+   #+END_QUOTE
+** Problema 2 (2018-12-10)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente gramática en BNF tipo Yacc, donde + y Entero son tokens:
+   Expresión
+   : Expresión "+" Entero
+   l Entero
+   ;
+   
+   1. Indique si es LL(1) o no; si es justifique, si no, reescríbala para que sí sea:
+   2. Indique si el lenguaje generado es regular o no, justifique:
+   3. Escriba las reglas Lex para los dos tokens:
+   #+END_QUOTE

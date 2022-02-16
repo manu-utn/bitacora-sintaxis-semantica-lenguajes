@@ -1,4 +1,5 @@
-* Pruebas en C
+#+TITLE: Practicando C
+* Practicando en C
 ** Aritmética de Punteros + ungetc + valorL no modificable
 #+BEGIN_SRC C
   #include <stdio.h>
@@ -901,6 +902,13 @@
      struct Y{const int y; int yy;}Y1;
      int main(){
              int n[5]={0}, m[5]={1};
+
+             // -----------------------------------------
+             {
+               // al agregar `const` hacemos que `a` sea un lvalue NO modificable
+               const int a[1], i, *p;
+               //a[0] = 5; // <-- ERROR semántico por ser `a[i]` un lvalue NO modificable
+             }
 
              // -----------------------------------------
              const int r; // el identificador `x` es un lvalue NO modificable

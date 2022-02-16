@@ -1,0 +1,113 @@
+#+TITLE: Resumen de Finales - Lenguajes Formales + BNF de C
+* [WAITING] BNF de C
+** Problema 1 (2019-02-25)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde la afirmación falsa con respecto a BNF:
+
+   1. Es un *meta lenguaje*
+   2. Posee *metasímbolos*
+   3. Es útil para definir *LP*
+   4. Puede describir cualquier *LF tipo 2*
+   5. Puede describir el *LF identificadores de C*
+   6. Puede describir el *LF expresiones de C semánticamente correctas*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: La BNF no puede describir un LF tipo 1 osea (LSC), no?
+   #+END_COMMENT
+
+   #+BEGIN_QUOTE
+   (1) Verdadero, la BNF es un *meta lenguaje*
+
+   (2) Verdadero, la BNF de C tiene como metasímbolo el ~:~ actúa como el ~->~ para las producciones,
+   aunque no posee el ~|~ para las opciones se agregan en una nueva linea
+
+   (3) Verdadero una BNF sirve para definir y documentar un LP
+
+   (4) Verdadero, la BNF puede describir cualquier (LF) tipo 2 osea un (LIC),
+   en la BNF de C se describen las *Categorias Léxicas* (TOKENS, son LRs)
+   y las *Categorías Sintácticas* del lenguaje y sus restricciones
+
+   (5) Verdadero
+
+   (6) Falso, una BNF podría no representar ciertas restricciones que si podría una (GSC)
+   #+END_QUOTE
+** [WAITING] [#A] Problema 2 (2018-12-10)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todos los conceptos que se pueden definir con el *BNF del LF Expresiones de C*
+   1. *Efecto de lado* de la expresión.
+   2. *Precedencia* de los OPERADORES.
+   3. *Asociatividad* de los OPERADORES.
+   4. *Orden de evaluación* de los OPERANDOS.
+   5. Aridad (cantidad de operandos) de los OPERADORES.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: Donde está definido el efecto de lado de C? En el MROC?
+   Yo creí que era Verdadero, porque.. como estaba la expresión de asignación (?)
+   
+   <<DUDA>>: La asociatividad y la precedencia, indican el orden de las operaciones (osea la *Secuenciación*) ?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (2) Verdadero, la BNF del LF expresiones de C define la precedencia de los OPERADORES (por cercanía o no al axioma)..
+   Más cercano esté del axioma, menos precedencia(prioridad)
+
+   (3) Verdadero, la asociatividad está marcada si la regla/producción es a izquierda ó derecha
+
+   (4) FALSO. La BNF no define el *orden de evaluacion de los OPERANDOS*, sólo de los OPERADORES.
+
+   (5) Verdadero, la regla lo indica explícitamente Ej. si el operador es unario tendrá sólo un operando
+   #+END_QUOTE
+** [#A] Problema 3 (2018-06-07)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la gramática
+   sentencia-for:
+   for ( expresión ; expresión ; expresión ) { sentencia }
+   
+   1. V/F? Representa las *sentencias-for de C*
+   2. Calcule ~Primero(sentencia-for)~
+   3. V/F? La ~sentencia-for~ con menor cantidad de TOKENS tiene siete TOKENS.
+   4. V/F? El lenguaje que genera puede reconocerse con un *autómata de pila*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) FALSO, porque
+   1. las tres expresiones que deben ser opcionales
+   2. las llaves que indican el comienzo de una sentencia compuesta también debería ser opcional
+   3. no contempla que *la primera expresión pueda ser una Declaración*
+       
+   (2) Al calcular ~Primero(sentencia-for)~ obtenemos ~for~
+
+   (3) FALSO, la sentencia-for con menor cantidad de TOKENs es ~for(;;);~ que tiene 11 TOKENs
+   |    |           | Tipo de TOKEN          |
+   |----+-----------+------------------------|
+   |  1 | for       | palabra reservada      |
+   |----+-----------+------------------------|
+   |  2 | (         | caracter de puntuación |
+   |----+-----------+------------------------|
+   |  3 | expresion | *al menos 1 token*     |
+   |----+-----------+------------------------|
+   |  4 | ;         | caracter de puntuación |
+   |----+-----------+------------------------|
+   |  5 | expresion | *al menos 1 token*     |
+   |----+-----------+------------------------|
+   |  6 | ;         | caracter de puntuación |
+   |----+-----------+------------------------|
+   |  7 | expresion | *al menos 1 token*     |
+   |----+-----------+------------------------|
+   |  8 | )         | caracter de puntuación |
+   |----+-----------+------------------------|
+   |  9 | {         | caracter de puntuación |
+   |----+-----------+------------------------|
+   | 10 | sentencia | *al menos 1 token*     |
+   |----+-----------+------------------------|
+   | 11 | }         | caracter de puntuación |
+   |----+-----------+------------------------|
+
+   (4) Verdadero, porque al ser una *sentencia iteración* pertenece a una de las 3 *categorías sintácticas*
+   y éstas (LICs) que son generadas por (GICs) y pueden ser reconocidas por un (AP) Automáta de Pila
+   #+END_QUOTE

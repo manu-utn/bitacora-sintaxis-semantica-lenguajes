@@ -1,0 +1,30 @@
+#+TITLE: Resumen de Finales - Automatas
+* [TODO] Automatas
+** Problema 1
+*** Enunciado
+   #+BEGIN_SRC c
+     while( EOF != (c=getchar()) ){
+       switch(state){
+       case INICIAL:
+         switch(c){
+         case 'a':
+           state=INICIAL;
+           continue;
+           // ...
+         }
+         // ...
+       }
+      }
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Asuma que el anterior fragmento es parte de la implementación de una *máquina de estado*, responda
+   considerando sólo la parte presentada:
+   
+   1) Indique el *tipo de máquina de estado*. Justifique.
+   2) Indique a qué conjunto pertenece ~INICIAL~
+   3) Indique a qué conjunto pertenece ~a~
+   4) Escriba la o las *transiciones* que representa.
+   5) Escriba una *ERX* análoga.
+   6) Escriba una *producción* análoga.
+   #+END_QUOTE

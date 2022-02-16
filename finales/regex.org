@@ -1,0 +1,24 @@
+#+TITLE: Resumen de Finales - Regex
+* Regex
+** [TODO] Problema 1 (2020-10-14)
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión C: ~s.a[s.i]~
+   
+    Puede esta *expresión* considerarse una *regex*? Justifique
+   #+END_QUOTE
+** [WAITING] Problema 2 (2018-06-07)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Escriba la regex resultante de la intersección entre las *constantes enteras decimales de C*
+   y el LF representado por la regex ~[0-9]*|a~
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: La resolución dice ~[1-9][0-9]*~ por que...?
+   yo había puesto ~[0-9]*~ ya que es lo único que tienen en común...
+
+   y que la Regex de las Constantes Decimales de C: [1-9]+[0-9]*
+   #+END_COMMENT
+
+   #+BEGIN_QUOTE
+   #+END_QUOTE

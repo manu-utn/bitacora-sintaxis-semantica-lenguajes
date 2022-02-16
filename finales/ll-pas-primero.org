@@ -1,0 +1,42 @@
+#+TITLE: Resumen de Finales - Primero() + LL + Pas
+* [TODO] Primero() + LL + PAS
+** Problema 1 (2018-02-26)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la gramática
+
+   sentencia-if:
+     if ( expresión ) sentencia
+     if ( expresión ) sentencia else sentencia
+
+   Indique si la gramática es *LL(1)*. Si lo es justifique, si no, reescríbala para que sí sea:
+   #+END_QUOTE
+** Problema 2 (2018-02-26)
+*** Enunciado
+   #+BEGIN_SRC C
+     void S(){
+       switch(GetProximoToken()){
+       case A: Match(A); S(); Match(C); return;
+       case B: Match(B); return;
+       default: // TODO
+       }
+     }
+   #+END_SRC
+
+   #+BEGIN_QUOTE
+   Dado el anterior PAS, resuelva los siguientes ítems:
+
+   1. V/F? El PAS es *sintácticamente correcto*
+   2. Dibuje el *árbol de expresión* de la *expresión de la sentencia etiquetada* con ~case B:~
+   3. La *sentencia etiquetada* con ~default~ no fue desarrollada por el programador original, por
+   eso tiene el comentario ~TODO~ (para hacer), complétela arriba, en el propio código.
+   4. Defina el *conjunto de las producciones de la gramática* asociada al PAS:
+   5. Escriba una *regex* que represente el asociado al PAS:
+   6. Calcule ~Primero(S)~
+   #+END_QUOTE
+** Problema 3 (2018-02-19)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Calcule ~Primero(S)~, siendo ~S~ el no terminal del BNF de C, es decir, la gramática de
+   las sentencias de iteración de C:
+   #+END_QUOTE
