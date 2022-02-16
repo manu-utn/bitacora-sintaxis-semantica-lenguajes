@@ -1385,6 +1385,76 @@
              return 0;
      }
    #+END_SRC
+** Errores Sintácticos
+   #+BEGIN_SRC C
+     #include <stdio.h>
+
+     // - just a warning, no produce un error en tiempo de compilación
+     // - sería ERROR semántico si.. quisieramos desreferenciar un puntero a void sin castear previamente
+     void imprimir(){
+     //      return 1;
+     }
+
+     // - imprime el caracter 'g' por stdout
+     // - retorna como valor la diferencia de los valores 'g' y 'f' según la tabla ascii
+     int g(void){putchar('g');return 'g'-'f';}
+
+     // - imprime el caracter 'f' por stdout
+     // - retorna 0 como valor, porque el valor de '\0' en ascii es 0
+     int f(void){putchar('f');return '\0';}
+
+     int main(){
+             {int x=g()*f();putchar(x),putchar('\n');} // otro scope
+
+             printf("NULL=%d, \'\\0\'=%d\n", NULL, '\0');
+
+             // - es una única sentencia expresión, con 4 expresiones
+             // - imprime zZz y hace salto de linea
+             // - separamos las expresiones con el caracter de puntuación ','
+             putchar('z'),putchar('Z'),putchar('z'),putchar('\n');
+
+             g(),f(),printf("\n"); // sentencia expresión con 3 expresiones
+
+             {int x= g()&&f();printf("x=%d\n",x);} // otro scope
+             {int x= g()||f();printf("x=%d\n",x);} // otro scope
+             {int x= g()*f();printf("x=%d\n",x);} // otro scope
+
+             // ---------------------------------------------------
+
+             // (); // <-- ERROR sintáctico, se espera una exp dentro de los ()
+             int a;
+             a=(1); printf("a=%d\n", a);
+             a; (a);
+             // (); // <-- ERROR sintáctico, se esperaba una expresión entre los ()
+
+             switch(a){
+                     case 1: a++, printf("a=%d\n", a);
+                     break;
+                     // a // <-- ERROR sintáctico, se espera un ; luego de la exp `a`
+             } //} <-- produce un ERROR sintáctico más adelante
+
+             //imprimir();
+
+             return 0;
+     }
+   #+END_SRC
+** Declaraciones válidas
+   #+BEGIN_sRC C
+     #include <stdio.h>
+
+     int main(){
+       short a=0; long b=0; printf("a=%d, b=%d\n",a,b);
+       // short long int b=0; // <-- ERROR
+
+       {long int x;}{long long x;}{long long int x;} // todas ok
+       {long double x;}{long double x;} // ambas sentencias ok
+
+       {;} // ok
+       // while(1); // ok
+       // while(1);{;}; // ok
+       return 0;
+     }
+   #+END_SRC
 * Referencias
   1. https://www.tenouk.com/cpluscodesnippet/chardecimalhexoctal.html
   2. https://slidetodoc.com/parsing-tools-introduction-to-bison-and-flex-1/
