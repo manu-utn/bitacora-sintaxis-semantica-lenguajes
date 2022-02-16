@@ -5,7 +5,7 @@ Chequear por "sintesis" del compilador
 https://josemariasola.wordpress.com/ssl/finals/
 https://onedrive.live.com/redir?resid=73A86BFF829778D1%21269&authkey=%21AO1GED7Gink1j1g&page=View&wd=target%28ALSS.one%7C5d8127b2-9b2c-4fa9-84f9-9c5c79271f10%2FResumen%20del%20proceso%20de%20Compilaci%C3%B3n%7C0b7378de-fcf2-42a6-a7de-9a2bbaca9de2%2F%29
 
-actualmente: revisando ejercicios-de-c.tm el ejercicio 18
+actualmente: revisando ejercicios-de-c.tm el ejercicio 16 (lo volcaste en problemas de nivel semántico)
 
 links pendientes:
 - https://www.geeksforgeeks.org/storage-classes-in-c/
@@ -241,7 +241,88 @@ links pendientes:
     - Su valor es ~'a'~ porque se cumple la condición de que ~x~ es menor que el valor ~'a'~ (según la tabla ascii)
     - El valor de ~a~ se mantiene en ~2~
    #+END_QUOTE
-* Nivel Léxico + Sintactico + Semántico
+** [#A] Problema 5 (desconocido)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Sea ~int a=4,b=2;~ compare ~a=a+b~ y ~a+=b~ e indique cuál afirmación es falsa:
+   
+   1. Son expresiones.
+   2. Tienen mismo valor.
+   3. Tienen mismo *tipo de dato*
+   4. Tienen mismo *efecto de lado*
+   5. Tienen misma *cantidad de evaluaciones*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   1. Verdadero, ambas son expresiones (secuencia de operandos y operadores)
+   2. Verdadero, el resultado de ambas es ~a=6~
+   3. Verdadero, ambos son del tipo int
+   4. Verdadero, al usar el operador de asignación ~=~ generan efecto de lado sobre la expresión primaria (identificador) a izquierda del ~=~
+   5. FALSO, la primera se evalúa 4 veces y la segunda 3 veces
+   #+END_QUOTE
+
+   Evaluamos ambas expresiones al mismo tiempo, donde ~a=a+b~ se evalúa 4 veces, y ~a+=b~ 3 veces
+   |-------+------|
+   | a=a+b | a+=b |
+   |-------+------|
+   | a=a+b | a+=b |
+   | a=4+b | a+=2 |
+   | a=4+2 | a=6  |
+   | a=6   |      |
+   |-------+------|
+** [WAITING] [#A] Problema 6 (desconocido)
+*** Enunciado
+   #+BEGIN_SRC C
+    int g(void){putchar('g');return 'g'-'f';}
+    int f(void){putchar('f');return '\0';}
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Dadas las anteriores funciones, indique *el valor de cada expresión* y,
+   si es que está determinada, *la salida por stdout*, si no la frase "Indeterminada":
+   
+   1. ~g()&&f()~
+   2. ~g()*f()~
+   3. ~g()||f()~
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: Por qué la salida por stdout de evaluar ~g()*f()~ sería indeterminada?
+   Entiendo que el orden de evaluación de los operandos es a nivel semántico,
+   y que es de izquierda a derecha para los operadores lógicos como AND y OR
+
+   para el caso del operador arimético ~*~ "creo" que no está específicado,
+   el orden de evaluación de los operandos, porque no se sabe si se ejecuta primero f() ó g() ?
+   *OJO.. "que tuviste problema en el final con este tema..."*
+   #+END_COMMENT
+   
+   | Expresión  | valor | salida por stdout |
+   |------------+-------+-------------------|
+   | ~g()&&f()~ |     0 | gf                |
+   |------------+-------+-------------------|
+   | ~g()*f()~  |     0 | INDETERMINADA     |
+   |------------+-------+-------------------|
+   | ~g()llf()~ |     1 | g                 |
+
+   #+BEGIN_QUOTE
+   El resultado de evaluar la operación ~'g'-'f'~ es ~1~, porque ambos caracteres representan un valor numérico de la tabla ascii,
+   y como ~f~ está en una posición antes que ~g~ sería lo mismo que hacer 11-10 ó 12-11, etc...
+   
+   En la expresión ~g()&&f()~
+   - El valor de retorno es ~0~, porque al evaluarla queda ~1 && 0~ y el operador lógico AND es 1 sólo si ambos operandos son
+   - La salida por stout es ~gf~, porque se logra evaluar ambas expresiones que invocan a funciones que imprimen esos caracteres con ~putchar~
+      
+   En la expresión ~g()*f()~
+   - El valor de retorno es ~0~ porque al evaluarla resulta en ~1*0~ que es una operación arimética común
+   - La salida por stout es ~gf~ mismo caso que con el operador lógico AND &&
+      
+   En la expresión ~g()||f()~
+   - El valor de retorno es ~1~ porque como operadores lógicos se evalúan de izq. a der. (por su asociatividad),
+     es suficiente para el operador lógico OR ~||~ con que uno de los operandos valga ~1~ para retornar ~1~,
+   - La salida por stout es ~g~ misma explicación que antes, y también que el operando de la derecha no se llega a evaluar,
+     ya que termina de evaluarse la expresión con que uno de los operandos valga ~1~ (para el operador lógico OR)
+   #+END_QUOTE
+* Nivel Léxico + Sintáctico + Semántico
 ** Conceptos básicos
 *** Constructos de un (LP)
    - Los *constructos* ó *constructos sintácticos* se refieren a las *restricciones sintácticas*
@@ -1630,6 +1711,132 @@ links pendientes:
    (5) Verdadero. La expresión ~*(3+a)~ se repite la situación anterior,
    ya que el operador ~+~ es conmutativo
    #+END_QUOTE
+** Problema 29 (desconocido)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado el fragmento: ~fi(x>0)a=x;~
+   1) Enumere en orden los caracteres que son devueltos al flujo mediante ungetc durante el análisis léxico:
+   2) Realice un análisis de sintáctico de izquierda a derecha y justifique si es una sentencia
+   sintácticamente correcta. Si hay error sintáctico, reescríbala con el error encontrado corregido:
+   3) Escriba una declaración que haga la sentencia anterior semánticamente correcta
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: (1) porque la solución de zuñiga, no considera que el ungetc también devuelve el ~;~ ???
+   #+END_COMMENT
+
+   |                | fi | (  | x | >  | 0  | )  | a | =  | x  | ; |
+   |----------------+----+----+---+----+----+----+---+----+----+---|
+   | ungetc         |    | x  |   | x  | x  | x  |   | x  | x  | x |
+   | getchar        | xx | xx | x | xx | xx | xx | x | xx | xx | x |
+   |----------------+----+----+---+----+----+----+---+----+----+---|
+   | cant. lecturas |    |    |   |    |    |    |   |    |    |   |
+
+   #+BEGIN_QUOTE
+   (1) Los caracteres devueltos por ungetc son ~(, > , 0, ), =, x, ;~
+   #+END_QUOTE
+
+   #+BEGIN_SRC C
+     // (2)
+
+     // - error sintáctico
+     // - luego de la invocación de la función `fi` no se espera un identificador
+     //
+     // fi(x>0) a=x;
+
+     // solución #1: una sentencia expresión usando el caracter de puntuación ','
+     fi(x>0), a=x;
+
+     // solución #2: dos sentencias expresión usando el caracter de puntuación ';'
+     fi(x>0);a=x;
+
+     // ----------------------------------------------------
+     // (3)
+
+     int a,x,fi(int);
+   #+END_SRC
+** [TODO] Problema 30 (desconocido)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Marque con una cruz si los siguientes *constructos ANSI C* tiene *errores semánticos*, *errores sintácticos*,
+   o no tiene error de compilación. Asuma que las funciones estándar están disponibles.
+   
+   |                                       | Errores Semánticos | Errores Sintácticos | Error Léxico | Sin Error |
+   |---------------------------------------+--------------------+---------------------+--------------+-----------|
+   | {int 2z=0; 2z += 1;}                  |                    |                     |              |           |
+   |---------------------------------------+--------------------+---------------------+--------------+-----------|
+   | {int a=7; while a-- printf(“%d”, a);} |                    |                     |              |           |
+   |---------------------------------------+--------------------+---------------------+--------------+-----------|
+   | {char *a = malloc(5); a[8]=Á'+2;}     |                    |                     |              |           |
+   |---------------------------------------+--------------------+---------------------+--------------+-----------|
+   | {int a; float a; for(;;) a++;}        |                    |                     |              |           |
+   |---------------------------------------+--------------------+---------------------+--------------+-----------|
+   | {int v[5],*p; p=v; *v++=3; *p++=2;}   |                    |                     |              |           |
+   |---------------------------------------+--------------------+---------------------+--------------+-----------|
+   #+END_QUOTE
+** [#A] Problema 31 (desconocido)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente sentencia compuesta: ~{short a=0;{char a; a;}while(1)a;}~
+   1) ¿Cuántos *lexemas* posee?
+   2) ¿Cuántas *expresiones*?
+   3) ¿Es *semánticamente correcta*? ¿Por qué?
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Si lo analizamos léxicamente, el Scanner detectaría 20 lexemas
+
+   (2) Si lo analizamos sintácticamente, el Parser detectaría 4 expresiones,
+   recordando que el constructo sintáctico de una expresión primaria es
+   ~<expresión primaria> -> <identificador> | <constante> | <literal cadena> | (<expresión>)~
+   (en realidad va un salto de linea luego ó antes del pipe pero así queda más entendible :))
+
+   (3) SI es semánticamente correcta, separamos las sentencias para analizarlas
+   #+END_QUOTE
+   
+    |-----------------------+-------------------------------------------+-----------------------------------------------------------------------------------------------------|
+    | constructo sintáctico | tipo de constructo (categoría sintáctica) | motivo porque es semánticamente correcta                                                            |
+    |-----------------------+-------------------------------------------+-----------------------------------------------------------------------------------------------------|
+    | ~short a=0;~          | declaración                               | porque ~short~ es un tipo numérico más chico que ~int~                                              |
+    |-----------------------+-------------------------------------------+-----------------------------------------------------------------------------------------------------|
+    | ~{char a; a;}~        | sentencia compuesta                       | porque contiene una declaración válida al ser otro scope, seguido de una sentencia expresión válida |
+    |-----------------------+-------------------------------------------+-----------------------------------------------------------------------------------------------------|
+    | ~while(1)a;~          | sentencia de iteración                    | porque el while sólo necesita una expresión que lo controle seguido de una sentencia                |
+    |-----------------------+-------------------------------------------+-----------------------------------------------------------------------------------------------------|
+     
+   |---+-----------+-----------------------------------------------+-----------------------------------------------------------------------------|
+   |   | Expresion |                                               | motivo                                                                      |
+   |---+-----------+-----------------------------------------------+-----------------------------------------------------------------------------|
+   | 1 | a=0       | expresión de asignación                       | porque luego de declarar se inicializó en 0                                 |
+   | 2 | a         | expresión primaria (por ser identificador)    | porque si, está sóla dentro de la sentencia expresión                       |
+   | 3 | 1         | expresión primaria (por ser constante entera) | es la expresión que controla al while.. ~while(exp)~                        |
+   | 4 | a         | expresión primaria (por ser identificador)    | porque si, está sóla dentro de la subsentencia de la sentencia de iteración |
+   |---+-----------+-----------------------------------------------+-----------------------------------------------------------------------------|
+
+   |----+--------+----------------------------------|
+   |    | Lexema | Tipo de TOKEN (categoría léxica) |
+   |----+--------+----------------------------------|
+   |  1 | {      | caracter de puntuación           |
+   |  2 | short  | palabra reservada                |
+   |  3 | a      | identificador                    |
+   |  4 | =      | operador                         |
+   |  5 | 0      | constante numérica entera        |
+   |  6 | ;      | caracter de puntuación           |
+   |  7 | {      | caracter de puntuación           |
+   |  8 | char   | palabra reservada                |
+   |  9 | a      | identificador                    |
+   | 10 | ;      | caracter de puntuación           |
+   | 11 | a      | identificador                    |
+   | 12 | ;      | caracter de puntuación           |
+   | 13 | }      | caracter de puntuación           |
+   | 14 | while  | palabra reservada                |
+   | 15 | (      | caracter de puntuación           |
+   | 16 | 1      | constante numérica entera        |
+   | 17 | )      | caracter de puntuación           |
+   | 18 | a      | identificador                    |
+   | 19 | ;      | caracter de puntuación           |
+   | 20 | }      | caracter de puntuación           |
+   |----+--------+----------------------------------|
 * Nivel Léxico
 ** Problema 1
 *** Enunciado
@@ -2200,6 +2407,41 @@ links pendientes:
    5. m2
    6. 1.0
    #+END_QUOTE
+** [#A] Problema 10 (desconocido)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Sea ~double d=1;~ analice el fragmento ~++d++~ y responda:
+   
+   1. ¿A qué *categoría sintáctica* pertenece?
+   2. ¿Cuántos *operandos* tiene?
+   3. ¿Es *semánticamente correcta*? ¿Por qué?
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) el fragmento ~++d++~ pertenece a la categoría sintácica *expresión*
+
+   (2) la expresión ~++d++~ tiene dos operandos (aunque NO sea semánticamente correcta)
+   - ~d~ es el operando del operador ~++~ como prefijo
+   - ~++d~ es el operando del operador ~++~ como sufijo <- acá lanzaría un error semántico, por no ser ~++d~ un lvalue válido
+
+   (3) la expresión ~++d++~ no es semánticamente correcta,
+   porque al evaluarla hace
+   1. ~++d~ (incrementa en 1 el valor de ~d~)
+   2. ~1++~ falla luego de evaluar ++d el resultado es una constante numérica real, por tanto no es un lvalue válido para el operador ~++~
+   #+END_QUOTE
+** [#A] Problema 11 (desconocido)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice sintácticamente la siguiente función y describa tres errores sintácticos, en orden de aparición:
+   ~void f(int a){int a=(); switch(a){a} return 2;}}~
+   #+END_QUOTE
+*** Respuesta
+   | fragmento | motivo del error sintáctico                            |
+   |-----------+--------------------------------------------------------|
+   | ~();~     | se espera que los paréntesis ~()~ tengan una expresión |
+   | ~{a}~     | se espera que luego del identificador ~a~ haya un ~;~  |
+   | ~}}~      | no se espera un segundo ~}~                            |
+   |-----------+--------------------------------------------------------|
 * Nivel Semántico
 ** Problema 1 (2021-08-04)
 *** Enunciado
@@ -2494,7 +2736,7 @@ links pendientes:
 *** Respuesta
    #+BEGIN_QUOTE
    (1) ~{ ++p; }~
-   *NO se puede determinar al siguiente objeto al que apuntará el puntero*
+   *NO se puede determinar al siguiente objeto (dirección de memoria) al que apuntará el puntero*
 
    (2) ~{ *p=i; }~
    ERROR semantico, NO se puede desreferenciar un puntero a void..
@@ -2505,7 +2747,8 @@ links pendientes:
    pero.. se podría primero desreferenciar el puntero (Ej. ~i=*p*i~)
 
    4. ~{ int *p=malloc(sizeof i); }~
-   *MEMORY LEAK..* NO se puede liberar los recursos asignados al puntero luego de esa sentencia compuesta
+   *MEMORY LEAK..* NO se puede liberar los recursos asignados al puntero luego de esa sentencia compuesta,
+   porque se pierde la referencia
    #+END_QUOTE
 ** Problema 13 (2018-10-03)
 *** Enunciado
@@ -2563,6 +2806,19 @@ links pendientes:
      // por default es del tipo `double` (doble precisión)
      T f(double);
    #+END_SRC
+** [DOING] Problema 15 (desconocido)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la siguiente expresión sintácticamente correcta: ~a[i]=*p~
+   escriba tres declaraciones para esa expresión, una que la haga semántica correcta, otra
+   semánticamente incorrecta por Lvalue, y otra semánticamente incorrecta por operación y
+   operador incompatible.
+
+   1) Declaración que hace a la expresión semánticamente correcta:
+   2) Declaración que hace a la expresión semánticamente incorrecta por error asociado a Lvalue
+   3) Declaración que hace a la expresión semánticamente incorrecta por error asociado a
+      operador y operando incompatibles
+   #+END_QUOTE
 * Etapas compilación
 ** [TODO] Problema 1 (2019-07-29)
    #+BEGIN_QUOTE
@@ -2858,11 +3114,30 @@ links pendientes:
 * Tips
 ** ValorL
 #+BEGIN_SRC C
-  int numeros[10];
+  int numeros[10] = {0};
 
   numeros; // lvalue NO modificable, se debe usar los operadores * ó [] para que sea modificable
+  (numeros+2); // lvalue NO modificable
+
   ,*numeros; // lvalue modificable, desreferencia la dirección del primer elemento
   numeros[0]; // lvalue modificable, accede al primer elemento
+
+  // ---------------------------------------------------------------------------
+
+  // Ojo! NO es lo mismo que {char nombre[6+1]="pepito";}
+  char* nombre = "pepito";
+
+  // las cuatro sentencias tienen expresiones que son lvalue modificables
+  nombre; // lvalue modificable, podemos hacer.. {nombre = &apellido;}
+  ,*nombre; // lvalue modificable, podemos hacer.. {*nombre='z';}
+  nombre[3]; // lvalue modificable, podemos hacer.. {nombre[3]='z';}
+  ,*(nombre+3); // lvalue modificable, {*(nombre+3) = 'z';}
+
+  // acá el identificador `nombre` no sería un lvalue modificable,
+  // no podemos hacer nombre=algo
+  char nombre[30]= "pepito";
+
+  // ---------------------------------------------------------------------------
 
   struct posicion{ int x, y; }posicionInicial;
 
@@ -3112,7 +3387,7 @@ links pendientes:
    <expresión primaria> ->
      <identificador> |
      <constante> |
-     <constante cadena> |
+     <literal cadena> |
      (<expresión>)
 
    primary-expression: <- de otra fuente
