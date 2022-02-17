@@ -1463,6 +1463,59 @@
        return 0;
      }
    #+END_SRC
+** Objetos + Declaraciones Vs Definiciones + Errores Semánticos
+   #+BEGIN_SRC C
+     #include <stdio.h>
+
+     // - tanto getchar, printf, main NO son palabras reservadas
+     // por eso podemos usarlos para declarar un tipo de struct
+     // - declarar un struct no implíca reserva de memoria,
+     // por eso si hacemos
+     struct getchar{}; struct printf{}; struct main{};
+
+     // - error semántico, redeclaración del identificador getchar
+     // - los identificadores y los struct tienen "espacios de nombres" diferentes
+     // pero los identificadores comparten el namespace dentro del scope en el que estén,
+     // por eso `int getchar` lanzaría un error semántico por redeclaración
+     //
+     // int getchar; // <-- ERROR semántico, redeclaración, xq fue declarado en stdio.h
+
+     // - este prototipo `sumar` es la declaración de una función,
+     // si intentamos hacer {printf("%x",sumar);} arrojará error
+     // porque no está en memoria
+     int sumar(int, int);
+
+     // - la definición de la función `sumar`, implíca reservar memoria
+     // por tanto podremos {printf("%x",sumar);}
+     // y nos dirá la dir. de memoria del identificador `sumar`
+     int sumar(int x,int y){ return x+y; }
+
+     struct Persona{}p1;
+
+     int main(){
+             {
+             int x;
+             // - con el especificador de formato %x
+             // obtenemos  el objeto (dirección de memoria) que se reservó
+             // para ese identificador
+             // - para las variables usamos el operador de dirección (&)
+             // y para las funciones no sería necesario
+             printf("sumar=%x, &sumar=%x\n", sumar, &sumar);
+             printf("&x=%x\n", &x);
+             }
+
+             // ---------------------------------------------------------
+
+             // - al "declarar" una variable, estamos reservando memoria
+             // por tanto también es una "definición"
+             int x;
+             printf("x=%x, main=%x, getchar=%x, printf=%x\n",
+                     &x,main,getchar,printf);
+             // printf("struct Persona=%x\n", struct Persona);
+
+             return 0;
+     }
+   #+END_SRC
 * Referencias
   1. https://www.tenouk.com/cpluscodesnippet/chardecimalhexoctal.html
   2. https://slidetodoc.com/parsing-tools-introduction-to-bison-and-flex-1/
