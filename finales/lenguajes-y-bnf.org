@@ -1,4 +1,63 @@
 #+TITLE: Resumen de Finales - Lenguajes Formales + BNF de C
+* Tips
+** Relación entre (LP), (LF) y la BNF
+   #+BEGIN_QUOTE
+   Un (LP) Lenguaje de Programación es una *notación* para describir
+   - algoritmos
+   - estructuras de datos
+   
+   Los (LP) están formados por
+   - (LRs) Lenguajes Regulares <- generados por (GRs)
+   - (LICs) Lenguajes Independientes del Contexto <- generados por (GICs)
+
+   Un (LF) Lenguaje Formal es un conjunto de palabras que
+   - tienen *sintáxis* (reglas gramáticales, forman la estructura, el orden, ...)
+   - NO tienen *semántica* asociada (permite que no sean ambíguos, osea tienen una única interpretación)
+
+   Características de una *BNF*
+   - es una notación sin ambiguedades, única interpetación
+   - describe la sintáxis de un (LP) Lenguaje de programación
+   - parecida a una (GF) Gramática Formal, pero con nuevos *metasímbolos*
+   #+END_QUOTE
+** Relación entre los (LF) y el Compilador
+   |----------------------+----------------------+-------------------------------------------+-------------------------------------|
+   | Jerarquía de Chomsky | Lenguaje Formal (LF) | Gramática que genera al (LF)              | Autómata que lo reconoce            |
+   |----------------------+----------------------+-------------------------------------------+-------------------------------------|
+   | Tipo 0               | LI                   | (GI) Gramática Irrestricta                | Maquina de Turing                   |
+   | Tipo 1               | LSC                  | (GSC) Gramática Sensible de Contexto      | (ALL) Autómata Linealmente Limitado |
+   | Tipo 2               | LIC                  | (GIC) Gramática Independiente de Contexto | (AP) Autómata de Pila               |
+   | Tipo 3               | LR                   | (GR) Gramática Regular                    | (AF) Autómata Finito                |
+   |----------------------+----------------------+-------------------------------------------+-------------------------------------|
+
+   |----------------------+-------------------------------------------+---------------------------------------------------|
+   | Lenguaje Formal (LF) | Gramática que genera al (LF)              | Relación con el Compilador                        |
+   |----------------------+-------------------------------------------+---------------------------------------------------|
+   | LI                   | (GI) Gramática Irrestricta                |                                                   |
+   | LSC                  | (GSC) Gramática Sensible de Contexto      |                                                   |
+   | LIC                  | (GIC) Gramática Independiente de Contexto | Sintáxis, las *Categorías Sintácticas* son (LICs) |
+   | LR                   | (GR) Gramática Regular                    | las *Categorías Léxicas* (ó TOKENs) son (LRs)     |
+   |----------------------+-------------------------------------------+---------------------------------------------------|
+   
+   |-----------+--------------------------------------------------------------------------------------------+-------------------------------------------------------|
+   | Gramática | Restricción                                                                                | dato de color                                         |
+   |-----------+--------------------------------------------------------------------------------------------+-------------------------------------------------------|
+   | (GI)      | Ninguna                                                                                    |                                                       |
+   | (GSC)     | Sea V->T una producción, el cardinal de V debe ser menor ó igual que el de T               | es una (GI) con restricción                           |
+   | (GIC)     | Sea V->T una producción, debe haber un único (Vn) no terminal a izquierda de la producción |                                                       |
+   | (GR)      | Sea V->T una producción, debe haber un único (Vn) no terminal a izquierda de la producción |                                                       |
+   | (GQR)     |                                                                                            | es una (GR) que agrupó un conjunto de (Vt) en un (Vn) |
+   |-----------+--------------------------------------------------------------------------------------------+-------------------------------------------------------|
+** [TODO] Relación entre Operandos/Operadores con la Sintáxis y Semántica
+   #+BEGIN_QUOTE
+   La Sintáxis define la precedencia(prioridad) y asociatividad de los OPERADORES
+   - La asociatividad
+   - La precedencia
+     
+   (/Ej. la asociatividad del operador.../)
+
+   La Semántica define la precedencia(prioridad) de los OPERANDOS
+   (/Ej. la asociatividad del operador.../)
+   #+END_QUOTE
 * [WAITING] BNF de C
 ** Problema 1 (2019-02-25)
 *** Enunciado
@@ -76,38 +135,298 @@
 *** Respuesta
    #+BEGIN_QUOTE
    (1) FALSO, porque
-   1. las tres expresiones que deben ser opcionales
-   2. las llaves que indican el comienzo de una sentencia compuesta también debería ser opcional
+   1. las tres expresiones que tiene la sentencia ~for~ deben ser opcionales, y ahi no lo son
+   2. las llaves que indican el comienzo de una *sentencia compuesta* también debería ser opcional, y ahi no lo son
    3. no contempla que *la primera expresión pueda ser una Declaración*
        
    (2) Al calcular ~Primero(sentencia-for)~ obtenemos ~for~
 
    (3) FALSO, la sentencia-for con menor cantidad de TOKENs es ~for(;;);~ que tiene 11 TOKENs
-   |    |           | Tipo de TOKEN          |
-   |----+-----------+------------------------|
-   |  1 | for       | palabra reservada      |
-   |----+-----------+------------------------|
-   |  2 | (         | caracter de puntuación |
-   |----+-----------+------------------------|
-   |  3 | expresion | *al menos 1 token*     |
-   |----+-----------+------------------------|
-   |  4 | ;         | caracter de puntuación |
-   |----+-----------+------------------------|
-   |  5 | expresion | *al menos 1 token*     |
-   |----+-----------+------------------------|
-   |  6 | ;         | caracter de puntuación |
-   |----+-----------+------------------------|
-   |  7 | expresion | *al menos 1 token*     |
-   |----+-----------+------------------------|
-   |  8 | )         | caracter de puntuación |
-   |----+-----------+------------------------|
-   |  9 | {         | caracter de puntuación |
-   |----+-----------+------------------------|
-   | 10 | sentencia | *al menos 1 token*     |
-   |----+-----------+------------------------|
-   | 11 | }         | caracter de puntuación |
-   |----+-----------+------------------------|
 
-   (4) Verdadero, porque al ser una *sentencia iteración* pertenece a una de las 3 *categorías sintácticas*
-   y éstas (LICs) que son generadas por (GICs) y pueden ser reconocidas por un (AP) Automáta de Pila
+   (4) Verdadero, porque al ser una *sentencia iteración* pertenece a una de las 3 *categorías sintácticas*,
+   sabiendo que las Categorías Sintáctica son (LICs) generadas por (GICs) y pueden ser reconocidas por un (AP) Automáta de Pila
    #+END_QUOTE
+
+   |----+-----------+----------------------------------|
+   |    | Lexema    | Tipo de TOKEN (Categoría léxica) |
+   |----+-----------+----------------------------------|
+   |  1 | for       | palabra reservada                |
+   |----+-----------+----------------------------------|
+   |  2 | (         | caracter de puntuación           |
+   |----+-----------+----------------------------------|
+   |  3 | expresion | *al menos 1 token*               |
+   |----+-----------+----------------------------------|
+   |  4 | ;         | caracter de puntuación           |
+   |----+-----------+----------------------------------|
+   |  5 | expresion | *al menos 1 token*               |
+   |----+-----------+----------------------------------|
+   |  6 | ;         | caracter de puntuación           |
+   |----+-----------+----------------------------------|
+   |  7 | expresion | *al menos 1 token*               |
+   |----+-----------+----------------------------------|
+   |  8 | )         | caracter de puntuación           |
+   |----+-----------+----------------------------------|
+   |  9 | {         | caracter de puntuación           |
+   |----+-----------+----------------------------------|
+   | 10 | sentencia | *al menos 1 token*               |
+   |----+-----------+----------------------------------|
+   | 11 | }         | caracter de puntuación           |
+   |----+-----------+----------------------------------|
+** Problema 4 (2021-08-04)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Escriba el *BNF ó las reglas de la gramática* para un lenguaje que sea
+   un *sublenguaje de las expresiones de C*, pero que solo tenga las operaciones de asignación y multiplicación.
+   La de *mayor precedencia* es la multiplicación. La *asignación es asociativa de DI* y *la multiplicación de ID*
+   Asuma que el noterminal ~ExpresiónPrimaria~ está definido.
+   
+   Algunos ejemplos de expresiones síntacticamente correctas son:
+   a
+   a*b
+   a*b*c
+   a=b
+   a=b=c
+   a=b*c
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   Si la Multiplicación tiene mayor precedencia que la Asignación,
+   entonces la producción de la Multiplicación debe estar lo más lejos del axioma (de la producción que genera las expresiones),
+   y por tanto la Asignación estará lo más cerca posible del axioma
+   
+   Si la Multiplicación es *asociativa de Izquierda a Derecha*
+   entonces es *recursiva a izquierda*, los valores son generados a izquierda de la primera expresión
+   Ej.
+   1. b*a
+   2. c*b*a
+   3. ...*c*b*a
+
+   Si la Asignacion es *Asociativa de Derecha a Izquierda*,
+   entonces es *recursiva a derecha*, los valores son generados a derecha de la primera expresión
+   Ej.
+   1. a=b
+   2. a=b=c
+   3. a=b=c=d
+   4. a=b=c=d=....
+   #+END_QUOTE
+   
+   #+BEGIN_QUOTE   
+   <expresion> ->
+     <expresionPrimaria> = <expresion> |
+     <expresionMultiplicativa> |
+     <expresionPrimaria>
+
+   <expresionMultiplicativa> ->
+      <expresionMultiplicativa> * <expresionPrimaria>
+      <expresionPrimaria>
+   #+END_QUOTE
+** [WAITING] [#A] Problema 5 (2021-02-17)
+*** Enunciado
+   #+BEGIN_QUOTE
+    Indique todas las afirmaciones verdaderas sobre las características del lenguaje C:
+    
+    1. Es interpretado.
+    2. Es de alto nivel.
+    3. Es estáticamente tipado.
+    4. Incluye el tipo de dato string (cadena).
+    5. En tiempo de ejecución asocia un tipo a cada valor
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   Necesito más justificaciones..
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Falso, el lenguaje C es un lenguaje compilado
+
+   (2) Verdadero
+
+   (3) Verdadero
+
+   (4) Falso, el lenguaje C no incuye el tipo de dato String,
+   se requiere de un puntero a char ó de un vector de char
+
+   (5) Falso, el tipo de dato se asocian en tiempo de compilación
+   #+END_QUOTE
+* Gramáticas Ambiguas
+** [#A] Problema (1) - 2020-12-21
+*** Enunciado
+   #+BEGIN_QUOTE
+    En la especificación del Lenguaje de C está la siguiente gramática:
+    
+    selection-statement:
+    if ( expression ) statement
+    if ( expression ) statement else statement
+    switch ( expression ) statement
+
+    1. Indique el *conjunto primero* de ~selection-statement~
+    2. Justifique si la *gramática es ambigua*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) El *conjunto primero* es ~{if,switch}~
+
+   (2) La gramática dada es ambígua porque podemos llegar a ~if~ anidado con  ~if else~,
+   con dos derivaciones distintas (aplicando distintas producciones)
+   
+   La ambíguedad se da cuando podemos obtener el mismo resultado de distintas maneras,
+   como ocurre en el Lenguaje Natural, donde se pueden tener varias interpretaciones de una palabra.
+   #+END_QUOTE
+   
+   
+   |---+------------------------------------------------------+---------------------------|
+   |   | Derivación Vertical por izquierda                    | produccion/regla aplicada |
+   |---+------------------------------------------------------+---------------------------|
+   | 1 | if(expresion) sentencia                              | regla 1                   |
+   |---+------------------------------------------------------+---------------------------|
+   | 2 | if(expresion) if(expresion) sentencia else sentencia | regla 2                   |
+   |---+------------------------------------------------------+---------------------------|
+
+   |---+------------------------------------------------------+---------------------------|
+   |   | Derivación Vertical por izquierda                    | produccion/regla aplicada |
+   |---+------------------------------------------------------+---------------------------|
+   | 1 | if(expresion) sentencia else sentencia               | regla 2                   |
+   |---+------------------------------------------------------+---------------------------|
+   | 2 | if(expresion) if(expresion) sentencia else sentencia | regla 1                   |
+   |---+------------------------------------------------------+---------------------------|
+* Lenguajes Formales
+** [WAITING] Problema 1 (2021-02-10)
+*** Enunciado
+   #+BEGIN_QUOTE
+    Indique todas las afirmaciones verdaderas acerca de los *LIC*
+    
+    1. Son generados por *GSC*
+    2. Son representados por *ER*
+    3. Son fundamentales para los *LP*
+    4. Algunos se los puede *definir por extensión*
+    5. Las *declaraciones de C* son un ejemplo de *LIC*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: (2) detallar el porque
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Verdadero, porque los (LICs) son *Lenguajes Independientes de Contexto* generados por (GICs),
+   y también pueden ser generados por (GSCs) según la jerarquía de chomsky..
+
+   (2) FALSO, los (LICs) NO pueden ser representados por (ERs)
+
+   (3) Verdadero, los (LICs) son necesarios en los (LPs) para poder definir la sintáxis del (LP)
+
+   (4) Verdadero, aquellos (LICs) que sea finitos pueden ser definidos por extensión
+
+   (5) Verdadero, las *declaraciones de C* son (LICs), es una de las tres categorías sintácticas.
+   Las otras dos son las *sentencias* y las *expresiones*
+   #+END_QUOTE
+** Problema 2 (2021-02-17)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique todas las afirmaciones verdaderas sobre los *LR*:
+   
+   1. Juegan un rol importante en los *LP*.
+   2. Siempre pueden representarse por *ER*.
+   3. Siempre pueden *definirse por extensión*.
+   4. Siempre pueden definirse mediante una *GIC*.
+   5. Los literales-cadena de C son un ejemplo de *LR*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Verdadero, los (LRs) representan las *Categorías Léxicas* de un (LP)
+   como son los Literales Cadena, Constantes numéricas enteras, Constantes numéricas reales,
+   las Constantes caracter, los Identificadores, los Operadores y los Caracter de puntuación
+
+   (2) Verdadero, los (LRs) siempre pueden representarse por un (ER)
+
+   (3) FALSO, no todos los (LRs) pueden definirse por extensión,
+   como es el caso de los (LRs) infinitos.
+
+   (4) Verdadero, cualquier (LR) puede ser generado por una (GIC),
+   según la jerarquía de Chomsky, donde el (LR) es el lenguaje formal más simple.
+
+   (5) Verdadero, los *Literales Cadena de C* son (LRs), y es una de las *categorías léxicas*
+   donde cada categoría léxica es un (LR)
+   #+END_QUOTE
+** Problema 3 (2021-02-24)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión, que es sintácticamente correcta, y luego responda:
+   ~f(g(x))~
+   
+   1. Escriba una *GF* que genere un *LF* no regular al cual pertenezca la expresión.
+      Asuma que ~Ident~, ~ParIzq~, ~ParDer~ son *terminales* definidos
+   2. Derive la expresión dada de la *GIC* que haya definido.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE   
+   La (GF) Gramática Formal "NO regular" que genera la expresión dada sería
+   ~G=(Vn=S, Vt={Ident,ParIzq,ParDer},P={S->Ident ParIzq S ParDer, S->Ident}, S)~
+   
+   Las producciones de la gramática, la definimos observando que las subexpresiones
+   que debe generar la gramática son las siguientes
+   1. x
+   2. g(x)
+   3. f(g(x))
+
+   Por tanto las producciones serían
+   ~S -> Ident ParIzq S ParDer | Ident~
+
+   Derivación por izquierda la expresión dada
+   1. S
+   2. f ( S )
+   3. f ( g (  S ) )
+   4. f ( g ( x ) )
+      
+   La gramática dada NO es regular, porque es recursiva a izquierda y a derecha al mismo tiempo,
+   y una (GR) permite que sea recursiva a izquierda ó a derecha, pero no ambas.
+   #+END_QUOTE
+* Autómatas
+** [#A] Problema 1 (2021-06-23)
+*** Enunciado
+   #+BEGIN_SRC c
+     while( EOF != (c=getchar()) ){
+       switch(state){
+       case INICIAL:
+         switch(c){
+         case 'a':
+           state=INICIAL;
+           continue;
+           // ...
+         }
+         // ...
+       }
+      }
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Analice el anterior fragmento de un programa C, asuma que se incluyó el header correspondiente.
+   y que es parte de la implementación de una *máquina de estado*, responda
+   considerando sólo la parte presentada:
+   
+   1. Indique el *tipo de máquina de estado*. Justifique.
+   2. Indique a qué conjunto pertenece ~INICIAL~
+   3. Indique a qué conjunto pertenece ~a~
+   4. Escriba la o las *transiciones* que representa.
+   5. Escriba una *ERX* análoga.
+   6. Escriba una *producción* análoga.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Un (AFD) Autómata Finito Deterministico,
+   - Finito porque tendremos un finito número de opciones en la *sentencia de selección switch*
+   - Determinístico, porque sabemos cual será su comportamiento, es decir cuales serán las entradas y sus salidas
+
+   (2) ~INICIAL~ pertenece al *conjunto de Estados* y a (Q) que suele representar al estado inicial
+
+   (3) ~a~ pertenece al *Alfabeto* (Sigma), los caracteres que son leídas en cada transición
+
+   (4) La transición sería ~T('a', INICIAL)=INICIAL~,
+
+   (5) Una *ERX* análoga sería ~a*~,
+   usamos el asterisco que representa la *clausura de kleene* porque la primera entrada
+   podría haber sido *EOF* por tanto no haría la lectura del caracter ~a~
+
+   (6) Una producción análoga sería ~S -> Sa | epsilon~,
+   donde epsilon sería la palabra vacía, aunque también podríamos haber usado lambda
+   #+END_QUOTE
+
