@@ -1,4 +1,5 @@
 #+TITLE: Resumen de Finales - Lenguajes Formales + BNF de C
+#+STARTUP: inlineimages
 * Tips
 ** Relación entre (LP), (LF) y la BNF
    #+BEGIN_QUOTE
@@ -59,7 +60,7 @@
    (/Ej. la asociatividad del operador.../)
    #+END_QUOTE
 * [WAITING] BNF de C
-** Problema 1 (2019-02-25)
+** [WAITING] Problema 1 (2019-02-25)
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde la afirmación falsa con respecto a BNF:
@@ -74,6 +75,8 @@
 *** Respuesta
    #+BEGIN_COMMENT
    <<DUDA>>: La BNF no puede describir un LF tipo 1 osea (LSC), no?
+   me parece que no porque es una (GIC) y ésta no puede generar lo mismo que una (GSC)
+   según la jerarquía de chomsky, no?
    #+END_COMMENT
 
    #+BEGIN_QUOTE
@@ -248,6 +251,68 @@
 
    (5) Falso, el tipo de dato se asocian en tiempo de compilación
    #+END_QUOTE
+** Problema 6 (2019-12-04)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado ~L={a^n b^n | n>0}~
+   Escriba un BNF que lo genere.
+   #+END_QUOTE
+* [TODO] C vs C++ vs Otros
+** Problema 1 (2020-03-03)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Escriba un fragmento breve que sea sintáctimente válido tanto en C y como en C++, pero
+   que tenga diferente semántica para cada LP.  
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   struct Punto{double x,y;}; // <- la resolución sugiere esto, pero.. no se el porque (????)
+   #+END_COMMENT
+** Problema 2 (2020-02-18)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Ejemplifique brevemente un aspecto sintáctico en el cual el LP C es diferente a otro LP
+   que usted conozca. Justifique.  
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   En C podemos definir ~int edad~
+   mientras que en javascript podriamos definirlo como ~var edad~
+   sin indicar que es del tipo entero
+   #+END_QUOTE
+** [#A] Problema 3 (2020-02-12)
+*** Pregunta
+   #+BEGIN_QUOTE
+   Indique y justifique el valor de verdad de la siguiente afirmación:
+   Los LP C y C++ tienen la misma sintaxis.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   Falso.
+   1. En C++ permite el manejo de templates para funciones genéricas, en C no
+   2. En C++ existen los operadores ~new~ y ~delete~ para alocar/desalocar espacio en memoria
+   3. En C se usa ~malloc~ y ~free~ para alocar/desalocar espacio en memoria
+   4. En C permite pasar parámetros por referencia ~&~ (/se agrega sólo en la firma de la función, pero no cuando se invoca/)
+   #+END_QUOTE
+   
+   #+BEGIN_SRC C
+     /*
+      ,* Ejemplo en C++, de parámetro por referencia
+      ,*/
+     void incrementarSaldo(int &saldo, int cantidad){ // <- el & indica que le pasamos la referencia de la variable, aumenta el alcance
+       saldo += cantidad;
+     }
+
+     int main(){
+       int saldo = 0;
+       // pasamos "saldo" por referencia, pero eso lo indicamos en la firma donde se utilice
+       // genera efecto en "saldo"
+       incrementarSaldo(saldo, 500);
+
+       int numero = new int(5); // <-- operador new para alocar espacio en memoria, sólo en C++ existe
+       delete numero;  // <-- operador delete para liberar espacio en memoria, sólo en C++ existe
+     }
+   #+END_SRC
 * Gramáticas Ambiguas
 ** [#A] Problema (1) - 2020-12-21
 *** Enunciado
@@ -380,6 +445,258 @@
    La gramática dada NO es regular, porque es recursiva a izquierda y a derecha al mismo tiempo,
    y una (GR) permite que sea recursiva a izquierda ó a derecha, pero no ambas.
    #+END_QUOTE
+** Problema 4 (2020-12-14)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado ~L={a^m b^(2n+1) | m>=0, n>=0}~
+   
+   1. Escriba una *RegEx* que lo represente.
+   2. Escriba las cuatro *palabras de menor longitud*
+   3. Indique un cambio en la *definición de L* que lo haga *no regular*
+   4. ¿Es este LF un sublenguaje de alguna *categoría léxica de C*? Justifique.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) La RegEx que lo representa sería: ~a*b(bb)*~
+
+   (2) Las cuatro palabras de menor longitud serían ~{a,b,ab,abb}~
+
+   (3) Un cambio en la definición que lo haga NO regular, sería que la *definición por comprensión*
+   sólo us una constante en vez de dos ~m~ y ~n~.
+   No se puede plantear lo siguiente, sea A y B un conjunto de caracteres, si A aumenta B aumenta,
+   porque no se puede aumentar o disminuir la longitud de dos o más caracteres en simultaneo.
+   Por definición, un LF es regular
+   - si y solo si existe una GR que lo genere
+   - si y solo si existe un AF que lo reconoce
+
+   (4) Verdadero, éste es un sublenguaje de los *identificadores*,
+   una de categorías léxicas de C
+   #+END_QUOTE
+** [WAITING] Problema 5 (2020-10-13)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado ~L={x^n y^(2n+1) | n>=0}~
+   
+   1. Escriba las *producciones* de una *gramática* que que lo genere.
+   2. Indique la *intersección* de L con el *LF expresiones de C*
+   3. Indique un *cambio en la definición de L* que lo haga *regular*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: (3) La resolución sólo sugiere sacar el exponente de ~x~, pero agregar un exponente
+   para ~x~ y otro para ~y~ no sería también otra solución?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Las producciones de una gramática que genere a dicho lenguaje serían
+   ~S -> y | xSyy~
+
+   (2) LF Expresiones INTERSECCIÓN L = L, es decir el propio lenguaje L
+   ya que éste es un sublenguaje del LF de Expresiones,
+
+   (3) Para hacer a L un LR, debería haber dos constantes, una para ~x~ y otra para ~y~
+   Ej. ~L={x^n y^(2m+1) | n>=0, m>=0}~
+   #+END_QUOTE
+** [#A] Problema 6 (2020-03-03)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Escriba una *RegEx (metaER)* que represente las *constantes hexadecimales sin sufijo* en C:
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   Regex: ~0[xX]([0-9-a-fA-F])+~
+
+   1. Debe comenzar con un cero
+   2. Seguido de una x (es indiferente si minúscula ó mayuscula)
+   3. Seguido de al menos digito del 0 al 9 ó.. de una letra de la A a la F (es indiferente si es  minúscula ó mayuscula)
+   #+END_QUOTE
+** [#A] Problema 7 (2020-02-18)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Escriba una *RegEx (MetaER)* que represente *los cuatro operadores aritméticos básicos*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   Regex: ~\-\*\/\+~
+
+   Es necesario usar la barra invertida ~\~ para considerar los símbolos como caracteres comunes,
+   caso contrario actuarían como operadores (Ej. el * como la clausura de kleene, ó el + como la clausura positiva)
+   #+END_QUOTE
+** [WAITING] Problema 8 (2020-02-12)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas.
+   Para demostrar que un *LF* es un *LR*, es suficiente con que
+   
+   1. su *cardinalidad* sea finita.
+   2. sea procesable por un *ASDR*
+   3. encontremos una *GF* que lo genere.
+   4. lo podamos *definir por comprensión*
+   5. encontremos un *AFN* que lo reconozca.
+   6. encontremos una *ER* que lo represente.  
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: (2)FALSO, por que?
+   Se que ASDR significa Análisis Sintáctico Descendente Recursivo,
+   que parte de la raíz/axioma hasta llegar a la palabra,...?
+   
+   y.. como el *Analizador Sintáctico* entiende (LICs), puede que ese (LF) no sea un (LR) si no bien un (LIC), no?
+
+   <<DUDA>>: (5) Verdadero,
+   Si existe un AFN que reconozca al LF, entonces LF es LR
+   además para todo AFD existe un AFN equivalente, no?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Verdadero, un LF finito puede ser representado por un LR
+   Ej. las palabras reservadas, ó los caracteres de puntuación son LRs
+
+   (3) FALSO, puede haber una (GF) Gramática Formal como lo es una (GIC) que genere al LF,
+   y ésta no sería un (LR), si no un (LIC).
+
+   (4) FALSO, si definimos el sig. lenguaje por comprensión ~L={x^n y^n / n>=0}~
+   vemos que no es un LR porque no se puede generar ~x~ e ~y~ en simultaneo del mismo tamaño
+
+   (6) Verdadero, un LF es LR siempre que haya una ER que lo represente
+   #+END_QUOTE
+** Problema 9 (2019-09-24)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado ~Σ={0,1}~ y el LF empiezan y terminan con 0, lo cual incluye la palabra 0:
+   
+   1. Escriba una *ER* que lo represente:
+   2. Escriba una *ERX* ó *RegEx* que lo represente:
+   3. Escriba un *BNF* que lo genere:
+   4. Dibuje el *digrafo de un AFN* que lo reconozca:
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) ER: ~0+0(0+1)*0~
+   Usamos el ~+~ para la unión en las ER, y los ~()~ con ~+~ para agrupar y elegir uno
+
+   (2) ERX: ~0|0[01]*0~
+   Usamos el pipe ~|~ para la uión en las Regex y los ~[]~ para elegir uno de los caracteres
+
+   (3)
+   alternativa #1
+   S -> 0  | 0N
+   N -> 1N | 0N | 0
+
+   alternativa #2
+   S -> 0  | 0N0
+   N -> 1N | 0N | epsilon
+
+   El (AFN) Automáta Finito NO Determinístico que hicimos,
+   es NO deterministico porque desde un estado va a otros dos
+   con el mismo caracter donde la función de transición sería
+   ~T(q0,a) = q1~ y ~T(q0,a) = q3+~
+   #+END_QUOTE
+
+   #+BEGIN_SRC plantuml :file img/automata1.png :exports results
+     @startuml
+     digraph foo {
+      ' cambiamos la dirección: left to right
+      rankdir=LR
+      "q0-" -> "q1" [label=0]
+      "q0-" -> "q3+" [label=0]
+      "q1" -> "q1" [label="0,1"]
+      "q1" -> "q2+" [label=0]
+     }
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:img/automata1.png]]
+** Problema 10 (2019-07-29)
+*** Enunciado
+   #+BEGIN_QUOTE
+    Indique y justifique el valor de verdad de la siguiente afirmación:
+    Las *operaciones unión, intersección, y complemento* son parte de las *regex*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   FALSO,
+   - la *operación intersección* no forma parte de las *regex*
+   - la *operación unión* se logra con el pipe ~|~
+   - la *operación complemento* se logra con el ~^~
+   #+END_QUOTE
+** [TODO] Problema 11 (2019-05-23)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca de los *algoritmos de MUCH2012 volumen 3*
+   
+   1. El complemento de un LR siempre es un LR.
+   2. Siempre se puede encontrar una ER para un GR.
+   3. Siempre se puede encontrar una GIC para un ER.
+   4. Siempre se puede encontrar un AFD para una ER.
+   5. El algoritmo de Thompson siempre produce un AFD
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   Chequear lo del AFD a ER, y el Algoritmo de Thompson a AFD
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Verdadero
+
+   (2) Verdadero, si existe una GR que genera un LR, también hay un ER para esa GR
+
+   (3) Verdadero, siempre hay una GIC para un ER,
+   porque los ER representan LR y estos pueden ser generados por GICs,
+   según la jerarquía de chomsky, donde los LRs son los más simples.
+
+   (4) Verdadero, ..
+
+   (5) FALSO
+   #+END_QUOTE
+** [DOING] Problema 12 (2019-02-18)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Sea ~P~ el ~LF~ nombres de los elementos de la tabla periódica,
+   ~D~ el *LF declaraciones de C*,
+   y ~O~ el *LF constantes enteras octales sin sufijo de C*
+
+   1. Indique el tipo del LF ~P~. Justifique.
+   2. Indique el tipo del LF ~D Union O~. Justifique.
+   3. Escriba una ERX para el LF ~(P Interseccion D) Union O~:
+   #+END_QUOTE
+*** Respuesta
+** [WAITING] Problema 13 (2019-02-18)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas con respecto a las ER:
+
+   1. ~*a~ es una *ER*
+   2. Tienen una sintaxis formal.
+   3. Tienen *operadores con precedencia*
+   4. Las ER son un *sublenguaje de las expresiones de C*
+   5. Las *expresiones de C* son un *sublenguaje de las ER*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: (4) la resolución decía FALSO.. Por que??
+
+   yo había puesto que.. era Verdadero, porque como cada (ER) representa un (LR) como las *categorías léxicas*
+   y las *expresiones de c* son (LICs) osea *categorías sintácticas* que son generadas por (GICs),
+   entonces las (ER) representan a (LR) que pueden ser sublenguajes de las *expresiones de C*
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) FALSO, ~*a~ NO es una ER, ya que el operador ~*~ osea la clausura de kleene requiere un caracter a su izquierda
+
+   (2) Verdadero, porque una ER representa a un LR y estos son LF
+
+   (3) Verdadero, la precedencia de los operadores de una ER está dada así
+   1. Potencia ~^~, ~*~ Clausura de Kleene y ~+~ Clausura Positiva (las tres tienen mayor precedencia)
+   2. Concatenación
+   3. Unión ~+~ (menor precedencia)
+
+   (5) FALSO, las *expresiones de C* están formadas por (GICs)
+   y las (ERs) representan (LR) que están generados por (GRs)
+   estas últimas gramáticas generan los (LF) más simples
+   mientras que las (GICs) representan (LF) más complejos
+   #+END_QUOTE
 * Autómatas
 ** [#A] Problema 1 (2021-06-23)
 *** Enunciado
@@ -429,4 +746,67 @@
    (6) Una producción análoga sería ~S -> Sa | epsilon~,
    donde epsilon sería la palabra vacía, aunque también podríamos haber usado lambda
    #+END_QUOTE
+** Problema 2 (2019-07-29)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique para cada lenguaje el ó los automatas capaces de reconocerlos.
+   Elegir entre los sig. autómatas AFD, AFN, AP, MT
+   
+   1. Lenguaje "constantes enteras de C"
+   2. ~{a^n b^n c^n | n>=1}~
+   3. Lenguaje "sentencias de iteración de C"
+   4. ~{a^n b^t | n>=1 ^ t>=1}~
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Como puede ser reconocido por un AFD ó AFN,
+   entonces también reconocido por un AP y MT, es decir todos.
 
+   (2) por una (MT) *Maquina de Turing* porque todos tienen la misma constante ~n~,
+   y sólo éste autómata podría realizar esa tarea compleja,
+   de que se repita misma cant. de letras en simultaneo
+
+   (3) por un (AP) *Autómata de Pila*, por el balanceo de los paréntesis
+   por tanto también podría un (MT)
+
+   (4) Como puede ser reconocido por un AFD ó AFN,
+   entonces también reconocido por un AP y MT, es decir todos.
+   #+END_QUOTE
+** [TODO] Problema 3 (2019-07-29)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique la *secuencia de algoritmos* para obtener un *AFD a partir de una ER*
+   #+END_QUOTE
+
+
+*** Respuesta (resolución)
+   #+BEGIN_QUOTE
+   - Algortimo de Thompson
+   - Algoritmo de Clausuras-ε o de Construccíon de Subconjuntos
+   - Algoritmo de Minimización
+   #+END_QUOTE
+** [TODO] Problema 4 (2019-07-15)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la regex ~[ab]?~ dibuje el *AF obtenido mediante Thompson*
+   #+END_QUOTE
+** [TODO] Problema 5 (2019-05-23)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Defina formalmente el AF que resulta de la intersección entre las constantes octales sin sufijo
+   de C, las expresiones de C y el LF "números sin signo expresados en base dos".
+   #+END_QUOTE
+*** Respuesta (resolución)
+   #+BEGIN_COMMENT
+   Constantes Octales sin sufijo la ER: 0[0-9]
+   Expresiones de C: más amplia
+   Numeros sin signo en base dos: 
+
+   A=>0=>B
+   B=>0=>B
+   B=>1=>B
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE   
+   M=({A,B},{0,1},{A⇒0⇒B,B⇒0⇒B,B⇒1⇒B},0,{B})
+   #+END_QUOTE
