@@ -1,4 +1,24 @@
 #+TITLE: Resumen de Finales - Etapas de Compilación
+* ASDR
+** Problema 1 (2019-12-11)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la siguiente gramática:
+   E → E + T | T
+   T → T * F | F
+   F → 1 | 2 | 3
+   
+   Indique si las siguientes afirmaciones son verdaderas o falsas y justifique su respuesta
+   
+   Puede ser implementada directamente, es decir, sin aplicar ninguna transformación a la
+   gramática, por un *Parser descendente recursivo*
+   #+END_QUOTE
+*** Respuesta (resolucion)
+   #+BEGIN_QUOTE
+   Según la resolución es Falsa..
+   
+   Falsa. El PDR no soporta recursión a izquierda, debe ser transformada primero una GIC LL(1)
+   #+END_QUOTE
 * Evaluar expresiones
 ** Problema 1 (2020-12-14)
 *** Enunciado
@@ -196,6 +216,29 @@
      es suficiente para el operador lógico OR ~||~ con que uno de los operandos valga ~1~ para retornar ~1~,
    - La salida por stout es ~g~ misma explicación que antes, y también que el operando de la derecha no se llega a evaluar,
      ya que termina de evaluarse la expresión con que uno de los operandos valga ~1~ (para el operador lógico OR)
+   #+END_QUOTE
+* Evaluar Operandos y Operadores
+** [#A] Problema 1 (2020-12-21) <- interesante
+*** Enunciado
+   #+BEGIN_QUOTE
+   Explique y ejemplifique en C el concepto de *orden de evaluación de operandos*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   El *orden de evaluación de operandos* determinará la *secuencia de evaluación de los operandos*
+   
+   El lenguaje C específica *el orden de evaluación de 4 operadores*
+   1. Los dos operadores lógicos ~&&~ y ~||~
+   2. La coma ~,~
+   3. El operador ternario ~exp1 ? exp2 : exp3~
+
+   Por ejemplo si tenemos la siguiente expresión ~f()+g()+h()~ ó ~f()*g()~
+   no sabemos si evaluará primero a ~f()~ ó ~g()~ ó ~h()~
+
+   Otro ejemplo sería la invocación de una función ~f(x,y)~,
+   no sabemos si primero evaluará ~f~ ó ~x~ ó ~y~
+
+   Otro ejemplo sería ~f() && g()~ donde si se sabe que los operadores lógicos evalúan de izq. a der.
    #+END_QUOTE
 * Detectar Expresiones completas
 ** Problema 1 (2021-03-10)
@@ -684,7 +727,7 @@
      cierre_parentesis.tipo = PUNCTUATOR;
      cierre_parentesis.valor = ")";
    #+END_SRC
-** Problema 7 (2020-12-21)
+** Problema 7 (2020-12-21) <- interesante
 *** Enunciado
    #+BEGIN_SRC C
    char user[1000];
@@ -702,8 +745,7 @@
    #+END_QUOTE
 *** Respuesta
    #+BEGIN_COMMENT
-   <<DUDA>>:
-   la resolución no consideró la "declaración" como una "sentencia expresión", por que?
+   <<DUDA>>: (resuelta) la resolución no consideró la "declaración" como una "sentencia expresión", por que?
 
    *Rta:* (similar al parcial 2020-12-14). NO son lo mismo, porque hay 3 categorías sintácticas: Declaración, Sentencia, Expresion.
    No es lo mismo una Sentencia que una Declaración.
@@ -906,7 +948,7 @@
       - Si la dejamos como ~lim(x - -> 0)~ habría 8 lexemas {lim, x,-,->,0}
       - Si agregamos espacio entre alguno de los caracteres del identificador ~lim~ tendriamos más identificadores, por tanto más lexemas
    #+END_QUOTE
-** [WAITING] [#A] Problema 12 (2020-03-03)
+** [WAITING] [#A] Problema 12 (2020-03-03) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Dado el fragmento: ~0xF+F0x+0L+L0~
@@ -934,6 +976,17 @@
    - dos invocaciones a ~getchar~
      - si el siguiente caracter no pertenece al TOKEN del anterior
      - hace ~ungetc~ para retroceder y volver a leer ese caracter
+
+   cant. de getchar: 3+(2+2+2+2+2)+1+2+2+1= 3+10+6 = 19 getchar
+   cant. de ungetc: 6
+   
+   1. 0xF <- 3 llamadas a getchar (3 lecturas, una por cada caracter)
+   2. + <- ungetc porque el + no es una constante entera, por tanto son 2 getchar (la primera lectura, y una nueva)
+   3. F0x <- ungetc porque F no es un operador, por tanto 2 getchar + 2 getchar (por los caracteres 0x)
+   4. + <- ungetc porque + no es un identificador, por tanto 2 getchar (la primera vez que lo leyó, más una nueva)
+   5. 0L <- ungetc porque 0 no es un operador, por tanto 2 getchar + 1 getchar (por la L)
+   6. + <- ungetc porque + no es una constante entera, por tanto 2 getchar
+   7. L0 <- ungetc porque L no es un operador, por tanto 2 getchar + 1getchar (por el 0)
    
    La secuencia de lectura para ~0xF+F0x+0L+L0~ sería
    |--------------------------------+----------------+--------------------------------+----------------------------------------------------------------------------|
@@ -1054,7 +1107,7 @@
    (4) En la declaración ~int f~, al no inicializar ~f~ y hacer ~f+=42~,
    lo que hará será sumarle 42 a un valor basura que tiene por defecto ~f~
    #+END_QUOTE
-** [WAITING] [#A] Problema 14  (2020-02-12)
+** [#A] Problema 14  (2020-02-12) <- interesante
 *** Enunciado
    #+BEGIN_SRC C
      int f(int x){
@@ -1089,33 +1142,35 @@
    ~<sentencia de salto> -> continue; | break; | return <expresion>? | goto <identificador>;~
    #+END_QUOTE
 
-   #+BEGIN_COMMENT
-   <<DUDA>>: No estoy seguro si estará ok el de ungetc y getchar, la respuesta coincide con la resolución
+   #+BEGIN_COMMENT   
+   <<DUDA>>: (resuelta) No estoy seguro si estará ok el de ungetc y getchar, la respuesta coincide con la resolución
    pero la misma sólo da la cantidad, no detalla
 
-   este es más reciente, creo que está mejor
-   |           | i | f | (  | 0 | )  | return | 1  | ;  | return | 4  | 2 | ;  |
-   | getchar   | x | x | xx | x | xx | xxxxxx | xx | xx | xxxxxx | xx | x | xx |
-   | ungetchar |   |   | x  |   | x  |        | x  | x  |        | x  |   | x  |
-   |-----------+---+---+----+---+----+--------+----+----+--------+----+---+----|
-
-    antes hice esto..
-   |-------------------------+------------------------------------------------------------------------------|
-   | Secuencia de caracteres | Motivo por el que el Scanner invocó al ~ungetc~                              |
-   |-------------------------+------------------------------------------------------------------------------|
-   | f(                      | ungetc por el ~(~ no pertenece al tipo de Token Identificador                |
-   |-------------------------+------------------------------------------------------------------------------|
-   | (0                      | ungetc por el ~0~ no pertenece al tipo de Token Caracter de Puntuación       |
-   |-------------------------+------------------------------------------------------------------------------|
-   | 0)                      | ungetc por el ~)~ no pertenece al tipo de Token Caracter de Constante Entera |
-   |-------------------------+------------------------------------------------------------------------------|
-   | )r                      | ungetc por la ~r~ no pertenece al tipo de Token Caracter de Puntuación       |
-   |-------------------------+------------------------------------------------------------------------------|
-   | 1;                      | ungetc por ~;~ no pertenece al tipo de Token Constante Entera                |
-   |-------------------------+------------------------------------------------------------------------------|
-   | 2;                      | ungetc por el ~;~ no pertenece al tipo de Token Constante Entera             |
-   |-------------------------+------------------------------------------------------------------------------|
+   *Rta*: te faltaba considerar la lectura del espacio, éste es también otro caracter más, al igual que el ~\n~ ó ~\0~ etc..
    #+END_COMMENT
+   
+   |---------+---+---+----+---+----+--------+-----------+---+----+--------+-----------+---+---+----|
+   |         | i | f | (  | 0 | )  | return | ~espacio~ | 1 | ;  | return | ~espacio~ | 4 | 2 | ;  |
+   | getchar | x | x | xx | x | xx | xxxxxx | x         | x | xx | xxxxxx | x         | x | x | xx |
+   | ungetc  |   |   | x  |   | x  |        | xx        |   | x  |        | xx        |   |   | x  |
+   |---------+---+---+----+---+----+--------+-----------+---+----+--------+-----------+---+---+----|
+
+   |----+-----------+---------------------------------------------------------------------------------------------------------------|
+   |    | Lexema    | Motivo por el que se invoca a getchar y/o ungetc                                                              |
+   |----+-----------+---------------------------------------------------------------------------------------------------------------|
+   |  1 | if        | 2 getchar, (dos lecturas)                                                                                     |
+   |  2 | (         | ungetc porque ( no es identificador, por tanto 2 getchar                                                      |
+   |  3 | 0         | getchar                                                                                                       |
+   |  4 | )         | ungetc porque ) no es identificador, por tanto 2 getchar                                                      |
+   |  5 | return    | 6 getchar (6 lecturas)                                                                                        |
+   |  6 | ~espacio~ | ungetc por tanto 2 getchar ,porque es un caracter especial (ascii) actuaría como centinela para el prox TOKEN |
+   |  7 | 1         | getchar                                                                                                       |
+   |  8 | ;         | ungetc porque ; no es constante real, por tanto 2 getchar                                                     |
+   |  9 | return    | 6 getchar                                                                                                     |
+   | 10 | ~espacio~ | ungetc por tanto 2 getchar ,porque es un caracter especial (ascii) actuaría como centinela para el prox TOKEN |
+   | 11 | 4         | getchar                                                                                                       |
+   | 12 | 2         | getchar                                                                                                       |
+   | 13 | ;         | ungetc porque ; no es constante real, por tanto 2 getchar                                                     |
 
    #+BEGIN_QUOTE
    (1)
@@ -1436,7 +1491,7 @@
   4. y=7+1
   5. y=8
   #+END_QUOTE
-** Problema 22 (2019-05-23)
+** [WAITING] Problema 22 (2019-05-23)
 *** Enunciado
    #+BEGIN_QUOTE
    Dado el siguiente fragmento de código C: ~x.1==1LU++LU~
@@ -1646,7 +1701,7 @@
      f[0]; // error semántico, f no es un arreglo
      f.a; // error semántico, f no es un struct ó union
    #+END_SRC
-** [WAITING] [#A] Problema 27 (2018-12-17)
+** [#A] Problema 27 (2018-12-17) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Analice la siguiente expresión: ~a[i]=f(i)~
@@ -1656,10 +1711,33 @@
    #+END_QUOTE
 *** Respuesta
    #+BEGIN_COMMENT
-   <<DUDA>>: (1) la resolución dice que son: [, ], (, )
+   <<DUDA>>: (resuelta) (1) la resolución dice que son: [, ], (, )
    pero yo detecté que era a,=,) y.. que algunos de los que menciona si requerían ungetc para ser detectados
 
-   esto otro analizaste después
+   **Rta:* cuando los leen en realidad hacen ungetc, pero no hay otro caracter que junto con los paréntesis, corchetes ó llaves
+   formen otra palabra que pertenezca a alguna de las Categorias léxicas.
+
+   1. a <- getchar
+   2. [ <- ungetc, por tanto 2 getchar
+   3. i <- getchar
+   4. ] <- ungetc, por tanto 2 getchar 
+   5. = <- getchar
+   6. f <- ungetc, por tanto 2 getchar 
+   7. ( <- ungetc, por tanto 2 getchar 
+   8. i <- getchar
+   9. ) <- ungetc, por tanto 2 getchar 
+   #+END_COMMENT
+
+   #+BEGIN_QUOTE
+   (1) Los caracteres que no requieren ~ungetc~ para su detección serían 4, los corchetes y los paréntesis,
+   porque no hay una palabra en las *Categorias Lexicas* que esté formado con alguno de ellos,
+   o bien podríamos decir que no existe un sublenguaje que contenga una palabra de longitud mayor o igual que 2
+   que contenga esos caracteres.
+   Un caso opuesto a ellos sería caracter ~<~ porque existen otras palabras formadas por éste como ~<<~, ~<=~
+   ó también con el ~=~ que podría haber sido ~==~
+
+   Aunque no se pide en el enunciado, ponemos las llamadas a getchar y ungetc durante la lectura de la cadena de caracteres
+   por el Scanner
    |---------+---+----+---+----+---+----+----+---+----|
    |         | a | [  | i | ]  | = | f  | (  | i | )  |
    |---------+---+----+---+----+---+----+----+---+----|
@@ -1667,18 +1745,7 @@
    |---------+---+----+---+----+---+----+----+---+----|
    | getchar | x | xx | x | xx | x | xx | xx | x | xx |
    |---------+---+----+---+----+---+----+----+---+----|
-   
-   esto analizaste antes
-   1. a[ <-- ungetc por ~[~ <--
-   2. [i <-- ungetc por ~i~
-   3. i] <-- ungetc por ] <--
-   4. ]=f <-- ungetc por f
-   5. f( <-- ungetc por ( <--
-   6. (i <-- ungetc por i
-   7. i) <-- ungetc por )
-   #+END_COMMENT
 
-   #+BEGIN_QUOTE
    (2) Los operadores de ~a[i]=f(i)~ son
    |----------+-----------------------|
    | operador |           precedencia |
@@ -2019,7 +2086,7 @@
    (5) FALSO, el Scanner no sabe del contexto y no puede determinar que tipo de operador es
    el lexema asterisco ~*~ solo reconoce el tipo de TOKEN, en este caso operador
    #+END_QUOTE
-** [WAITING] [#A] Problema 6 (2018-10-03)
+** [WAITING] [#A] Problema 6 (2018-10-03) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Analice la siguiente función: ~int f(void){return 1<*p++;}~
@@ -2034,38 +2101,23 @@
 
    <<DUDA>>: (2) Las constantes numéricas, son LF infinitos por lo mismo de arriba?
 
-   <<DUDA>>: (3) porque la resolución dice que el (, ), no necesitan ungetc?
 
-   después analizaste de esta otra forma
-   |                | int | f | (  | void | )  | { | return | 1 | <  | * | p  | ++ | ; | } |
-   |----------------+-----+---+----+------+----+---+--------+---+----+---+----+----+---+---|
-   | unget          |     |   | x  |      | x  |   |        |   | x  |   | x  | x  |   |   |
-   | getchar        | xxx | x | xx | xxx  | xx | x | xxxxxx | x | xx | x | xx | xx | x | x |
-   |----------------+-----+---+----+------+----+---+--------+---+----+---+----+----+---+---|
-   | cant. lecturas | 3   | 1 | 2  | 3    | 2  | 1 | 6      | 1 | 2  | 1 | 2  | 2  | 1 | 1 |
-   |----------------+-----+---+----+------+----+---+--------+---+----+---+----+----+---+---|
+   <<DUDA>>: (resuelta) (3) porque la resolución dice que el (, ), no necesitan ungetc?
    
-   antes analizaste esto
-   1. f( <-- getchar f, getchar (, ungetc por (
-   2. (v <-- getchar (, getchar v, ungetc por v
-   3. d) <-- getchar d, getchar ), ungetc por )
-   4. {r <-- getchar {, getchar r, ungetc por r
-   5. 1< <-- getchar 1, getchar <, ungetc por <
-   6. *p <-- getchar *, getchar p, ungetc por p
-   7. p++ <-- getchar p, getchar ~++~, ungetc por ~++~
-   
-   yo había puesto... int, f, {,
-
-   <=, >=
+   **Rta:* cuando los leen en realidad hacen ungetc, pero no hay otro caracter que junto con los paréntesis, corchetes ó llaves
+   formen otra palabra que pertenezca a alguna de las Categorias léxicas.
    #+END_COMMENT
    
-   #+BEGIN_QUOTE
-   (2) Los TOKENs de la sentencia compuesta que pertenecen a un LF infinito son:
-   1. f -> Identificador
-   2. 1 -> Constante numérica (entera)
-   3. p -> Identificador
-   
-   (1) En ~int f(void){return 1<*p++;}~ hay 14 tokens
+   |----------------+-----+-----------+---+----+------+----+---+--------+-----------+---+----+---+----+----+---+---|
+   |                | int | ~espacio~ | f | (  | void | )  | { | return | ~espacio~ | 1 | <  | * | p  | ++ | ; | } |
+   |----------------+-----+-----------+---+----+------+----+---+--------+-----------+---+----+---+----+----+---+---|
+   | unget          |     | x         |   | x  |      | x  |   |        | x         |   | x  |   | x  | x  |   |   |
+   | getchar        | xxx | xx        | x | xx | xxx  | xx | x | xxxxxx | xx        | x | xx | x | xx | xx | x | x |
+   |----------------+-----+-----------+---+----+------+----+---+--------+-----------+---+----+---+----+----+---+---|
+   | cant. lecturas | 3   | 2         | 1 | 2  | 3    | 2  | 1 | 6      | 2         | 1 | 2  | 1 | 2  | 2  | 1 | 1 |
+   |----------------+-----+-----------+---+----+------+----+---+--------+-----------+---+----+---+----+----+---+---|
+
+   |--------+-----------------------------|
    | Lexema | Tipo de Token               |
    |--------+-----------------------------|
    | int    | Palabra Reservada           |
@@ -2096,6 +2148,24 @@
    |--------+-----------------------------|
    | }      | Caracter de Puntuación      |
    |--------+-----------------------------|
+
+   #+BEGIN_QUOTE
+   (1) En ~int f(void){return 1<*p++;}~ hay 14 tokens
+   
+   (2) Los TOKENs de la sentencia compuesta que pertenecen a un LF infinito son:
+   1. f -> Identificador
+   2. 1 -> Constante numérica (entera)
+   3. p -> Identificador
+   
+   (3) Los caracteres que no requieren ~ungetc~ para su detección serían 5, los paréntesis, las llaves y el punto y coma
+   porque no hay una palabra en las *Categorias Lexicas* que esté formado con alguno de ellos,
+   o bien podríamos decir que no existe un sublenguaje que contenga una palabra de longitud mayor o igual que 2
+   que contenga esos caracteres.
+   Un caso opuesto a ellos sería caracter ~<~ porque existen otras palabras formadas por éste como ~<<~, ~<=~
+   ó también con el ~=~ que podría haber sido ~==~
+
+   Aunque no se pide en el enunciado, ponemos las llamadas a getchar y ungetc durante la lectura de la cadena de caracteres
+   por el Scanner
    #+END_QUOTE
 ** Problema 29 (2018-02-19)
 *** Enunciado
@@ -2126,7 +2196,7 @@
    (5) Verdadero
    #+END_QUOTE
 * Nivel Sintáctico
-** [WAITING] [#B] Problema 1 (2021-03-10)
+** [WAITING] [#B] Problema 1 (2021-02-10) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
     Indique todas las afirmaciones verdaderas acerca del *Análisis Sintáctico*
@@ -2139,27 +2209,23 @@
    #+END_QUOTE
 *** Respuesta
    #+BEGIN_QUOTE
-   El Parser no sabe si una variable fue declarada o no, porque no conoce el contexto
+   (1) Verdadero, El *analizador sintáctico* recibe una secuencia de *TOKENS* generados por el Analizador Léxico
+   
+   (2) Verdadero, El Parser diferencia entre *expresiones* y *sentencias*, porque son parte de las *categorías sintácticas* de la BNF de c,
+   es más son dos *categorías sintáticas* de las 3 que hay (expresiones, sentencias, declaraciones)
+   
+   (3) FALSO, El Parser no sabe si una variable fue declarada o no, porque no conoce el contexto
    (el analizador semántico si, por tanto si ocurriera sería un error semántico)
+   
+   (4) Verdadero, La expresión ~printf(main)~ es sintácticamente correcta porque se puede derivar de la BNF de C,
+   pero es semanticamente incorrecta porque la firma de printf espera una cadena de caracteres como primer argumento
    #+END_QUOTE
 
    #+BEGIN_COMMENT
-   <<DUDA>>: está ok esto?
-   El *analizador sintáctico* recibe una secuencia de *TOKENS*
-   (generados por el analizador léxico, y es el Parser el que los guarda en la TS TAbla de Simbolos (???) <- no?
-   
-   <<DUDA>>: está ok esto?
-   El Parser diferencia entre *expresiones* y *sentencias*, porque es parte de las reglas sintácticas de la BNF de c <--- no?  (???)
-   *Rta (mi suposición):* Si, porque son dos *categorías sintáticas* de las 3 que hay (expresiones, sentencias, declaraciones)
-
-   <<DUDA>>: está ok esto?
-   la expresión ~printf(main)~ es sintácticamente correcta porque se puede derivar de la BNF de C,
-   pero es semanticamente incorrecta porque la firma de printf espera una cadena de caracteres como primer argumento
-   
-   <<DUDA>>: está ok esto?
-   C especifica que el *orden de evaluación del operador ternario* ~exp1 ? exp2 : exp3~ es de de izq. a derecha,
-   el Parser evalúa de Izq a Der ó Der a Izq según la precedencia/asociatividad de los operadores en las
-   reglas sintácticas de la BNF de c
+   Falso, C especifica que el *orden de evaluación del Operador Ternario* ~exp1 ? exp2 : exp3~ es de de izq. a derecha,
+   el Parser evalúa de Izq a Der ó Der a Izq según la precedencia y asociatividad de los OPERADORES según la sintáxis del lenguaje,
+   osea según las reglas/constructos sintácticos de la BNF de C, donde si dos operadores tienen igual precedencia
+   se evaluará según la asociatividad
    #+END_COMMENT
 ** [TODO] [#C] Problema 2 (2021-02-17) <- pendiente yacc/bison
 *** Enunciado
@@ -2295,14 +2361,14 @@
 *** Respuesta
    #+BEGIN_COMMENT
    <<DUDA>>: En la (2) es Verdadero... sería el orden en que los recibe/lee?
-
-   <<DUDA>>: la (3) y (5) esta ok la justificación?
    #+END_COMMENT
    
    #+BEGIN_QUOTE
    (1) Verdadero, la BNF contiene las reglas/constructos sintácticas del lenguaje
 
    (3) Falso, si un valorl es modificable o no, es a nivel semántico.
+   Un caso más común es al declarar una variable con el calificador de tipo ~const~,
+   éste lo hace un lvalue no modificable.
 
    (4) Verdadero, la sintaxis indica la precedencia de los operadores en la BNF.
    Más cerca está del axioma, menos es su precedencia(prioridad).
@@ -2310,7 +2376,7 @@
    (5) Falso, la sintaxis no especifíca el orden de evaluación de los operandos,
    pero si el de los operadores en la BNF.
    #+END_QUOTE
-** [WAITING] [#C] Problema 8 (2018-10-03)
+** [WAITING] [#C] Problema 8 (2018-10-03) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Analice la siguiente función: ~int f(void){return 1<*p++;}~
@@ -2644,7 +2710,7 @@
 
      5 = 10; // el `5` no es un lvalue válido para `=`
    #+END_SRC
-** [WAITING] [#A] Problema 7 (2019-07-15)
+** [WAITING] [#A] Problema 7 (2019-07-15) <- Interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Escriba un ejemplo de una *declaración C* con por lo menos un *error semántico*. Justifique.
@@ -2653,8 +2719,14 @@
    #+BEGIN_COMMENT
    Los dos de abajo son de la resolución, deberian estar bien, pero no son errores sintácticos?
    
+   <<DUDA>>: (resuelta) ~static auto int edad;~ no es error sintáctico?,
+   *Rta:* en Lenguaje natural se dice que sólo puede tener un *especificador de clase de almacenamiento* por declaración,
+   por tanto puede tener uno u otro, pero no ambos
+   
    <<DUDA>>: ~int double valor;~ no es error sintactico? // <-- multiples tipos en los especificadores de tipo de la declaración (es int ó double, no ambos)
-   <<DUDA>>: ~static auto int edad;~ no es error sintáctico? // <-- multiples clases de almacenamiento en el especificador de la declaración (es static ó auto, no ambos)
+   *Rta:* en realidad con las reglas sintácticas de la BNF, en la declaración de una variable se puede tener más de un *especificador de tipo*,
+   por tanto es sintacticamente correcto pero NO es semanticamente correcto..
+   la resolución habrá tratado de llegar a que si es sintacticamente incorrecta, tampoco será semánticamente correcta?
 
    De las dos dudas anteriores, al parecer no es error sintáctico porque.. derivé de la sintáxis de C (del pdf de bruno) y me daba ok
    1. <declaracion>
@@ -2692,7 +2764,7 @@
 
      x+1; // apunta a la dirección siguiente de fin del arreglo, pero tampoco se le puede asignar un valor
    #+END_SRC
-** [WAITING] [#A] Problema 9 (2019-05-23)
+** [WAITING] [#A] Problema 9 (2019-05-23) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Dada la declaración ~struct{double x,y;}p;~ escriba una *expresión semánticamente incorrecta*
@@ -2726,7 +2798,7 @@
    3) ~p=&i.j~ <- error semántico, al evaluar ~&i.~ porque ~&i~ no es un tipo struct, no es un operando válido para el operador ~.~
    4) ~p[0]==&i[0]~ <- error semántico al evaluar ~i[0]~ porque ~i~ no es un puntero ni tampoco un arreglo
    #+END_QUOTE
-** [WAITING] [#A] Problema 11 (2018-12-10)
+** [WAITING] [#A] Problema 11 (2018-12-10) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Indique cuál error no es detectable durante el análisis semántico:
@@ -3017,6 +3089,12 @@
    
    1. En un *árbol de derivación*, las hojas son *tokens*
    2. En C, la expresión ~a+b+c~ tiene un único *árbol de derivación*
+   #+END_QUOTE
+**** Respuesta (resolución)
+   #+BEGIN_QUOTE
+   (1) verdadero
+
+   (2) Verdadero
    #+END_QUOTE
 ** Problema 5 (2019-12-04)
 *** Enunciado
