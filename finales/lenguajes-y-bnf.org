@@ -1,4 +1,4 @@
-#+TITLE: Resumen de Finales - Lenguajes Formales + BNF de C
+#+TITLE: Resumen de Finales - Lenguajes Formales + BNF de C + Autómatas
 #+STARTUP: inlineimages
 * Tips
 ** Relación entre (LP), (LF) y la BNF
@@ -608,49 +608,7 @@
 
    #+RESULTS:
    [[file:img/automata1.png]]
-** Problema 10 (2019-07-29)
-*** Enunciado
-   #+BEGIN_QUOTE
-    Indique y justifique el valor de verdad de la siguiente afirmación:
-    Las *operaciones unión, intersección, y complemento* son parte de las *regex*
-   #+END_QUOTE
-*** Respuesta
-   #+BEGIN_QUOTE
-   FALSO,
-   - la *operación intersección* no forma parte de las *regex*
-   - la *operación unión* se logra con el pipe ~|~
-   - la *operación complemento* se logra con el ~^~
-   #+END_QUOTE
-** [TODO] Problema 11 (2019-05-23)
-*** Enunciado
-   #+BEGIN_QUOTE
-   Tilde todas las afirmaciones verdaderas acerca de los *algoritmos de MUCH2012 volumen 3*
-   
-   1. El complemento de un LR siempre es un LR.
-   2. Siempre se puede encontrar una ER para un GR.
-   3. Siempre se puede encontrar una GIC para un ER.
-   4. Siempre se puede encontrar un AFD para una ER.
-   5. El algoritmo de Thompson siempre produce un AFD
-   #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   Chequear lo del AFD a ER, y el Algoritmo de Thompson a AFD
-   #+END_COMMENT
-   
-   #+BEGIN_QUOTE
-   (1) Verdadero
-
-   (2) Verdadero, si existe una GR que genera un LR, también hay un ER para esa GR
-
-   (3) Verdadero, siempre hay una GIC para un ER,
-   porque los ER representan LR y estos pueden ser generados por GICs,
-   según la jerarquía de chomsky, donde los LRs son los más simples.
-
-   (4) Verdadero, ..
-
-   (5) FALSO
-   #+END_QUOTE
-** [DOING] Problema 12 (2019-02-18)
+** [WAITING] Problema 12 (2019-02-18)
 *** Enunciado
    #+BEGIN_QUOTE
    Sea ~P~ el ~LF~ nombres de los elementos de la tabla periódica,
@@ -662,6 +620,39 @@
    3. Escriba una ERX para el LF ~(P Interseccion D) Union O~:
    #+END_QUOTE
 *** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: En la (3) por que la resolución sólo considera la ERX de los octales?
+   (3)
+   - Una ERX para P sería: ~[A-Z]{2}~
+   - Una ERX para O sería: ~0[0-7]*~
+   - No habria una ERX para D, porque es un (LIC)
+
+   Entonces ~P INTERSECCION D~ daría ~[A-Z]{2}~,
+   y ~[A-Z]{2} union 0[0-7]*~ daría ~[A-Z]{2}+0[0-7]*~
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   Tipos de Lenguajes, según la jerarquía de Chomsky
+   - Tipo 0, (LI) Lenguaje Irrestricto
+   - Tipo 1, (LSC) Lenguaje Sensible del Contexto
+   - Tipo 2, (LIC) Lenguaje Independiente del Contexto <- tipo de LF que son las *constructos/categorías sintácticas*
+   - Tipo 3, (LR) Lenguaje Regular <- el más simple, tipo de LF que son las *categorías léxicas* (ó TOKENs)
+   
+   (1) Como que los elementos de la tabla períodica sólo como palabras formadas por letras
+   - es del TIPO 3 (por tanto es LR)
+   - es FINITO, porque tiene una cantidad finita de palabras
+
+   (2)
+   Como el *LF de declaraciones de C* es una de las *categorías sintácticas*
+   y como C define las *categorías sintácticas* en notación BNF y ésta representa un LIC,
+   entonces es un (LIC)
+   
+   Como el *LF constantes enteras octales sin sufijo de C* es una de las *categorías léxicas* es un (LR),
+   
+   Como para cualquier (LR) existe una (GIC) que lo genere, y una GIC puede generar una BNF,
+   entonces la unión entre un (LIC) y un (LR) es un (LIC),
+   por tanto es del TIPO 2
+   #+END_QUOTE
 ** [WAITING] Problema 13 (2019-02-18)
 *** Enunciado
    #+BEGIN_QUOTE
@@ -697,7 +688,355 @@
    estas últimas gramáticas generan los (LF) más simples
    mientras que las (GICs) representan (LF) más complejos
    #+END_QUOTE
-* Autómatas
+** Problema 14 (2019-02-11)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas con respecto al uso de las ER:
+
+   1. Pueden representar cualquier *LR*.
+   2. Pueden representar el *LF sentencias*
+   3. Pueden representar el *LF intersección de identificadores con expresiones*
+   4. Pueden representar el *LF constantes* de forma más compacta que las ERX
+   5. Pueden representar el *LF identificadores* de forma más compacta que las ERX.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   LI (tipo 0), LSC (tipo 1), LIC (tipo 2), LR (tipo 3)
+
+   (1) Verdadero, las (ER) pueden representar cualquier (LR)
+   
+   (2) FALSO, el *LF de sentencias* es un (LIC) generado por una (GIC) por tanto es del tipo 2,
+   y una (ER) sólo puede representar (LR) que son del tipo 3, según la jerarquía de chomsky
+   además los (LICs) tienen la característica del *balanceo de paréntesis* que no soportan los (LR)
+
+   (3) Verdadero, porque los *identificadores* son (LR) 
+   y las *expresiones* son (LIC) por estar en notación BNF por tanto ser generado por una (GIC),
+   por tanto lo único que tienen en común serán las palabras del (LF) más simple
+   que en este caso sería (LR) que es del tipo 3
+
+   (4) FALSO, una ER podría no representar al LF de constantes de forma más compacta que una ERX,
+   por ejemplo la ER que representa a las constantes númericas octales sin sufijo sería ~0(0+1+..+7)*~
+   mientras que la ERX sería ~0[0-7]*~
+
+   (5) FALSO, por la misma razón que con las constantes,
+   Ej. una ER que indicaría como puede empezar un identificador sería ~(_+(a+b+..+z+A+B+..+Z+0+1+..+9))~
+   mientras que una ERX sería más compacta ~_|[a-zA-Z0-9]~
+   #+END_QUOTE
+** [WAITING] Problema 15 (2018-12-03)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas con respecto a los (LR)
+   1. Son fundamentales para los (LP)
+   2. Son representables mediante (ER)
+   3. Son representables mediante BNF.
+   4. Son *cerrados bajo la concatenación*
+   5. Pueden *incluir sublenguajes que no son LR*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: (5) en la resolución dice que es Verdadero, pero no lo justifica.. (?)
+   
+   yo había puesto que era Falso, que los (LR) no pueden incluir sublenguajes de otro tipo que no sea (LR),
+   porque los (LR) son el tipo de (LF) más simple
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Verdadero, los (LR) son fundamenales para los (LP)
+   Por ejemplo para las *categorías léxicas de C* que representan a
+   los identificadores, las constantes numéricas enteras/reales, constantes de caracter, literales cadena,
+   operadores y caracter de puntuación (punctuator)
+
+   (2) Verdadero, las (ER) representan (LRs)
+
+   (3) Verdadero, una BNF puede representar un (LR)
+   porque la notación BNF es similar a una (GIC) y éstas pueden generar tanto (LIC) como (LR)
+   según la jerarquía de chomsky
+
+   (4) Verdadero, porque las (ER) que los representan a los (LR)
+   son cerrados para las *operaciones básicas* (concatenación, unión, las Clausuras, ...)
+   #+END_QUOTE
+** Problema 16 (2018-12-03)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas con respecto a las (GR)
+   1. Pueden *generar lenguajes infinitos*
+   2. Generan lenguajes representables por RegEx.
+   3. Sus *producciones pueden tener ε (epsilon)* en su derecha.
+   4. Generan *LF reconocibles con autómatas con pila*
+   5. Sus *producciones pueden tener terminales* en su izquierda.
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Verdadero, las (GR) pueden generar *lenguajes infinitos* si tienen producciones recursivas
+   Ej. ~S->Sa|b~ (recursiva a izquierda) ó ~S->aS|b~ (recursiva a derecha) ó ~S->SaS|b~
+
+   (2) Verdadero, las (GR) pueden generar lenguajes que sean representables por una Regex,
+   porque las (GR) generan (LR) que pueden ser representados por (ER)
+   y las *Regex* (ó MetaER) son *Expresiones Regulares Extendidas* que se les agregaron nuevos operadores
+   que pueden representar los mismos (LR) que una (ER) pero de manera más compacta
+
+   (3) Verdadero, una (GR) puede tener *epsilon* a la derecha de las producciones (pero NO a su izquierda)
+
+   (4) Verdadero, un (GR) puede generar un (LF) que puede reconocer un (AP) *Autómata de Pila*,
+   porque un (AP) es capáz de reconocer un (LIC) por tanto también podría un (LR) generado por una (GR)
+   podemos relacionarlo también con la *jerarquía de chomsky* donde un autómata de pila (AP) puede reconocer palabras
+   de un autómata más simple como un (AF) que reconoce (LR)
+
+   (5) FALSO, una (GR) NO puede tener (Vt) *terminales* a la izquierda de las producciones,
+   las únicas gramáticas que lo soportan son la (GI) *Gramática Irrestricta* (sin restricciones)
+   y la (GSC) *Gramática Sensible de Contexto* que no tiene restricciones del lado izquierdo ni derecho
+   excepto que si V->T es una produccion ~|V|<=|T|~
+   #+END_QUOTE
+** [WAITING] Problema 17 (2018-10-03)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas con respecto a las GIC:
+   1. Pueden generar *lenguajes finitos*
+   2. Sus producciones pueden tener ε (epsilon) en su derecha.
+   3. Generan *LF reconocibles autómatas con pila*
+   4. Sus producciones pueden tener terminales en su izquierda.
+   5. Generan *LF procesables por Parsers con (ASDR) Análisis Sintáctico Descendente Recursivo*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: En la (5) la resolución dice que es FALSo, por que?
+
+   yo había puesto Verdadero, porque un Parser lee (LICs) que son generados por (GICs),
+   que sea con (ASDR) *Análisis Sintáctico Descendente Recursivo* sólo indíca que el Parser
+   realiza el *proceso de derivación* osea desde el axioma hasta la cadena final
+   ó bien también desde el *árbol sintáctico* partiendo desde la raíz hasta las hojas
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Verdadero, las (GICs) pueden generar *lenguajes infinitos*
+
+   (2) Verdadero, las (GICs) pueden tener epsilon a la derecha de las producciones (pero no a su izq)
+
+   (3) Verdadero, las (GICs) pueden generar (LF) reconocibles por (AP) Autómatas de Pila
+
+   (4) FALSO, las (GICs) NO pueden tener (Vt) *terminales* a la izquierda de las producciones,
+   sólo las (GSC) y (GI) pueden tenerlos.
+   #+END_QUOTE
+** Problema 18 (2018-07-30)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas con respecto a los AF, ER, y GR.
+   1. Son *modelos matemáticos equivalentes*
+   2. Están *asociados con los lenguajes tipo 3*
+   3. Son *útiles para diseñar un analizador sintáctico*
+   4. Siempre tienen un *equivalente en notación BNF*
+   5. Pueden, respectivamente, reconocer, representar, y generar las palabras clave de C
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Verdadero
+
+   (2) Verdadero, las (GRs) generan (LRs) que son representables por (ER) y reconocidos por (AF)
+
+   (3) FALSO, un *analizador sintáctico* reconoce (LICs)
+   son útiles para un *analizador léxico* que reconocen (LRs)
+
+   (4) Verdadero, porque la *notación en BNF* es similar a una (GIC) pero con otros *metasímbolos*
+   y una (GIC) puede generar lo mismo que una (GR), según la *jerarquía de chomsky*
+   ya que el (LR) es el el (LF) más simple
+
+   (5) Verdadero, las *palabras claves de c* es un (LR) finito, por tanto
+   lo puede generar una (GR), ser representado por una (ER) y ser reconocido por un (AF)
+   #+END_QUOTE
+** Problema 19 (2018-07-16)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde la afirmación falsa con respecto a las ER:
+   1) Poseen el *operador intersección*
+   2) Pueden *representar lenguajes infinitos*
+   3) Pueden *representar todo lenguaje de tipo 3*
+   4) Son *útiles para diseñar un analizador léxico*
+   5) Pueden *describir el LF cadenas literales de C*
+   6) Pueden *describir el LF constantes enteras octales de C*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) FALSO, las (ER) no tienen el operador intersección.
+   Sólo tienen: Concatenación, Unión , Potencia, Clausura de Kleene, Clausura Positiva
+
+   (2) Verdadero, las (ER) pueden representar *lenguajes finitos*
+   con la clausura de kleene y/o clausura positiva
+
+   (3) Verdadero, las (ER) pueden representar cualquier *lenguaje de tipo 3*
+   porque según la *jerarquía de chomsky* los (LRs) son del tipo 3
+   - LI (tipo 0)
+   - LSC (tipo 1)
+   - LIC (Tipo 2)
+   - LR (Tipo 3)
+
+   (4) Verdadero, las (ER) son utiles para diseñar un analizador léxico (ó Scanner),
+   porque las *categorías léxicas* son (LRs) y las (ER) justamente representan (LRs)
+
+   (5) Verdadero, las (ER) pueden describir el LF de literales cadenas de C,
+   porque ese LF es un (LR)
+
+   (6) Verdadero, las (ER) pueden describir el LF constantes entras octales de C,
+   porque dicho LF es un (LR)
+   #+END_QUOTE
+** [WAITING] Problema 20 (2018-07-16)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde la afirmación falsa con respecto a las GIC:
+   1. Son *útiles para programar PAS*
+   2. *Se las formaliza con una cuatro-upla*
+   3. Siempre se *pueden traducir a notación BNF*
+   4. Pueden *generar el lenguaje de Declaraciones*
+   5. Son *útiles para diseñar un analizador sintáctico*
+   6. Pueden *generar el lenguaje de las Expresiones sin errores de tipo*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: EN la (2) por que dice que no es falsa?
+   yo había puesto FALSO, las (GIC) se formalizan en un (AP) *Automáta de pila* que es 7upa,
+   se agrega el *alfabeto de la pila* y el *símbolo inicial de la pila*
+
+   <<DUDA>>: En la (1) es Verdadero, pero.. por que son utiles para programar PAS?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (3) Verdadero, una (GIC) siempre puede traducir a *notación BNF*
+   porque se comporta igual, con la diferencia que tiene otros *metasímbolos*
+
+   (4) Verdadero, una (GIC) puede generar el *LF de declaraciones*,
+   porque éste (LF) es un (LIC) al estar en notación BNF,
+   además es una de las tres *categorías sintácticas* (declaraciones, sentencias, expresiones)
+
+   (5) Verdadero, las (GICs) son utiles para diseñar un *Analizador Sintáctico* (Parser),
+   porque estos reconocen (LICs)
+
+   (6) FALSO, las (GICs) NO pueden generar el LF de expresiones sin errores de tipo,
+   porque los errores de tipo son *errores semánticos* no *sintácticos*
+   #+END_QUOTE
+** Problema 21 (2018-02-19)
+*** Enunciado
+   #+BEGIN_QUOTE
+    Escriba la regex que representa al LF: ~L=(L1)^C INTERSECCION L2~
+    con ~L1~ igual al *LF identificadores de C*
+    y ~L2~  igual al *LF constantes enteras decimales sin sufijo de C*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   L1 Interseccion L2 = L2, entonces debemos hacer la regex de ~L2~
+
+   regex: ~[1-9][0-9]*~
+   #+END_QUOTE
+* [TODO] LL
+** Problema 1 (2018-12-17)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas con respecto a las LL(1):
+   1. La GIC ~S -> a S | a~ es LL(1)
+   2. La GIC ~S -> a b S | a~ es LL(1)
+   3. Pueden tener *producciones recursivas*
+   4. Pueden tener *producciones con épsilon del lado derecho*
+   5. El *conjunto primero* de los *no terminales* deben ser vacíos
+   #+END_QUOTE
+*** Respuesta
+** Problema 2 (2018-02-26)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la gramática
+
+   sentencia-if:
+     if ( expresión ) sentencia
+     if ( expresión ) sentencia else sentencia
+
+   Indique si la gramática es *LL(1)*. Si lo es justifique, si no, reescríbala para que sí sea:
+   #+END_QUOTE
+** Problema 3 (2018-12-03)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente afirmación sobre las GIC LL(1): Dadas las producciones de un no terminal,
+   los conjuntos primeros de los lados derechos deben ser disjuntos.
+   ¿Está de acuerdo con la afirmación? ¿Por qué?: 
+   #+END_QUOTE
+*** Respuesta
+* [TODO] Match + Pas
+** Problema 1 (2018-02-26)
+*** Enunciado
+   #+BEGIN_SRC C
+     void S(){
+       switch(GetProximoToken()){
+       case A: Match(A); S(); Match(C); return;
+       case B: Match(B); return;
+       default: // TODO
+       }
+     }
+   #+END_SRC
+
+   #+BEGIN_QUOTE
+   Dado el anterior PAS, resuelva los siguientes ítems:
+
+   1. V/F? El PAS es *sintácticamente correcto*
+   2. Dibuje el *árbol de expresión* de la *expresión de la sentencia etiquetada* con ~case B:~
+   3. La *sentencia etiquetada* con ~default~ no fue desarrollada por el programador original, por
+   eso tiene el comentario ~TODO~ (para hacer), complétela arriba, en el propio código.
+   4. Defina el *conjunto de las producciones de la gramática* asociada al PAS:
+   5. Escriba una *regex* que represente el asociado al PAS:
+   6. Calcule ~Primero(S)~
+   #+END_QUOTE
+** Problema 2 (2019-12-11)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca del *análisis sintáctico*
+   
+   1. Un *PAS* puede invocar al *scanner*
+   #+END_QUOTE
+*** Respuesta (resolucion) 
+   #+BEGIN_QUOTE
+   Verdadero -> según la resolución
+   #+END_QUOTE
+** Problema 3 (2018-07-16)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Calcule ~Primero(declaraciones) ⋂ Primero(sentencias-de-iteración)~
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   Vacío, porque no tienen nada en común
+   #+END_QUOTE
+* Conjunto Primero
+** Problema 1 (2018-02-19)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Calcule ~Primero(S)~, siendo ~S~ el no terminal del BNF de C, es decir, la gramática de
+   las *sentencias de iteración de C*
+   #+END_QUOTE
+** [WAITING] Problema 2 (2018-07-30)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado los *LF expresiones y sentencias de C*, tilde la afirmación verdadera:
+
+   1. Primero(expresiones) inclusion Pimero(sentencias)
+   2. Primero(expresiones) inclusion ó igual Primero(sentencias)
+   3. Primero(expresiones) inclusion_al_reves Pimero(sentencias)
+   4. Primero(expresiones) inclusion_al_reves ó igual Primero(sentencias)
+   5. Primero(expresiones) interseccion Primero(sentencias) = enteros
+   6. Primero(expresiones) interseccion Primero(sentencias) = flotantes
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: La (2) dice que es FALSO, por que?
+   yo había puesto verdadero porque era lo mismo que la (1)
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Verdadero, porque las sentencias pueden tener expresiones
+
+   (3) FALSO
+
+   (4) FALSO
+
+   (5) FALSO
+
+   (6) FALSO
+   #+END_QUOTE
+* Autómatas + Regex
 ** [#A] Problema 1 (2021-06-23)
 *** Enunciado
    #+BEGIN_SRC c
@@ -777,8 +1116,6 @@
    #+BEGIN_QUOTE
    Indique la *secuencia de algoritmos* para obtener un *AFD a partir de una ER*
    #+END_QUOTE
-
-
 *** Respuesta (resolución)
    #+BEGIN_QUOTE
    - Algortimo de Thompson
@@ -809,4 +1146,195 @@
    
    #+BEGIN_QUOTE   
    M=({A,B},{0,1},{A⇒0⇒B,B⇒0⇒B,B⇒1⇒B},0,{B})
+   #+END_QUOTE
+** Problema 6 (2019-02-11)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado ~Σ={a,b}~ y el LF empiezan y terminan con ~a~:
+   
+   1. Escriba una *ERX* que lo represente:
+   2. Dibuje el *digrafo de un AFN* que lo *reconozca*:
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) ERX: ~a|a[ab]*a~
+
+   (2) El dígrafo del AFN sólo sería
+   1. un estado inicial ~q0~ que vaya a dos estados (q1 ó q2) para leer ~a~
+   2. uno de los estados (q1) es un estado final (ó de aceptación)
+   3. otro de los estados (q2)
+      - tiene una transición a si mismo para leer ~a~ ó ~b~
+      - tiene otra transición a otro estado (q3) que es un estado final para leer ~a~
+
+   Sería un (AFN) Autómata Finito NO Determinístico porque desde el estado inicial (q0) se lee la misma letra ~a~
+   cuando se hace la transición a dos estados diferentes.
+   
+   En la (TT) *Tabla de Transición* veríamos dos estados
+   pudiendo ser la *función de transición* de la sig manera ~T(q0, a)={q1,q2}~
+   #+END_QUOTE
+
+   #+BEGIN_SRC plantuml :file img/afn21090211.png :exports results
+     @startuml
+     digraph foo {
+       ' cambiamos la dirección: left to right
+       rankdir=LR
+
+       "-0" -> "+1" [label=a]
+
+       "-0" -> 2 [label= a]
+       2 -> 2 [label= "a,b"]
+       2 -> "+3" [label= a]
+     }
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:img/afn21090211.png]]
+
+** Problema 7 (2018-12-10)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Sea el LF intersección entre los *LF Constantes enteras decimales sin sufijo de C* y *Expresiones de C*
+   1. *Defina formalmente el AF*
+   2. Escriba una *RegEx* que lo represente
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   Como el *LF Constantes enteras decimales sin sufijo de C* es un (LR),
+   y el *LF de Expresiones de C* es un (LIC),
+   la intersección entre un (LR) y un (LIC) será el (LF) más simple entre ellos,
+   además un (LR) no soporta el *balanceo de paréntesis* que si puede la (GIC) que genera un (LIC)
+
+   Por tanto la intersección entre ambos (LF) será el (LR) de las *constantes enteras decimales sin sufijo*
+   
+   (1) Como la *definición forma de un AF es* ~A=(conjunto_estados, alfabeto, transiciones, estado_inicial, estados_finales_o_aceptacion)~
+   entonces la definición del autómata pedido sería..
+   ~A=({q0,q1},{0,1,2,..,9}, {q0->"digitos sin cero"->q1, q1->"digitos"->q1}, q0, {q1})~
+
+   Teniendo
+   - un *estado inicial* ~q0~, y un *estado final ó de aceptación* ~q1~
+   - como alfabeto los números naturales del 0 al 9
+
+   (2) ERX: ~[1-9][0-9]*~
+   empezando con al menos un número del 1 al 9,
+   seguido ó no de números del 0 al 9
+   #+END_QUOTE
+** Problema 8 (2018-07-16)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde la afirmación falsa con respecto a los AF:
+   1) Se *formalizan con una 5-upla*
+   2) Siempre *tienen una ER equivalente*
+   3) Siempre *tienen un único estado inicial*
+   4) Sus estados deben tener transiciones salientes para todo símbolo de Σ.
+   5) La *función transición puede no estar definida para todo par estado-carácter*
+   6) Existe un AF que reconoce la intersección entre los LF Expresiones e Identificadores de C
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) Verdadero, los (AF) se formalizan en una 5-upla
+   La definición formal de un autómata es ~A=(ConjuntoEstados, Alfabeto, EstadoInicial, Estados_Aceptacion_oFinales, FuncionDeTransicion)~
+
+   (2) Verdadero, un (AF) siempre tiene un ER equivalente
+
+   (3) Verdadero, un (AF) tienen un único estado inicial, su definición lo dice así
+
+   (4) FALSO, un (AF) puede tener un estado sin ninguna transición saliente,
+   como puede ser un *estado de aceptación/final*
+
+   (5) Verdadero, es el caso anterior
+
+   (6) Verdadero, existe un AF que reconoce la intersección entr el LF expresiones y LF identificadores de C,
+   ya que dicha intersección es un (LR) por tanto puede ser reconocido por un (AF).
+   
+   La intersección es un (LR) porque el (LF) de expresiones es un (LIC) y el LF de identificadores un (LR),
+   y la intersección entre ambos es el más simple osea el (LR)
+   #+END_QUOTE
+* Regex
+** [WAITING] Problema 1 (2018-06-07)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Escriba la regex resultante de la intersección entre las *constantes enteras decimales de C* y el
+   LF representado por la regex ~[0-9]*|a~
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: Por que la resolución dice que puede empezar con ~[1-9]~ ?
+   lo que tienen en común no es ~[0-9]*~ ?
+   
+   yo puse que la regex para el (LR) *constantes enteras decimales de c* sería: ~[1-9][0-9]*[lLuU]~ (agregamos los sufijos L de long y U de unsigned)
+   la intersección entre ~[1-9][0-9]*[lLuU]~ y ~[0-9]*|a~ es ~[1-9]*~
+   donde ~[0-9]*~ representa a un (LF) infinito que contiene los números formados por números entre 0 al 9 y a la palabra vacía por usar la clausura de kleene
+   #+END_COMMENT
+** Problema 10 (2019-07-29)
+*** Enunciado
+   #+BEGIN_QUOTE
+    Indique y justifique el valor de verdad de la siguiente afirmación:
+    Las *operaciones unión, intersección, y complemento* son parte de las *regex*
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   FALSO,
+   - la *operación intersección* no forma parte de las *regex*
+   - la *operación unión* se logra con el pipe ~|~
+   - la *operación complemento* se logra con el ~^~
+   #+END_QUOTE
+** [TODO] Problema 1 (2020-10-14)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Analice la siguiente expresión C: ~s.a[s.i]~
+   Puede esta *expresión* considerarse una *regex*? Justifique
+   #+END_QUOTE
+*** Respuesta
+  #+BEGIN_QUOTE
+  Si, si se leyera como una regex representaría al (LR) que
+ 1. empieza con ~s.a~ (s, punto, a)
+ 2. seguido de ~s~ ó ~.~ ó ~i~ (sólo uno de los caracteres)
+  #+END_QUOTE
+* [TODO] Algoritmos de Muchnik
+** Problema 1 (2018-10-03)
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas con respecto a los algoritmos de MUCH2012 volumen 3:
+   
+   1. Siempre se puede encontrar un AF para una ER.
+   2. Siempre se puede encontrar una ER para un AFD.
+   3. Siempre se puede encontrar un AFD para un AFN.
+   4. Siempre se puede encontrar una ER para una GIC.
+   5. Siempre se puede encontrar el AFD mínimo dado un AF.
+   #+END_QUOTE
+
+** Problema 2 (2019-05-23)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca de los *algoritmos de MUCH2012 volumen 3*
+   
+   1. El complemento de un LR siempre es un LR.
+   2. Siempre se puede encontrar una ER para un GR.
+   3. Siempre se puede encontrar una GIC para un ER.
+   4. Siempre se puede encontrar un AFD para una ER.
+   5. El algoritmo de Thompson siempre produce un AFD
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   Chequear lo del AFD a ER, y el Algoritmo de Thompson a AFD
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Verdadero
+
+   (2) Verdadero, si existe una GR que genera un LR, también hay un ER para esa GR
+
+   (3) Verdadero, siempre hay una GIC para un ER,
+   porque los ER representan LR y estos pueden ser generados por GICs,
+   según la jerarquía de chomsky, donde los LRs son los más simples.
+
+   (4) Verdadero, ..
+
+   (5) FALSO
+   #+END_QUOTE
+** Problema 3 (2018-02-26)
+*** Enunciado
+   #+BEGIN_QUOTE
+   1. V/F Para llegar al AFD mínimo desde una ER es necesario aplicar exactamente tres algoritmos.
+   2. V/F  Dadas dos ER, el algoritmo del AFD mínimo es útil para determinar si representan el mismo LF.
    #+END_QUOTE
