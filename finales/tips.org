@@ -1,4 +1,300 @@
 #+TITLE: Resumen de Finales - Tips
+* Etapas de Análisis
+  |---+---------------------+----------------------+---------------------------+-------------------------+--------------------------|
+  |   | Etápa               | Realizado por        | Tipo de Gramática que usa | Entrada/Input           | Salida/Genera            |
+  |---+---------------------+----------------------+---------------------------+-------------------------+--------------------------|
+  | 1 | Análisis Léxico     | Scanner              | (GR)                      | Secuencia de caracteres | TOKENs                   |
+  |---+---------------------+----------------------+---------------------------+-------------------------+--------------------------|
+  | 2 | Análisis Sintáctico | Parser               | (GIC)                     | Secuencia de TOKENs     |                          |
+  |---+---------------------+----------------------+---------------------------+-------------------------+--------------------------|
+  | 3 | Análisis Semántico  | Analizador Semántico | ((GSC)                    |                         | Primer código intermedio |
+  |---+---------------------+----------------------+---------------------------+-------------------------+--------------------------|
+
+  |---------+------------------------------------------------------------------------------------------------------------+----------------------|
+  | Scanner | Parser                                                                                                     | Analizador Semántico |
+  |---------+------------------------------------------------------------------------------------------------------------+----------------------|
+  |         | Interactúa con el Scanner y le pide TOKENS con ~ProximoToken()~ y ~Match(t)~                               |                      |
+  |         | Interactúa con el Analizador Semántico invocando a los ~PAS~ y disparando *rutinas semánticas* (funciones) |                      |
+  |         | Genera un (AAS) *Árbol de Análisis Sintáctico*                                                             |                      |
+  |---------+------------------------------------------------------------------------------------------------------------+----------------------|
+* (TS) Tabla de Símbolos
+  - Es una *estructura de datos*
+  - Se usa durante toda la fase de análisis (léxico, sintáctico, semántico) para guardar y procesar información
+  - Pueden contener Identificadores, Keywords, Constantes literales, Constantes numéricas
+  - Guarda y clasifica información de las variables (idntificador, tipo, ámbito)
+  - Guarda y clasifica información de las funciones (identificador, cantidad y tipo de parámetros, tipo que retorna)
+
+  #+BEGIN_SRC C
+    // Interacción del Scanner y la (TS)
+    // 1) Ingresa en la TS a `precio` como Identificador
+    // 2) Modifica un atributo del identificador a "tipo de dato" con valor "double"
+    // (la modificación la hace una "rutina semántica")
+    typedef double precio;
+  #+END_SRC
+* El Front-end y el Back-end de un Compilador
+** Front-end (Etapa de Análisis)
+  - Es la primera etapa del compilador
+  - El *front-end* de un compilador engloba las siguientes *etápas de análisis*
+    1) Análisis léxico (por el Scanner)
+    2) Análisis Sintáctico (por el Parser)
+    3) Analizador Semántico (genera un primer código intermedio)
+** Backend (Síntesis)
+  - Es la segunda etapa del compilador
+  - Tiene como entrada el *representación/código intermedio* generado en el *Análisis Semántico*
+  - El *back-end* (ó Síntesis) de un compilador tiene como tareas
+    1) Optimizar el código intermedio
+    2) Generar el código de los objetos (que luego se ensamblan, y el *Linker* los enlazará previo a que se genere el ejecutable)
+* [WAITING] Relación entre LL(1) + ASDR + AAS + PAS + Funciones Match(t) y ProximoToken()
+** PAS
+  - La sigla (PAS) significa *Procedimiento de Análisis Sintáctico*
+  - Si el TOKEN leído NO es ninguno de los esperados, se produce un *error sintáctico*
+  - Las llamadas a los (PAS) *hacen que el análisis sea recursivo*
+    (se tienen funciones que llaman a otras funciones de forma recursiva, y así se genera el AAS)
+** ASDR y AAS
+  - La sigla (ASDR) se refiere a un tipo de *Paser* y significa *Análisis Sintáctico Descendente Recursivo*
+  - En el (ASDR) por cada (Vn) *No terminal* hay un (PAS) que lo implementa con el mismo nombre
+    (Ej. para el no terminal <identificador> el PASS sería ~Identificador()~)
+
+  #+BEGIN_QUOTE
+  Durante el (ASDR) se arma un (AAS) *Árbol de Análisis Sintáctico* donde
+  - Los (Vt) Terminales son *nodos* (interiores)
+  - Los (Vn) No Terminales son *hojas*
+
+  Los nodos hijos representan la secuencia de (Vn) y (Vt) de una *producción* de ese (Vn) 
+  #+END_QUOTE
+** Match(t) y ProximoToken()
+  - Son utilizadas por el *Parser* y son como *wrappers* sobre el Scanner
+  - La función ~Match(t)~
+    - es la única función que *hace avanzar al Scanner*
+    - durante el (ASDR) se llama a una función ~Match(t)~ por cada (Vt) terminal
+    - compara el TOKEN a coincidir con el próximo símbolo que devolverá el Scanner
+    - compara el terminal que devolverá el Scanner con el terminal de la producción
+  - La función ~ProximoToken()~
+    - devuelve el próximo TOKEN que devolverá el Scanner pero *sin avanzar al Scanner*
+
+  #+BEGIN_QUOTE
+  Si se invoca N veces a ~Match(t)~ se hará avanzar al Scanner N veces
+  y devolverá N TOKENS distintos
+
+  Si se invoca N veces a ~ProximoToken()~ devolverá N veces el mismo TOKEN,
+  porque no se lo hizo avanzar con ~Match(t)~
+
+  Si al usar ~Match(t)~ para comparar un TOKEN con el próximo símbolo que devolverá el scanner,
+  y no hay coincidencia, eso implíca un *error sintáctico* pero igual hace avanzar al Scanner
+  por tanto si coincide ó no con que devolverá el Scanner lo hará avanzar igual
+  #+END_QUOTE
+** [WAITING] LL(1) y LL(k)
+   - *LL* es una (GIC) *sin ambiguedad* (/para cualquier cadena de derivación, se tiene una única derivación ó bien sólo un árbol sintáctico/)
+   - Una (GIC) ~LL(k)~ puede conocer anticipadamente ~k~ *símbolos de preanálisis* (TOKENs)
+   - Una (GIC) ~LL(1)~ se refiere que usa ~ProximoToken()~ para ver *un símbolo por adelantado* (/un único símbolo adicional/)
+   - El *Símbolo de Preanálisis* es el símbolo por adelantado que lee el ~LL(1)~ usando ~ProximoToken()~
+
+   #+BEGIN_COMMENT
+   no entendi el ejemplo... (?)
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   ~LL(1)~ decide  que producción usar con un único *símbolo de preanálisis*
+   
+   1) ~S → aR | b~ es LL(1)
+   2) ~S → aR | a~ NO es LL(1)
+   3) ~S → abQ | acM~ NO es LL(1) , es LL(2)
+   #+END_QUOTE
+** [WAITING] Problemas entre LL(1) y ProximoToken()
+*** Recursividad a izquierda en la primera producción
+   #+BEGIN_QUOTE
+   Si una producción es recursiva a izquierda, al llamar a ~ProximoToken()~ se hará un recursión/ciclo infinito
+   porque se llamará de forma infinita a ~ProximoToken()~
+   La siguiente producción sería el caso
+   ~E-> E+T | T~
+
+   E+E+E+E+E+E+E+...+T
+
+   *La solución es agregar una nueva producción* pero que haga una *gramática equivalente, que genere el mismo (LF)*
+   ~E->T E'~
+   ~E'->E'+T | epsilon~
+   #+END_QUOTE
+*** Producciones empiezan igual
+   #+BEGIN_QUOTE
+   NO podemos aplicar ~LL(1)~ si varias producciones comienzan igual
+   ~A -> ab | ac | ad | ...~
+
+   La solución es crear un nuevo (Vn) *no terminal* con el terminal que lo acompaña al que se repite
+   ~A -> aB~
+   ~B -> b | c | d | ...~
+   #+END_QUOTE
+
+   #+BEGIN_COMMENT
+   no entendi el problema
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   Un caso similar es el de la *sentencia if* donde se repite *if(cond) sent*
+   ~<sentencia if> -> if(<condicion>) <sentencia> else <sentencia> | if(<condicion>) <sentencia>~
+
+   La solución es también crear otra producción, y agregamos un (Vn) que reemplaza que acompaña al que se repite
+   ~<sentencia if> -> if(<condicion>) <sentencia> <opcion-else>~
+   ~<opcion-else> -> else <sentencia> | epsilon~
+   #+END_QUOTE
+** Ejemplos de PAS
+*** Ejemplo 1 - PAS para producciones simples, sin repetición
+  #+BEGIN_SRC C
+    // PAS para producciones simples
+
+    /*
+     ,* Hay un PAS para cada (Vn) no terminal
+     ,* 1) PAS Objetivo() es la implementación para el (Vn) No terminal <objetivo>
+     ,* 2) PAS Programa() es la implementación para el (Vn) No terminal <programa>
+     ,* 3) PAS ListaSentencias() es la implementación para el (Vn) No terminal <listaSentencias>
+     ,*
+     ,* Se invóca a la función Match por cada (Vt) terminal, y hace avanzar al Scanner
+     ,* 1) Match(FDT)
+     ,* 2) Match(INICIO)
+     ,* 3) Match(FIN)
+     ,*/
+
+    /*
+     ,* Dada la siguiente gramática
+     ,*
+     ,* <objetivo> -> <programa> FDT
+     ,* <programa> -> INICIO <listaSentencias> FIN
+     ,*
+     ,* su implementación podría ser
+     ,*/
+
+    void Objetivo (void) { // <-- PAS Objetivo()
+      Programa(); // <- PAS Programa()
+      Match(FDT); // <- función Match para el (Vt) terminal FDT, hace avanzar al Scanner
+    }
+
+    void Programa (void) { // <-- PAS Programa()
+      Match(INICIO); // <- función Match para el (Vt) terminal INICIO, hace avanzar al Scanner
+      ListaSentencias(); // <- PAS ListaSentencias()
+      Match(FIN); // <- función Match para el (Vt) terminal FIN, hace avanzar al Scanner
+    }
+  #+END_SRC
+*** Ejemplo 2 - PAS para producción con opciones
+  #+BEGIN_SRC C
+    /*
+     ,* Dada la siguiente gramática
+     ,*
+     ,* <sentencia> -> ID = <expresion>;
+     ,* <sentencia> -> LEER ( <listaIdentificadores> );
+     ,*
+     ,* El PAS que implementa el (Vn) no terminal <sentencia> sería
+     ,*/
+    void Sentencia(void) {
+      TOKEN tok = ProximoToken();
+      switch (tok) {
+      case ID:
+        Match(ID); Match(ASIGNACION);
+        Expresión(); Match(PUNTOYCOMA);
+        break;
+      case LEER:
+        Match(LEER); Match(PARENIZQUIERDO);
+        ListaIdentificadores();
+        Match(PARENDERECHO); Match(PUNTOYCOMA);
+        break;
+      default:
+        ErrorSintactico(tok); break; // <-- FUNDAMENTAL, si el próximo TOKEN no coincide => error sintáctico (lanzado por una rutina semántica)
+      }
+    }
+  #+END_SRC
+*** Ejemplo 3 - PAS para producción con repeticiónes
+   #+BEGIN_SRC C
+     /*
+      ,* Dada esta gramática
+      ,*
+      ,* <listaExpresiones> -> <expresión> {COMA <expresión>}
+      ,*/
+     void listaExpresiones (void) {
+       Expresion(); /* la primera de la lista de expresiones */
+
+       // - primero consumimos la coma, y luego llamamos a Expresion(),
+       // si hicieramos al reves estaría mal
+       // - Si el próximo token NO es una coma, entonces terminó la lista de expresiones
+       while (ProximoToken() == COMA) {/* El resto de las opcionales */
+         Match(COMA); Expresion();
+       }
+     }
+   #+END_SRC
+* (LL) Vs. (LR)
+  - El (AAS) es el *Árbol de Análisis Sintáctico*
+  - Una gramática (LL) es una (GIC) que admite *Análisis Sintáctico* LL
+  - A un Parser (LL) se lo llama *Parser predictivo* (hace un preanálisis)
+  - El (LR) es más eficiente y reconoce más lenguajes que el (LL)
+  - Una gramática es ambigua si hay dos derivaciones distintas (por izq ó der) para una misma cadena, ó si podemos armar dos (AAS) para la misma cadena
+
+  |-------------------------+----------------------------------------------------------------------+-------------------------------------------------------------------------------|
+  |  Gramática              | *LL*                                                                 | *LR*                                                                          |
+  |-------------------------+----------------------------------------------------------------------+-------------------------------------------------------------------------------|
+  | Tipo de Gramática       | (GIC) SIN AMBIGUEDAD                                                 | (GIC) SIN AMBIGUEDAD                                                          |
+  |-------------------------+----------------------------------------------------------------------+-------------------------------------------------------------------------------|
+  | Tipo de Parser que usa  | TOP-DOWN (descendentes, un *ASDR*)                                   | BOTTOM-UP (ascendentes)                                                       |
+  |-------------------------+----------------------------------------------------------------------+-------------------------------------------------------------------------------|
+  | Construcción del (AAS)  | Desde la *raíz* a la *hojas*, en *preorden*                          | Desde las *hojas* a la *raíz*                                                 |
+  |-------------------------+----------------------------------------------------------------------+-------------------------------------------------------------------------------|
+  | Proceso utilizado       | DERIVACIÓN (vertical ó horizonal, a izquierda ó a derecha)           | REDUCCIÓN / EVALUACIÓN                                                        |
+  |-------------------------+----------------------------------------------------------------------+-------------------------------------------------------------------------------|
+  | El análisis parte desde | desde el *axioma* se expande hasta la *cadena de derivación* deseada | desde la última derivación, la reduce y va armando un (AAS) hasta al *axioma* |
+  |-------------------------+----------------------------------------------------------------------+-------------------------------------------------------------------------------|
+  | Recorre los TOKENS de   | Izquierda a Derecha                                                  | Derecha a Izquierda                                                           |
+  |-------------------------+----------------------------------------------------------------------+-------------------------------------------------------------------------------|
+* Relación entre (LP), (LF) y la BNF
+   #+BEGIN_QUOTE
+   Un (LP) Lenguaje de Programación es una *notación* para describir
+   - algoritmos
+   - estructuras de datos
+   
+   Los (LP) están formados por
+   - (LRs) Lenguajes Regulares <- generados por (GRs)
+   - (LICs) Lenguajes Independientes del Contexto <- generados por (GICs)
+
+   Un (LF) Lenguaje Formal es un conjunto de palabras que
+   - tienen *sintáxis* (reglas gramáticales, forman la estructura, el orden, ...)
+   - NO tienen *semántica* asociada (permite que no sean ambíguos, osea tienen una única interpretación)
+
+   Características de una *BNF*
+   - es una notación sin ambiguedades, única interpetación
+   - describe la sintáxis de un (LP) Lenguaje de programación
+   - parecida a una (GF) Gramática Formal, pero con nuevos *metasímbolos*
+   #+END_QUOTE
+* Relación entre los (LF) y el Compilador
+   |----------------------+----------------------+-------------------------------------------+-------------------------------------|
+   | Jerarquía de Chomsky | Lenguaje Formal (LF) | Gramática que genera al (LF)              | Autómata que lo reconoce            |
+   |----------------------+----------------------+-------------------------------------------+-------------------------------------|
+   | Tipo 0               | LI                   | (GI) Gramática Irrestricta                | Maquina de Turing                   |
+   | Tipo 1               | LSC                  | (GSC) Gramática Sensible de Contexto      | (ALL) Autómata Linealmente Limitado |
+   | Tipo 2               | LIC                  | (GIC) Gramática Independiente de Contexto | (AP) Autómata de Pila               |
+   | Tipo 3               | LR                   | (GR) Gramática Regular                    | (AF) Autómata Finito                |
+   |----------------------+----------------------+-------------------------------------------+-------------------------------------|
+
+   |----------------------+-------------------------------------------+---------------------------------------------------|
+   | Lenguaje Formal (LF) | Gramática que genera al (LF)              | Relación con el Compilador                        |
+   |----------------------+-------------------------------------------+---------------------------------------------------|
+   | LI                   | (GI) Gramática Irrestricta                |                                                   |
+   | LSC                  | (GSC) Gramática Sensible de Contexto      |                                                   |
+   | LIC                  | (GIC) Gramática Independiente de Contexto | Sintáxis, las *Categorías Sintácticas* son (LICs) |
+   | LR                   | (GR) Gramática Regular                    | las *Categorías Léxicas* (ó TOKENs) son (LRs)     |
+   |----------------------+-------------------------------------------+---------------------------------------------------|
+   
+   |-----------+--------------------------------------------------------------------------------------------+-------------------------------------------------------|
+   | Gramática | Restricción                                                                                | dato de color                                         |
+   |-----------+--------------------------------------------------------------------------------------------+-------------------------------------------------------|
+   | (GI)      | Ninguna                                                                                    |                                                       |
+   | (GSC)     | Sea V->T una producción, el cardinal de V debe ser menor ó igual que el de T               | es una (GI) con restricción                           |
+   | (GIC)     | Sea V->T una producción, debe haber un único (Vn) no terminal a izquierda de la producción |                                                       |
+   | (GR)      | Sea V->T una producción, debe haber un único (Vn) no terminal a izquierda de la producción |                                                       |
+   | (GQR)     |                                                                                            | es una (GR) que agrupó un conjunto de (Vt) en un (Vn) |
+   |-----------+--------------------------------------------------------------------------------------------+-------------------------------------------------------|
+* Relación entre Operandos/Operadores con la Sintáxis y Semántica
+   #+BEGIN_QUOTE
+   La *Sintáxis define la precedencia(prioridad) y asociatividad de los OPERADORES*
+   - La asociatividad
+   - La precedencia
+
+   La *Semántica define la precedencia(prioridad) de los OPERANDOS*
+   #+END_QUOTE
 * Declaraciones (Calificador de Tipo y Especificador de Tipo)
    #+BEGIN_QUOTE
    - El/Los *declaradores* son los identificadores de la declaración
@@ -86,30 +382,47 @@
    El efecto de lado no se define en la sintaxis de las expresiones de C, 
    *es un concepto semántico* que indica el comportamiento al evaluar una expresión
    #+END_QUOTE
-* ungetc y getchar
+* Caracter Espúreo + Funciones ungetc y getchar
    #+BEGIN_QUOTE
    Analice la expresión ~f(g(x))~ que es sintácticamente correcta y nos piden enumerar en 
    orden los caracteres retornados por ~ungetc~
 
    La secuencia de caracteres retornados por ~ungetc~ sería ~(, (, )~
-   usamos como referencia la secuencia leída
-   1. f( <- ungetc porque ~(~ NO pertenece al token de la secuencia anterior leída (identificador formada por f), se devuelve el ~(~
-   2. (g( <- ungetc por el segundo ~(~ no pertenece al token de la secuencia anterior (identificador formada por g), se devuelve ~(~
-   3. (x) <- ungetc por el segundo ~(~ , se devuelve ~)~
-   4. )
+   |---+-----------------+--------------------------------------------------------------------------------------------------------------------------+---|
+   |   | Secuencia leída |                                                                                                                          |   |
+   |---+-----------------+--------------------------------------------------------------------------------------------------------------------------+---|
+   | 1 | f(              | ungetc porque ~(~ NO pertenece al token de la secuencia anterior leída (identificador formada por f), se devuelve el ~(~ |   |
+   |---+-----------------+--------------------------------------------------------------------------------------------------------------------------+---|
+   | 2 | (g(             | ungetc por el segundo ~(~ no pertenece al token de la secuencia anterior (identificador formada por g), se devuelve ~(~  |   |
+   |---+-----------------+--------------------------------------------------------------------------------------------------------------------------+---|
+   | 3 | (x)             | ungetc por el segundo ~(~ , se devuelve ~)~                                                                              |   |
+   |---+-----------------+--------------------------------------------------------------------------------------------------------------------------+---|
+   | 4 | )               |                                                                                                                          |   |
+   |---+-----------------+--------------------------------------------------------------------------------------------------------------------------+---|
 
-   Aclaración, cuando lee la secuencia ~(g(~ ocurre sólo 1 ~ungetc~
-   | secuencia leída |                                                                                                                                                     |
-   |-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------|
-   | ~(~             | lee un caracter                                                                                                                                     |
-   | ~(g~            | lee el siguiente caracter, y no hace ~ungetc~ porque no hay otro caracter que combinado con ~(~ forme algun token (si podría si fuese el simbolo =) |
-   | ~(g(~           | hace ungetc porque luego de leer ~g~ detecta el ~(~ y éste no forma parte de los identificadores (a la que si pertenece el caracter ~g~)            |
+   Aclaración, cuando lee la secuencia ~(g(~ se invoca sólo 1 vez a ~ungetc~
+   |---+-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------|
+   |   | Secuencia leída |                                                                                                                                                     |
+   |---+-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------|
+   | 1 | ~(~             | lee un caracter                                                                                                                                     |
+   |---+-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------|
+   | 2 | ~(g~            | lee el siguiente caracter, y no hace ~ungetc~ porque no hay otro caracter que combinado con ~(~ forme algun token (si podría si fuese el simbolo =) |
+   |---+-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------|
+   | 3 | ~(g(~           | hace ungetc porque luego de leer ~g~ detecta el ~(~ y éste no forma parte de los identificadores (a la que si pertenece el caracter ~g~)            |
+   |---+-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------|
 
    En la secuencia ~(x))~ también sólo ocurre un llamado a ~ungetc~
-   | (  | llama a getchar, todo ok                                                                                  |
-   | x  | llama a getchar, todo ok (igual que con el ejemplo de ~(g(~ por eso no hace ungetc)                       |
-   | x) | llama a ungetc, detecta que el ~)~ no pertenece al TOKEN de los identificadores al que si pertenece ~x~   |
-   | )) | llama a getchar, todo ok son solo dos paréntesis, no hay otro caracter que combinado con ellos forme otro |
+   |---+-----------------+-----------------------------------------------------------------------------------------------------------|
+   |   | Secuencia leída |                                                                                                           |
+   |---+-----------------+-----------------------------------------------------------------------------------------------------------|
+   | 1 | ~(~             | llama a getchar, todo ok                                                                                  |
+   |---+-----------------+-----------------------------------------------------------------------------------------------------------|
+   | 2 | ~x~             | llama a getchar, todo ok (igual que con el ejemplo de ~(g(~ por eso no hace ungetc)                       |
+   |---+-----------------+-----------------------------------------------------------------------------------------------------------|
+   | 3 | ~x)~            | llama a ungetc, detecta que el ~)~ no pertenece al TOKEN de los identificadores al que si pertenece ~x~   |
+   |---+-----------------+-----------------------------------------------------------------------------------------------------------|
+   | 4 | ~))~            | llama a getchar, todo ok son solo dos paréntesis, no hay otro caracter que combinado con ellos forme otro |
+   |---+-----------------+-----------------------------------------------------------------------------------------------------------|
    #+END_QUOTE
 * Operador Vs Caracter de Puntuación
 ** Ejemplo 1
@@ -158,7 +471,7 @@
    f+=42;
    f(); // error semántico, no se puede invocar una variable
    #+END_SRC
-* GIC - Gramática BNF de C - Constructos/Categorías/Reglas Sintácticas
+* Gramática de la BNF de C - Constructos/Categorías/Reglas Sintácticas
 ** Declaración
    #+BEGIN_COMMENT
      1. <declaracion>
