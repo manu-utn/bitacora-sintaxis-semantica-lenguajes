@@ -1516,6 +1516,103 @@
              return 0;
      }
    #+END_SRC
+** Orden de Evaluación de Operandos + Errores Semánticos
+   #+BEGIN_SRC C
+     #include <stdio.h>
+
+     struct X{int x;}X;
+     struct persona{ char* nombre; int edad;};
+     enum DIA{LUNES=1,MARTES=2,MIERCOLES=3};
+
+     // - error semántico..!
+     // - comparten el espacio de nombres los structs, union y enum
+     // struct DIA{int x;};
+
+     /*
+     ,* - Error Semántico
+     ,* - Redefinición de una función, están en el mismo scope/ámbito
+     int x(){
+             return 0;
+     }
+     int x(){
+             return 1;
+     }
+     ,*/
+
+     int z(){
+             return 1;
+     }
+
+     // - Error Semántico
+     // - Error por redeclaración, los identificadores comparten mismo namespaces
+     //
+     // int z;
+
+
+     int m = 0;
+
+     int main(){
+             printf("m=%d\n",m);
+
+             // - OK, no hay error semántico..! :)
+             // - No es error de reclaración, porque el m=0 y el m=1
+             // están en distintos scope/ámbitos, main{ ... } es un nuevo scope
+             int m = 1;
+
+             printf("m=%d\n",m);
+
+             // ------------------------------------------------
+
+             // La semántica de C, especifica que
+             // el orden de evaluación de los operandos
+             // es de izq. a derecha para los operadores lógicos && y ||
+             // (también para la , (coma) y el operador ternario (exp1)?exp2:exp3;
+             {int x=0<1 && 0; printf("0<1 && 0=%d\n", x);}
+             {int x=0<1 && 1; printf("0<1 && 1=%d\n", x);}
+
+             // ------------------------------------------------
+
+             // - no es error semántico
+             // - porque printf no es una palabra reservada
+             // - lanzaría un error semántico, si tratamos de definir una función
+             // llamada printf. El error sería por redefinición
+             {int printf;}
+
+             char x;
+             // - Error Semántico
+             // - Redeclaración de una variable
+             // char x;
+
+             // - Error semántico
+             // - Redeclaración de una variable
+             // int m, m;
+
+             // - Error sintáctico
+             // - En la declaración luego del `int` se esperaba un identificador
+             // no una palabra reservada
+             // - El `for` es una palabra reservada
+             //
+             // int for;
+
+             // para declarar una variable con `enum` es igual que con los `struct`
+             // struct tipo identificador
+             // enum tipo identificador
+             enum DIA dia=LUNES;
+             printf("%d\n", dia);
+             dia=MARTES;
+             printf("%d\n", dia);
+
+             struct persona juan;
+             struct persona persona;
+             persona.edad=5;
+
+             printf("%d\n", persona.edad);
+
+             struct persona juanse;
+
+             return 0;
+     }
+   #+END_SRC
 * Referencias
   1. https://www.tenouk.com/cpluscodesnippet/chardecimalhexoctal.html
   2. https://slidetodoc.com/parsing-tools-introduction-to-bison-and-flex-1/
