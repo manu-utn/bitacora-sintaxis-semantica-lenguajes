@@ -1,0 +1,2652 @@
+#+TITLE: Resumen Parte 1
+* Extras
+** Tipos de datos
+   |---------------+-------------------+------------------+----------------|
+   | Tipo de dato  | Tamaño (en bytes) | Tamaño (en bits) | Rango en PC    |
+   |---------------+-------------------+------------------+----------------|
+   | void          |                 0 |                0 | sin valores    |
+   |               |                   |                  |                |
+   | char          |                 1 |                8 | -128 a 127     |
+   | signed char   |                   |                8 | -128 a 127     |
+   | unsigned char |                   |                8 | 0 a 255        |
+   |               |                   |                  |                |
+   | int           |                 4 |               16 | -32768 a 32767 |
+   | signed int    |                   |               16 | -32768 a 32767 |
+   | unsigned int  |                   |               16 | 0 a 65535      |
+   |               |                   |                  |                |
+   | float         |                 4 |               32 |                |
+   | double        |                 8 |               64 |                |
+   | long double   |                12 |                  |                |
+   |---------------+-------------------+------------------+----------------|
+
+   |------------------------------------------------+-------------------|
+   | Tipo de Dato                                   | Tamaño (en bytes) |
+   |------------------------------------------------+-------------------|
+   | char, unsigned char                            |                 1 |
+   | short int, unsigned short int                  |                 2 |
+   | int, unsigned int, long int, unsigned long int |                 4 |
+   | float                                          |                 4 |
+   | double                                         |                 8 |
+   | long double                                    |                12 |
+   |------------------------------------------------+-------------------|
+* Temas utnianos
+** Analizador Léxico (Scanner) y el ungetc
+*** Conceptos
+   #+BEGIN_QUOTE
+   1. Lee caracter a caracter y hace ~ungetc~ cuando se forma una cadena que no es *TOKEN*
+   2. La anterior si era token ya está, y guarda en el buffer la nueva que hizo que no sea *TOKEN*
+   3. Y vuelve a analizarla, con lo que siga
+   #+END_QUOTE
+*** Ejemplo 1
+   #+name: ejemplo1-scanner-enunciado
+   #+BEGIN_EXAMPLE
+    Un scanner de ANSI C procesa el flujo de carácteres escrito en la 1º fila que sigue,
+    detecte cada carácter que es centinela y marquelo conuna x debajo del mismo
+    
+    b12=}012iffor&}fdt
+   #+END_EXAMPLE
+   
+   #+name: ejemplo1-scanner-resolucion
+   #+BEGIN_QUOTE
+   Una descripción de lo que sucede en la tabla de abajo sería:
+   1. Empieza leyendo ~b12=~ cuando lee el operador ~=~ se detiene porque actúa como *céntinela*,
+   entiende que la secuencia de caracteres anterior al ~=~ es un *identificador* (/chequear Nota #1/)
+   ya que el ~=~ no pertenece al *alfabeto de los Identificadores*
+   
+   2. Continúa leyendo desde el ~=~
+   2.1 lee ~=}~ se detiene porque el ~}~ actúa como *céntinela*,
+   entiende que el ~=~ es un operador (/siendo más precisos el operador de asignación/)
+   ya que ~=}~ no entra en ninguna *categoría léxica (token)*
+   aunque bien podría haber sido alguno de estos operadores =+, ==, =-, ...
+   2.2 también entiende que el ~}~ es un *Caracter de Puntuación*
+   ya que no hay otro caracter que junto con ~}~ forme un *Token*
+   
+  3. Continua leyendo desde ~1~
+  3.1 lee ~12i~ se detiene porque la ~i~ actúa como *céntinela*,
+  entiende que la secuencia ~12~ es una *Constante* (/siendo más exáctos una Constante Entera/)
+  y sabe que NO es un *Identificador*, porque estos no empiezan con digitos
+  (los identificadores empiezan con guiones bajos ó letras, seguido de letras/guiones bajos/digitos)
+  
+  4. Continúa leyendo desde ~i~
+  4.1 lee ~iffor&~ se detiene porque el ~&~ actúa como *céntinela*,
+  entiende que la secuencia ~iffor~ es un *Identificador*
+  ya que el ~&~ no pertenece al *Alfabeto de la (GR) que genera los Identificadores*
+ 
+  5. Continúa leyendo desde ~&~
+  5.1 lee ~&}~ y se detiene porque el ~}~ actúa como *céntinela*,
+  entiende que el ~&~ es un operador 
+  y también entiende que ~}~ es *Caracter de puntuación*, porque el ~}~ junto con otro símbolo no forma un *token*
+ 
+  6. Continúa leyendo desde ~fdt~
+  6.1 se detiene ya que el ~fdt~ es un *céntinela de FIN de cadena*
+
+   Nota #1: Recordemos que un *Identificador* según la *BNF de ANSI C*, comienza al menos con una letra o un guión bajo
+   seguido de una secuencia dígitos ó letras ó guiones bajos (Ej.: _af12, __aFbom0, a_f_0, ...)
+   #+END_QUOTE
+   
+   |---+---+---+---+---+---+---+---+---+---+---+---+---+---+-----|
+   | b | 1 | 2 | = | } | 1 | 2 | i | f | f | o | r | & | } | fdt |
+   |---+---+---+---+---+---+---+---+---+---+---+---+---+---+-----|
+   |   |   |   | x | x |   |   | x |   |   |   |   | x | x | x   |
+   |---+---+---+---+---+---+---+---+---+---+---+---+---+---+-----|
+*** Ejemplo 2
+   #+name: ejemplo-de-un-final
+   #+BEGIN_QUOTE
+   para la siguiente definición de f
+   ~int f(void){return 1<*p++;}~
+
+   los *tokens* que NO necesitan de ~ungetc~ son:
+   1. el paŕentesis que abre ~(~, porque no hay otro caracter que junto con el ( forme un token, es único
+   2. el paréntesis que cierra ~)~, mismo caso
+   3. las llaves que abren ~{~
+   4. las llaves que cierra ~}~
+   5. el ~;~
+
+   Obs: los que si necesitan serian por ej. el operador ~*~,
+   porque podria ser ~*=~ tambien con el primer ~+~ porque puede ser ~+= ++~
+   #+END_QUOTE
+** Conjunto primero
+*** Conceptos
+   - Agarra solo _las palabras con la que empieza el lenguaje_
+*** Ejemplo 1
+   #+BEGIN_QUOTE
+   1. Si fuese la sig REGEX: ~ab[zxs]*s~ => el conjunto Primero seria ~ab~
+   2. Si fuese en una (GR) ~S->a | bT, T->c~ => el conjunto Primero sería ~a, b~
+   #+END_QUOTE
+*** Ejemplo 2
+   #+BEGIN_QUOTE
+  Si fuese una parte de la *BNF de C*
+  
+   <sentencia de iteración> ->
+       while (<expresión>) <sentencia> |
+       do <sentencia> while (<expresión>) ; |
+       for (<expresión>? ; <expresión>? ; <expresión>?) <sentencia>
+   
+   El conjunto primero sería ~while, do, for~
+   #+END_QUOTE
+** (GIC) LL y LR
+*** Conceptos
+   - Ninguno usan gramaticas ambiguas
+   - LL es a izquierda (Left), LR es a derecha (Right)
+    
+   - LR es ascendente  (va de los terminales al axioma, y
+     requiere implementacion ayudada de un programa, programar con BISON)
+   - LL es descendente (va del axioma a los terminales, va bajando)
+   - 
+   - Parser LL es un Analizador Sintactico Predictivo, 
+   - LL(1) porque con el primer token que agarra (con el conjunto Primero)
+   - LL(1) es recursiva a derecha, pero pueden haber recursivas a izquierda y pasarlas a derecha.
+   - La mayoria de la sintaxis GIC pueden ser LL(1) 
+
+   - El *símbolo de preanálisis* es el primero que lee (no hay mas)
+
+   #+BEGIN_EXAMPLE
+   Dadas las producciones de un no terminal, los conjuntos primeros de los lados derechos deben ser disjuntos.
+   
+   Sí, porque si no son disjuntos no hay forma de seleccionar la producción a aplicar con solamente un (1)
+   siguiente token.
+   #+END_eXAMPLE
+*** Ejemplos
+    #+name: ejemplo-1-LL1
+    #+BEGIN_EXAMPLE
+    Esta es LL(1) porque la intersección de los conjuntos primeros es vacio
+    R -> aR | b
+   
+    Esta NO es una gramatica LL(1) porque NO es determinista, (pero se puede crear otra producción para solucionarlo)
+    R -> aR | a
+    #+END_EXAMPLE
+  
+      
+    #+name: ejemplo-2-ll-conjunto-primero
+    #+BEGIN_EXAMPLE
+    S -> ABc
+    A -> a | epsilon
+    B -> b | epsilon
+
+    1. El conjunto primero de S es el de A
+    2. El conjunto primero de A es a ó epsilon, al ser epsilon puede no ser nada,
+       entonces analizo el Conjunto Siguiente de A
+       - Obs: El conjunto Siguiente de A es B, porque le sigue
+    3. El conjunto primero de B es b ó epsilon, al ser epsilon puede no ser nada,
+       entonces analizo el Conjunto Siguiente de B
+       - Obs: El conjunto Siguiente de B es c, porque le sigue
+    4. El conjunto primero de c, es c 
+       - Obs: El conjunto primero de un terminal, es el propio terminal
+    5. Entonces el conjunto Primero de S, es la UNION del conjunto primero de A,B,c que es {a,b,c}
+
+    Primero(S) = Primero(ABc) = Primero(A)
+    Primero(A) = a, eps
+    Siguiente(A) = Primero(Bc) = Primero(B)
+    Primero(B) = b, eps
+    Siguiente(B) = Primero(c) = c
+    #+END_EXAMPLE
+
+    #+BEGIN_EXAMPLE
+    en este otro caso se repite el conjunto primero a izquierda,
+    por tanto hay que aplicar un algoritmo que sirve para 
+    factorizar a izquierda y sea LL(1)
+    
+    <sentencia if> -> if ( <condición> ) <sentencia> else <sentencia> |
+                      if ( <condición> ) <sentencia>
+
+
+    La idea es crear otra producción o tantas sean necesarias,
+    para que no haya repetición de conjuntos primeros en las reglas
+    de la gramatica 
+    
+    <sentencia if> -> if ( <condición> ) <sentencia> <opción else>
+    <opción else> -> else <sentencia> | ε    
+    #+END_EXAMPLE
+* Fundamental
+** Flex o Lex
+   - Lee *Tokens* representados por (ER) en su formato EXTENDIDA para implementar un *Scanner*
+   - Tiene como entrada (ER) que representan Tokens
+** [#A] Precedencia de los Operadores
+*** Conceptos
+   - *(IMPORTANTE)* El _orden de precedencia de los operadores_ está determinado en la *BNF de Expresiones*
+   - El operador de asignación tiene poca precedencia, "supongo" porque está más cerca del axioma (del identificador)
+   - El valor 1 indica el de mayor precedencia
+   - La coma ~,~ es el *operador de menor precedencia* (incluso, menor al operador de asignación =)
+*** Ejemplo
+   #+name: ejemplos-operadores-precedencia-asociatividad
+   #+BEGIN_SRC C
+   a = b && c < d < e && f
+   si agrupamos por asociatividad y precedencia de los operadores quedaría
+   a = ( ( b && ( (c < d) < e) ) && f)
+
+   a = b++ + c++
+   
+   a = ++b + c++
+   #+END_SRC
+*** Tabla Comparativa
+   #+name: tabla-precedencia-operadores
+   |-------------+----------+-------------------------------------------------+---------------------|
+   | Precedencia | Operador | Descripción                                     | Asociatividad       |
+   |-------------+----------+-------------------------------------------------+---------------------|
+   |           1 | ++ --    | Incremento/Decremento prefijo y postfijo        | Izquierda a Derecha |
+   |             | ()       | llamada a función                               |                     |
+   |             | []       | arreglo/array                                   |                     |
+   |             | .        | acceso a miembro de estructuras/union           |                     |
+   |             | ->       | acceso de miembro a puntero de estructura/union |                     |
+   |-------------+----------+-------------------------------------------------+---------------------|
+   |           2 | ++ --    | Incremento/Decremento prefijo y postfijo        | Derecha a Izquierda |
+   |             | + -      |                                                 |                     |
+   |             | (type)   | operador de casteo                              |                     |
+   |             | *        | Operador de indirección o desreferencia         |                     |
+   |             | &        | de dirección ó referencia                       |                     |
+   |-------------+----------+-------------------------------------------------+---------------------|
+   |             | * / %    | Multiplicación, división, Resto                 | Izquierda a Derecha |
+   |             | + -      |                                                 |                     |
+   |             | << >>    |                                                 |                     |
+   |             | < <=     | Operadores Relacionales                         |                     |
+   |             | > >=     | Operadores Relacionales                         |                     |
+   |             | == !=    | Operadores Relacionales                         |                     |
+   |             | ^        |                                                 |                     |
+   |             | && (AND) | Operador Logico AND                             |                     |
+   |             | ll (OR)  | Operador Logico OR                              |                     |
+   |-------------+----------+-------------------------------------------------+---------------------|
+   |             | ?:       | Condicional ó Operador Ternario                 | Derecha a Izquierda |
+   |             | =        | Asignacion simple                               |                     |
+   |             | += -=    |                                                 |                     |
+   |-------------+----------+-------------------------------------------------+---------------------|
+   |          15 | ,        | Coma                                            | Izquierda a Derecha |
+   |-------------+----------+-------------------------------------------------+---------------------|
+
+** [#A] Orden de Evaluación
+   - El orden de evaluación de los *operadores lógicos* es de *izquierda a derecha*
+   - En C, hay 4 operadores que tienen definido el *orden de evaluación*
+      - Los operadores lógicos: ~&&~ (Y lógico) y ~||~ (O lógico)
+      - La coma ~,~
+      - El *operador ternario* ~:?~
+   
+     #+name: ejemplo1-asociatividad
+     #+BEGIN_QUOTE
+     Si tenemos ~a/b/c~
+     como los tres operadores tienen igual precedencia
+     podemos *agrupar por asociatividad de los operadores* (se puede ver en el Arbol de Derivación)
+     quedando ~(a/b) / c~
+     #+END_QUOTE
+** Palabras Reservadas de Ansi C
+   A modo de recordatorio estan 
+   - los *especificador de tipo de dato*: char, int, double, float, void, signed, unsigned, short, long
+   - los *estructuras*: struct, union <-- estará ok decirle sólo estructuras (?) ó TAD? (tipo abstracto de dato)
+   - los *identificadores de las sentencias de seleccion*: if, else, switch
+   - los *identificadores de las sentencias de salto*: continue, break
+   - auto, static, extern, register <- especificadores de clase de almacenamiento
+
+   |----------+--------+----------+----------|
+   | auto     | double | int      | short    |
+   | break    | else   | struct   | unsigned |
+   | case     | enum   | long     | signed   |
+   | char     | extern | switch   | void     |
+   | const    | float  | register | sizeof   |
+   | continue | for    | typedef  | volatile |
+   | default  | goto   | return   | static   |
+   | do       | if     | union    | while    |
+   |----------+--------+----------+----------|
+** Jerarquia de Chomsky
+   - La *UNION de los lenguajes es CERRADA* (Ej. una GIC puede generar un LIC, pero también un LR)
+   - La intersección de los lenguajes tmb es CERRADA
+   - La (MT) es la que mayor potencia de computo tiene, más que un ERX
+   - Son sinónimos ERX, REGEX, METAER
+   
+   #+BEGIN_QUOTE
+   Como *la UNIÓN de los lenguajes es CERRADA* se cumple lo siguiente:
+   1) *LI* unión *LR* resulta en *LI*
+   2) *LIC* unión *LR* resulta en *LIC*
+   y así..
+   
+   En la tabla están ordenados por inclusión, siendo el GI el que puede generar el resto
+   #+END_QUOTE
+  
+   |-----------+------------------+----------------------------------+-------------------------------------|
+   | Jerarquia | Tipo de Lenguaje | Gramática que lo Genera          | Automata que lo reconoce            |
+   |-----------+------------------+----------------------------------+-------------------------------------|
+   | Tipo 0    | LI               | GI (Irrestricta)                 | (MT)  Maquina de Turing             |
+   | Tipo 1    | LSC              | GSC (Sensible al Contexto)       | (ALL) Automata Linealmente Limitado |
+   | Tipo 2    | LIC              | GIC (Independiente del Contexto) | (AP)  Automata de Pila              |
+   | Tipo 3    | LR               | GR (Regular)                     | (AF)  Automata Finito               |
+   |-----------+------------------+----------------------------------+-------------------------------------|
+** Tiempo de Compilación/Ejecución
+   - Los tipos de las *expresiones* se determinan en *tiempo de compilación*, para determinar si la expresión  es *Semánticamente* correcta
+** Etapas del Proceso de Compilación
+*** Conceptos
+**** Scanner ó Analizador Léxico
+    #+BEGIN_QUOTE
+    El *Scanner* NO tiene la capacidad de detectar *constructos sintácticos* como Expresiones, ni Sentencias
+    porque estos son (LIC) generados por (GIC) que permiten el balanceo de símbolos (ej. paréntesis)
+    pero quien SI puede hacerlo es el *Parser* (ó analizador sintáctico)
+    #+END_QUOTE
+
+    #+BEGIN_QUOTE
+    Proceso paso a paso:
+    1. Le ingresan caracteres
+    2. Los agrupa en *lexemas* <- (cada palabra de un LR se denomina lexema, Ej. ~int edad, precio;~ tiene 5 lexemas)
+    3. Según las reglas *léxicas* forma Tokens (Categorías léxicas)
+    #+END_QUOTE
+**** Parser ó Analizador Sintáctico
+**** Linker
+**** Unidades de control
+*** Observaciones
+    - Las expresiones, sentencias, declaraciones/definiciones (entran en las *Categorías Sintácticas*)
+      - Son detectadas por el *Parser*
+      - Son (LIC) generadas por (GIC)
+      - Son Lenguajes del tipo 2 (los puede analizar un AFP)
+      - Forman los *constructos sintácticos* básicos para el lenguaje C (y otros lenguajes)
+    - Los identificadores, constantes, palabras clave, operadores, caracter de puntuación (entran en las *Categorías Léxicas* ó tokens)
+      - Son detectadas por el *Scanner*
+      - Son (LR) representados por (ER) y generados por (GR)
+      - Son lenguajes de tipo 3 (los puede analizar un AFD) 
+      - Cada palabra de los (LR) se denomina *Lexema*
+        (/Ej. int edad, precio; tiene 5 lexemas.. 2 identificadores+1 palabra reservada+ 2 caracter de puntuación/)
+   
+   |-----------------+---------------------+---------------+---------------------+-------------------------+--------|
+   |                 | Generador de Codigo | Preprocesador | Scanner             | Parser                  | Linker |
+   |                 |                     |               | (Analizador Léxico) | (Analizador Sintáctico) |        |
+   |-----------------+---------------------+---------------+---------------------+-------------------------+--------|
+   | Comentarios     |                     | X             |                     |                         |        |
+   | Directivas      |                     | X             |                     |                         |        |
+   | Expresiones     |                     |               |                     | X                       |        |
+   | Sentencias      |                     |               |                     | X                       |        |
+   | Lexemas         |                     |               | X                   |                         |        |
+   | Identificadores |                     |               | X                   |                         |        |
+   | Constantes      |                     |               | X                   |                         |        |
+   | Palabras Clave  |                     |               | X                   |                         |        |
+   |-----------------+---------------------+---------------+---------------------+-------------------------+--------|
+* Dudas resueltas por Finales
+** Orden de evaluación operandos Vs Precedencia/Asociatividad de los Operadores
+   - la *SEMÁNTICA* de C especifíca el orden de evaluación de los operandos
+   - la *SINTAXIS* de C especifíca la asociatividad y precedencia de los operadores
+* Lenguajes
+** Tipos de Lenguajes
+*** Lenguaje Formal
+    - NO es *ambiguo* (no tiene distintos significados, el significado es el mismo)
+*** Lenguaje Natural
+    - Es ambiguo (puede tener distintos significados según personas)
+** Definición de un Lenguaje
+*** Por Comprensión
+    #+BEGIN_QUOTE
+    L1 = {ab^n / n < 2}
+    
+    L2 = {ab^n / 1 < n < 3}
+
+    (/La notación es similar a Haskell../)
+    #+END_QUOTE
+*** Por Extensión
+    #+BEGIN_EXAMPLE
+    L1 = {a,b,ab,ba,c}
+    
+    L2 = {a,b,c}
+    #+END_EXAMPLE
+*** Por descripción (lenguaje natural)
+    #+BEGIN_EXAMPLE
+    L1 es un lenguaje que empieza con a y termina con j
+
+    L2 es un lenguaje que empieza con cantidad pares de a y termina con j
+    #+END_EXAMPLE
+** Alfabeto (Símbolo Sigma)
+   - Es un *conjunto de caracteres* que pertenecen a un lenguaje
+   - Se denota con el simbolo griego sigma
+** Cadena
+   - Es un conjunto finito de caracteres concatenados
+   - Es una secuencia de caracteres concatenados
+** Caracter
+   - Representa un símbolo perteneciente al alfabeto del lenguaje
+   - Son atómicos, son indivisibles
+* Operaciones en Cadenas
+** Concatenación
+** Longitud
+** Clausura de Kleene
+* Operaciones en Lenguajes
+** Concatenación
+** Unión
+** Intersección
+** Clausura de Kleene (*)
+   - Se denota con un ~*~ asterisco como exponente
+   - Son todas las palabras sobre un alfabeto con *longitud >= 0*
+   - Incluye la *palabra vacía* (epsilon o lambda)
+   - _En un alfabeto_ representa al *Lenguaje Universal*
+** Clausura positiva (+)
+   - Se denota con un signo ~+~ como exponente
+   - Son todas las palabras sobre un alfabeto con *longitud >= 1*
+   - No incluye la *palabra vacía* (lambda ó epsilon)
+   - Es la concatenación de un lenguaje 
+** Complemento
+** Diferencia
+* Gramáticas
+** Concepto
+   - Las gramáticas _generan lenguajes_
+   - Son una 4-upla formadas por
+     1) *Sigma*: Alfabeto (ó Vt: Terminales)
+     2) *Vn*: No Terminales
+     3) *P*: Conjunto de Producciones
+     4) *S*: Axioma (Símbolo inicial)
+
+   #+begin_comment
+   <<DUDA>>:
+   G=(Vt,Sigma, P, S) ò G = (Vt,Vn,P,S) <- que va primero Vt ó Vn?
+   #+end_comment
+   
+   #+BEGIN_EXAMPLE
+   G=(Vt,Sigma, P, S) ò G = (Vt,Vn,P,S)
+   
+   G1=({S,T}, {a,b}, {S->aT, T->b}, S)
+   #+END_EXAMPLE
+** No Terminales
+   - Se denotan con _letras en mayuscula_
+** Alfabeto (Terminales)
+   - Se denota con _letras en minúscula_
+   - El lenguaje formado por la gramática tendrá terminales
+** Producciones
+   - Esta _formado por Terminales (Vt) y No terminales (Vn)_
+   - Permiten _generar palabras_
+     
+   #+BEGIN_EXAMPLE
+   S->aT | b (esto es una producción)
+   y se lee "S produce b" ó "S deriva en b)
+
+   T->c (esto es otra producción)
+   se lee "T produce c" ó "T deriva en c"
+   
+   P={S->aT|b, T->c} (/esto sería el conjunto de producciones/)
+   #+END_EXAMPLE
+
+** Derivación
+   - Es la _aplicación sucesiva de Producciones_
+
+   #+BEGIN_EXAMPLE
+   Si tenemos la siguiente gramática
+   S->Sa | Tc
+   T->b
+   
+   Una derivación podria ser:
+   S => Sa => Saa => Tcaa => bcaa
+   #+END_EXAMPLE
+** Jerarquia de Chomsky
+   - La *UNION de los lenguajes es CERRADA* (Ej. una GIC puede generar un LIC, pero también un LR)
+   - La *INTERSECCIÓN de los lenguajes es CERRADA*
+   - La (MT) es la que mayor potencia de computo tiene, más que un ERX
+   - Son sinónimos ERX, REGEX, METAER
+   
+   #+BEGIN_QUOTE
+   Como la unión de los lenguajes es cerrada se cumple lo siguiente:
+   1) *LI* unión *LR* resulta en *LI*
+   2) *LIC* unión *LR* resulta en *LIC*
+   y así..
+   
+   En la tabla están ordenados por inclusión, siendo el GI el que puede generar el resto
+   #+END_QUOTE
+  
+   |-----------+------------------+----------------------------------+-------------------------------------|
+   | Jerarquia | Tipo de Lenguaje | Gramática que lo Genera          | Automata que lo reconoce            |
+   |-----------+------------------+----------------------------------+-------------------------------------|
+   | Tipo 0    | LI               | GI (Irrestricta)                 | (MT)  Maquina de Turing             |
+   | Tipo 1    | LSC              | GSC (Sensible al Contexto)       | (ALL) Automata Linealmente Limitado |
+   | Tipo 2    | LIC              | GIC (Independiente del Contexto) | (AP)  Automata de Pila              |
+   | Tipo 3    | LR               | GR (Regular)                     | (AF)  Automata Finito               |
+   |-----------+------------------+----------------------------------+-------------------------------------|
+* Tipos de Gramaticas
+** (GR) Gramatica Regular
+*** Conceptos
+   - Tienen solo un *No Terminal* (Vn) a la izquierda de la *Producción*
+   - A la derecha de cada *Producción* es *Regular a Derecha* ó *Regular a Izquierda* (una u otra, pero no ambas)
+   - A la derecha de la *Producción* puede haber
+     - un terminal (Vt)
+     - un terminal (Vt) puede estar acompañado o no de un *No Terminal* (Vn)
+     - epsilon/lamba (palabra vacía)
+*** Regular a Izquierda/Derecha
+   #+BEGIN_QUOTE
+   La (GR) es *Regular a Derecha* si en cada *Producción*,
+   los (Vt) que estan acompañados por un (Vn) y son de la forma ~Vn -> Vt Vn~ 
+   es decir los *No terminales* a derecha del *Terminal*
+   (Ej. sus producciones podrían ser ~P={A -> aA | B, B-> bB | b}~)
+
+   La (GR) es *Regular a Izquierda* si en cada producción,
+   los (Vt) que estan acompañado por un (Vn) y son de la forma ~Vn -> Vn Vt~
+   es decir los *No terminales* a izquierda del *Terminal*
+   (Ej. sus producciones podrían ser ~P={A -> Aa | B, B-> Bb | b}~)
+   #+END_QUOTE
+
+   #+BEGIN_COMMENT
+   <<DUDA>>: Que sea regular, a izquierda/derecha sería lo mismo que decir que es recursiva a izq ó der?
+   #+END_COMMENT
+*** Ejemplo 1 - (GR) Regular a Izquierda/Derecha
+   #+BEGIN_QUOTE
+   *Gramatica Regular a Derecha*
+   S->aS | b
+   T->bT | c
+
+   *Gramática Regular a Izquierda*
+   S->Sa | b
+   T->Tb | c
+   #+END_QUOTE
+*** Ejemplo 2 - (GR) que NO son Regular a Izquierda ni a Derecha
+   #+BEGIN_QUOTE
+   Esta NO es una (GR) Gramática Regular, porque la 1º *producción* tiene (Vn) *No Terminales* a izquierda,
+   y la 2º *producción* tiene los (Vn) a derecha
+   S->Sa | b
+   T->bT | c
+   #+END_QUOTE
+** (GQR) Gramática Quasi Regular
+   - Es equivalente a una (GR) pero se _reemplaza un conjunto de Terminales (Vt) por un No Terminal (Vn)_
+
+   #+BEGIN_QUOTE
+   S->SN | b    (en esta producción, el (Vn) no terminal ~N~ está representando a un conjunto de terminales (Vt))
+   N-> a | c
+   #+END_QUOTE
+** (GIC) Gramática Independiente de Contexto
+   - _Sin restricciones del lado derecho_ de la *producción*
+   - Tiene la _restricción a la izquierda_ de la *producción*, tener _un único No terminal (Vn)_ como máximo
+
+   #+BEGIN_QUOTE
+   S -> SaBC | B | b    (del lado derecho no tiene restricciones)
+   B -> c
+   C -> d
+
+   Al no tener restricciones el lado derecho,
+   podemos poner No Terminales (Vn) sin estar acompañados de un terminal (Vt) (Ej. ~P={S->Sa | B, B -> b}~ )
+   como también varios No Terminales (Vn) juntos (Ej. ~P={S->Sa | BDM, B->b, D->d, M->epsilon}~)
+   #+END_QUOTE
+** (GSC) Gramática Sensible al Contexto
+   - _NO tiene la restricción a la izquierda_ de la *producción* que si tienen las (GR) (GQR) (GIC)
+   - Puede tener más de un (Vn) No Terminal del lado izquierdo de la *producción* (no se podía dar en las GR, QGR, GIC) 
+   - Tiene la restricción ~|Vn| <= |Vt|~ osea que la _cantidad de (Vn) del lado izquierdo sea menor o igual que los (Vt) del derecho_
+
+   #+BEGIN_QUOTE
+   Vn -> Vt
+   - ~Vn~ representa uno o varios No Terminales (S,M,N,T,...)
+   - ~Vt~ representa uno o varios Terminales (a,b,c,d,..)
+
+   se debe cumplir que ~|Vn| <= |Vt|~
+   es decir la longitud del lado izquierdo (cantidad de no terminales)
+   debe ser menor o igual que la longitud del lado derecho (cantidad de terminales)
+   #+END_QUOTE
+** (GI) Gramática Irrestricta
+   - No tiene restricciones
+* Gramáticas Ambiguas
+** Sentencia Else Ambigua
+*** Conceptos
+   - ~X~ es *ambiguo* si hay distintas interpretaciones para ese ~X~, si hay distintos caminos para llegar ó generar a ese ~X~
+   - La *ambiguedad* en una sentencia ~if else~, si la gramática permite llegar a una sentencia de distintas maneras
+
+   #+BEGIN_COMMENT
+   <<DUDA>>: Creo que esto está mal, es otra cosa ... (???)
+   La *ambiguedad* en una sentencia ~if else~ se puede dar si no se puede determinar con cual *if* se ejecutará la instrucción *else*
+   #+END_COMMENT
+*** Problema
+   #+name: ejemplo1-sentencia-else-ambigua
+   #+BEGIN_QUOTE
+   Si tenemos la siguiente (GIC) *Gramática Independiente de Contexto* de las *Sentencias de Selección*
+
+   selection-statement:
+     if (expression) statement
+     if (expression) statement else statement
+
+   Si tratamos de derivar la siguiente palabra, usando la gramática dada:
+   ~if(e) sentencia if(e) sentencia else sentencia~
+
+   Existen dos caminos diferentes para llegar a esa palabra, es decir existen dos posibles *arboles de derivación*,
+   si esto ocurre entonces la gramática es *ambigua*..
+   (X es ambiguo si se tiene varias interpretaciones para ese X, como ocurre si usamos (LN) lenguaje natural para describir algo)
+   #+END_QUOTE
+*** Planteo - Derivamos la palabra con la Gramatica ambigua
+   #+BEGIN_QUOTE
+   Si *derivamos* la siguiente palabra, usando la gramática dada:
+   ~if(exp) sentencia if(exp) sentencia else sentencia~
+
+   Podemos llegar a la misma palabra mediante dos caminos... (ambiguedad)
+
+   *Producciones de la gramática dada:* (las enumeramos para que se entienda cuando derivemos)
+   1. if (expression) statement
+   2. if (expression) statement else statement
+
+   *Alternativa #1:*
+   1. if (exp) sentencia  <--- aplicamos Produccion1
+   2. if (exp) if(exp) sentencia else sentencia <-- aplicamos Produccion2
+
+   *Alternativa #2:*
+   1. if (exp) sentencia else sentencia <--- aplicamos Produccion2
+   2. if (exp) if (exp) sentencia else sentencia <--- aplicamos Produccion1 
+   #+END_QUOTE
+*** Evaluar si borrar estas interpretaciones
+**** Interpretación 1 - Que el ELSE se ejecute con el segundo IF
+   #+BEGIN_SRC C
+   if (e1) statement1{
+     if (e2) statement2 else statement3
+   }
+   #+END_SRC
+**** Interpretación 2 - Que el ELSE se ejecute con el primer IF
+   #+BEGIN_SRC C
+   if (e1) statement1{
+     if (e2) statement2
+   }
+   else statement3
+   #+END_SRC
+** Sentencia Else sin Ambiguedad
+*** Solución
+   - Agregamos una *producción* más y dividimos *sentencia if emparejada* y *sentencia if sin emparejar*,
+   - La *Sentencia if emparejada* será ~sentencia-if~
+     1) permite anidar varios *IF sentencia ELSE sentencia* (if+else, ambos)
+     2) permite agregarle una sentencia a los condicionales
+   - La *Sentencia if sin emparejar* sería el ~sentencia-if-else~
+     1) permite anidar varios *IF sentencia-if ELSE sentencia-if-else* (if+else, pero la sentencia del IF es sentencia-if)
+     2) permite elegir sólo *IF sentencia*
+
+   #+BEGIN_QUOTE
+   En resumen el *if-else* ambiguo si las producciones ~if(exp) sentencia~ y ~if(exp) sentencia else sentencia~
+   si ambas están en la *sentencia selección*
+
+   para solucionar la ambiguedad del *if-else* lo dividimos en dos (Vn) no terminales ~sentencia-if~ y ~sentencia-if-else~,
+   que ambos permitan anidar varios ~if(exp) sentencia else sentencia~ pero...
+   - En *SENTENCIA-IF* la sentencia para el IF y el ELSE sea ~sentencia-if~
+   - En *SENTENCIA-IF-ELSE* la sentencia para el IF sea ~sentencia-if~ y para el else ~sentencia-if-sentencia~
+   #+END_QUOTE
+*** Planteo - Derivamos la palabra con la Gramática NO ambigua
+   #+name: ejemplo2-sentencia-else-sin-ambiguedad
+   #+BEGIN_QUOTE
+   sentencia-seleccion:
+     sentencia-if
+     sentencia-if-else <--- la sentencia de su IF apunta a sentencia-if
+
+   sentencia-if:
+     if (exp) sentencia-if else sentencia-if <--- al mismo (Vn) no terminal
+     sentencia
+   
+   sentencia-if-else: 
+     if (exp) sentencia
+     if (exp) sentencia-if else sentencia-if-else <-- que la sentencia del IF apunte a sentencia-if
+   #+END_QUOTE
+
+   #+BEGIN_QUOTE
+   Si *derivamos* la misma palabra donde teníamos problema en la gramática ambigua, veremos que ésta _gramática NO es ambigua_
+   ~if(exp) sentencia if(exp) sentencia else sentencia~
+   
+   *Producciones de la gramática dada:* (las enumeramos para que se entienda cuando derivamos)
+   1. sentencia-seleccion -> sentencia-if
+   2. sentencia-seleccion ->  sentencia-if-else
+   3. sentencia-if -> if (exp) sentencia-if else sentencia-if
+   4. sentencia-if -> sentencia
+   5. sentencia-if-else -> if (exp) sentencia
+   6. sentencia-if-else -> if (exp) sentencia-if else sentencia-if-else
+
+   *Alternativa #1:* (único camino)
+   1. if(exp) sentencia <-- aplicamos Produccion(5)
+   2. if(exp) if(exp) sentencia-if else sentencia-if-else <--- aplicamos Produccion(6)
+
+   *Otra Alternativa? NO..!* (/si tratamos con la produccion(3) tendremos un if+else/)
+   1. if(exp) sentencia-if else sentencia-if-else <--- aplicamos produccion6
+   2. if(exp) ~if(exp) sentencia-if else sentencia-if~ else sentencia-if-else <-- aplicamos Produccion(3)
+   No llegamos a la misma palabra... nos quedó un if S else S if S else S
+   #+END_QUOTE
+** Gramática de Operadores
+*** Gramática con Operaciones Ariméticas con Ambiguedad
+   #+name: ejemplo1-gramatica-ambigua
+   #+BEGIN_QUOTE
+   Si tenemos la siguiente (GIC) *Gramática Independiente de Contexto*
+
+   1. E -> E + E
+   2. E -> E - E
+   3. E -> E * E
+   4. E -> E / E
+   5. E -> (E)
+   #+END_QUOTE
+*** Ejemplo - Derivamos 1+1*2 
+   #+BEGIN_QUOTE
+   Si trataramos de *derivar* la siguiente expresión ~1+1*2~
+   se podría armar *dos arboles de derivación* distintos para llegar a la misma *expresión*,
+   que en términos algebraicos ESTÁ MAL...
+   porque los operadores ~*~ y ~/~ deben tener *mayor precedencia* (prioridad) que el ~+~ y el ~-~
+
+   Una palabra del lenguaje generado por esa gramática: ~(1+1)*2~ que da como resultado 4 (no es correcto)
+   Otra palabra del lenguaje podría ser: ~1+(1*2)~ que da como resultado 3 (es válido)
+   #+END_QUOTE
+*** Gramática con Operaciones Ariméticas sin Ambiguedad
+   #+name: ejemplo2-gramatica-sin-ambiguedad
+   #+BEGIN_QUOTE
+   Retomando el ejemplo anterior que tiene problemas de ambiguedad, la siguiente gramática NO es ambigua.
+   Observamos como los operadores ~+~ y ~-~ están más cerca del *axioma* por tanto tienen menor precedencia,
+   mientras que ~*~ y ~/~ están más lejos del *axioma* por tanto tienen mayor precedencia.
+   La F se refiere a "factor", la T a "término", y la E a "expresión"
+
+   1. E -> E+E | E+T | E-T
+   2. T -> T*F | T/F | F
+   3. F -> (E) | N
+   #+END_QUOTE
+* Proceso de Derivación
+** Conceptos
+  - La *derivación Horizontal* se usa el ~=>~ (Ej. E => E+E => E+E*E => 1+E*E => 1+1*E => 1+1*2)
+  - La *derivación Vertical* se usa
+    - La *Tabla de derivación* (las columnas serían NumeroProducciónAplicada, CadenaDerivacionObtenida)
+    - ó el *Arbol de derivación*
+* [DOING] (ER) Expresiones Regulares
+** Conceptos
+   - Es un patrón
+   - Formados por (GR) Gramáticas Regulares
+   - Si el *Lenguaje es "finito"* => es (LR) *Lenguaje Regular*
+** Operadores Básicos
+*** Concatenación
+    - _NO es conmutativa_ (conmutar los operandos de la concatenación, produce otro lenguaje regular)
+    - Se representa con el producto (o solo puede obviarse)
+
+    #+BEGIN_QUOTE
+    ~ab~ es distinto a ~ba~, representan a distintos (LR) *Lenguajes Regulares*
+
+    ~a.b~ es lo mismo que ~ab~
+    #+END_QUOTE
+*** Unión
+    - Es *conmutativa*
+    - Se representa con el símbolo de la suma ~+~
+
+    #+BEGIN_QUOTE
+    ~a+b~ es igual que ~b+a~, ambos representan al mismo (LR) *Lenguaje Regular*
+    #+END_QUOTE
+*** Clausura de Kleene (*)
+    - Es la repetición de un caracter cero o más veces (con cero estamos incluyendo a epsilon, la palabra vacía)
+
+   #+BEGIN_QUOTE
+   1. ~a*~ representa el (LR) que contiene las sig. palabras ~e,a, aa, aaa, ...~
+   2. ~ab*~ representa al (LR) que contiene las sig. palabras ~a, ab, abb, abbb, ...~
+   3. ~(ab)*~ representa al (LR) que contiene las sig. palabras ~e, ab, abab, ababab, ...~
+   4. ~(ab)*c~ representa al (LR) que contiene las sig. palabras ~c, abc, ababc, abababc, ...~
+
+   con ~e~ estamos denotando el *símbolo griego epsilon*, que es lo mismo que decir la *palabra vacía*
+   #+END_QUOTE
+** [#A] Precedencia de los operadores
+   |-------------+-----------------------------------|
+   | Precedencia | Operador                          |
+   |-------------+-----------------------------------|
+   |           1 | Potencia (^) y Clausura de Kleene |
+   |           2 | Concatenación                     |
+   |           3 | Unión (+)                         |
+   |-------------+-----------------------------------|
+       
+   #+BEGIN_QUOTE
+   ~ba*~ representa al (LR) ~L={ba,baa,baaa, baaa,..}~
+   ~ba+c~ representa al (LR) ~L={ba,c}~ <-- Ojo..! NO confundir el ~+~ con la *Clausura positiva*, ésta tiene el + como exponente
+   #+END_QUOTE
+** [WAITING] Otros Operadores
+*** Clausura Positiva (+)
+    - Se representa agregando el símbolo ~+~ como exponente (a diferencia de la clausura de kleene que usa el ~*~)
+    - Es la _repetición de una palabra 1 o más veces_
+
+    #+BEGIN_QUOTE
+    ~a^+~ representa al (LR) ~L={a, aa, aaa, ...}~ <--- la palabra de menor longitud es ~a~
+    ~a b^+ c~ representa al (LR) ~L={abc, abbc, abbbc, ...}~ <- la palabra de menor longitud es ~abc~
+    #+END_QUOTE
+*** Potenciación
+    - Se representa con el símbolo ~^~ de exponente
+    - Indica la _repetición de una palabra tantas veces como el valor del exponente_
+
+    #+BEGIN_QUOTE
+    ~a^0~ representa al (LR) ~L=a~
+    ~a^3~ representa al (LR) ~L=a,aa,aaa~
+    #+END_QUOTE
+** Precedencia
+   - La *precedencia* se puede cambiar usando los paréntesis ~( )~
+
+   #+BEGIN_QUOTE
+   ~ab+c~ es distinto que ~a(b+c)~
+   
+   ~ab+c~ representa al (LR) ~L={ab,c}~
+   ~a(b+c)~ representa a otro (LR) ~L={ab, ac}~
+   ~(ab)*b*~ representa a otro (LR) ~L={e, ab, abab, b, bb, abbbb, ...}~ <- el operador (*) de clausura de kleene
+   #+END_QUOTE
+** (ER) Equivalentes - Igualdades
+   - Dos (ER) son equivalentes si representan al mismo (LR) *Lenguaje Regular*
+
+   #+name:er-equivalentes-comunes
+   #+BEGIN_QUOTE
+   ~a^*~ y ~(e+a)^*~ son (ER) equivalentes porque ambos representan a L={e, a, aa, aaa, ...}
+
+   ~a^+~ y ~aa^*~ son (ER) equivalentes porque ambos representan a L={a,aa,aaa,...}
+
+   ~a+b~ y ~b+a~ son (ER) equivalentes porque ambos representan a L={a,b}
+   #+END_QUOTE
+
+   #+name: er-equivalentes-utiles
+   #+BEGIN_QUOTE
+   Las siguientes (ER) son equivalentes, porque representan al mismo (LR) Lenguaje Regular
+
+   1. ~(ab)*a~ y ~a(ba)*~
+   2. ~a*~ y ~aa* + e~
+   3. ~a*a*~ y ~a*~
+   4. ~(a*)*~ y ~a*~
+   5. ~(a* + b*)*~ y ~(a* b*)*~ y ~(a+b)*~ <-- interesante...
+   #+END_QUOTE
+
+   #+BEGIN_QUOTE
+   (ab)*a : L={a, aba, ababa, abababa,...}
+   a(ba)* : L={a, aba, ababa, abababa,... }
+   #+END_QUOTE
+** (ERU) Expresion Regular Universal
+   - Representa a todas las palabras de un lenguaje dado su alfabeto
+
+   #+BEGIN_QUOTE
+   Si el alfabeto es M={a,b} entonces su ERU es (a+b)^*
+   L={a,b, ab, ba, aa, bb, abba, baab, ...}
+
+   Si el alfabeto es M={x,y,z} entonces su ERU es (x+y+z)^*
+   L={x, y, z, xx, yy, zz, xy, xz, yz, ...}
+   #+END_QUOTE
+** (MetaER) Expresiones Extendidas
+   Tambien se la conoce como Regex ó ERX
+*** Conceptos
+   - Extiende la cantidad de operadores
+   - La siguiente tabla es en base al estandar POSIX
+
+     |---------------------------+--------------------------------------------------------------------------|
+     | Metacaracter Operador     | Descripción                                                              |
+     |---------------------------+--------------------------------------------------------------------------|
+     | . (punto)                 | Es como un comodín, *representa cualquier caracter*                      |
+     | l (pipe)                  | Es el *operador unión*                                                   |
+     | []  (corchetes)           | Similar al operador de la unión                                          |
+     | [-] (corchetes con guión) | Es la unión pero entre un rango de valores                               |
+     | { } (llaves)              | Similar al operador de la potencia                                       |
+     | { , } (llaves con coma)   | Similar al operador de la Potencia pero se puede indicar minimo y maximo |
+     | ?                         | Que un caracter se repite 0 o 1 vez (osea pude aparecer o no)            |
+     | *                         | Clausura de Kleene                                                       |
+     | +                         | Clausura Positiva                                                        |
+     | ( ) parentesis            | Para agrupar subexpresiones                                              |
+     | \ (barra invertida)       | Para simbolos especiales como el punto, otra barra, etc..                |
+     |---------------------------+--------------------------------------------------------------------------|
+*** Ejemplos
+     #+BEGIN_EXAMPLE
+     La sig metaER [a-zA-Z]-?[0-5]\.pdf
+     representa a un (LR) donde las palabras empiezan con una letra en minuscula ó mayuscula
+     seguido o no de un guión,
+     seguido de un numero entre el 0 y el 5,
+     seguido de un un punto
+     y terminando con los caracteres pdf
+     
+     Ej. algunas palabras de lenguaje, por extensión
+     L={}
+    #+END_EXAMPLE
+
+    #+BEGIN_eXAMPLE
+     La sig metaER [abc]?\.x{1,3}
+     representa a un (LR) que
+     1. comienza opcionalmente con una letra entre a,b,c
+     2. seguido de un punto
+     3. seguido de una,dos o tres x
+
+     Ej. algunas palabras del lenguaje por extensión
+     L={a.x, b.x, c.x, a.xx, a.xxx, a.xxx, .x, .xx, .xxx}
+     #+END_EXAMPLE
+
+* (AF) Autómatas Finitos
+** Conceptos
+   - Es *finito* por que tiene una cantidad *finita de estados*
+   - Reconoce (acepta ó rechaza) las palabras de un lenguaje (que fue generado por una grámatica)
+   - Está formado por (Q,Sigma, q0, Qf, QxSigma)
+     - Q: Conjunto de Estados
+     - Sigma: Alfabeto (del lenguaje a reconocer)
+     - q0: Estado Inicial (es único)
+     - Qf: Conjunto de Estados Finales (ó de aceptación)
+     - QxSigma: Función de transición 
+** (AFD) Autómata Finito Determinístico
+   - Si al analizar una cadena, una de las transiciones no está definida, el afd rechaza la cadena.
+** (AFN) Autómata  Finito NO Determinístico
+   - Casi las mismas características que el (AFD)
+   - En la (TT) tiene celdas con más de un *estado de llegada*
+   - En el (DT) hay estados que tienen una arista dirigida con el mismo caracter, hacia distintos estados
+** (AFN-e) Autómata Finito No Determinístico con Epsilon
+   - En la (TT) se agrega una columna más para el símbolo e de Epsilon
+   - En el (DT) permite ir a otro estado sin leer un caracter (porque epsilon es la palabra vacía)
+   - Esas transiciones se conocen como *transición epsilon*
+** (DT) Diagrama de Transición
+   - Para representar la función de transición QxSigma
+   - Los estados finales se le agrega simbolo + ó un doble círculo
+   - Al estado inicial se le agrega el símbolo -
+** (TT) Tabla de transición
+   - Para representar la función de transición QxSigma
+   - Las filas representan los estados
+   - Las columnas representan los caracteres del alfabeto (que se representa con el simbolo Sigma)
+   - Las celdas indican si hubo un cambio de estado o no (porque puede que esté en el mismo), y si se leyó un caracter del alfabeto o no (porque puede haber usado epsilon)
+
+   |-----------------+----+----|
+   | Estado/Caracter | a  | b  |
+   |-----------------+----+----|
+   | -q0             | q0 | q1 |
+   | +q1             | -  | q0 |
+   |-----------------+----+----|
+
+   #+BEGIN_eXAMPLE
+   El estado inicial es q0
+   El estado final es q1
+
+   Lee el caracter 'a' cuando va del estado q0 al q0
+   Lee el caracter 'b' cuando va del estado q0 al q1
+
+   Lee el caracter 'b' cuando va del estado q1 al q0
+   #+END_EXAMPLE
+** (TT) Tabla de transición "COMPLETA"
+   - Se le agrega un estado más (una fila) llamado *estado de rechazo*
+   - Si la (TT) tiene celdas sin completar se completan con el nuevo *estado de rechazo*
+   - Si la (TT) tiene celdas sin completar, es porque la función de transición QxSigma tiene un par sin definir
+    
+   |-----------------+----+----|
+   | Estado/Caracter | a  | b  |
+   |-----------------+----+----|
+   | -q0             | q0 | q1 |
+   | +q1             | -  | q0 |
+   |-----------------+----+----|
+
+   Agregamos el estado de error q2, y completamos la TT
+
+   |-----------------+----+----|
+   | Estado/Caracter | a  | b  |
+   |-----------------+----+----|
+   | -q0             | q0 | q1 |
+   | +q1             | q2 | q0 |
+   | q2              | q2 | q2 |
+   |-----------------+----+----|
+** Funcion de Transicion de un (AF)
+   #+BEGIN_EXAMPLE
+   T(2,a) = 5
+   Esta transición dice:
+   1. Si el estado actual es el (2)
+   2. Y se lee el caracter 'a'
+   3. Entonces voy al estado (5)
+   
+   Los datos de entrada de la función de transición son el estado de origen (2), y el caracter 'a'
+   El dato de salida es el estado de llegada
+   #+END_EXAMPLE
+** Actividad
+   - Indica el recorrido del autómata al reconocer una palabra (si la acepta ó rechaza)
+   - Se hace en horizontal con el símbolo =>
+   - Se comienza con el estado inicial, y se termina con el estado final (ó de aceptación)
+   
+   #+BEGIN_EXAMPLE
+   EstadoInical=>caracterLeido=>EstadoDeLlegada => EstadoOrigen=>caracterLeido=>EstadoLlegada =>... => EstadoFinal
+   #+END_EXAMPLE
+*** Ejemplos
+  
+    |----+---+---|
+    | TT | a | b |
+    |----+---+---|
+    | 0- | 1 | 3 |
+    |  1 | - | 2 |
+    | 2+ | - | - |
+    | 3+ | 3 | - |
+    |----+---+---|
+
+   #+BEGIN_EXAMPLE
+   La actividad para leer la cadena "ba"
+   0=>b=>3=>a=>3 "RECONOCE"
+   #+END_EXAMPLE
+* Operaciones sobre (AF) Autómatas Finitos
+** Intersección
+   1. Se debe escribir la (ER) que genera las palabras que reconocen los (AF)
+   2. En base a las (ER) se puede armar los (DT) Diagramas de Transición (una interpretación gráfica del AF)
+   3. En base a los (DT) se puede armar las (TT) Tablas de Transición
+   4. En base a las (TT) se forma otra (TT) donde las filas son pares ordenados de dichas (TT), y luego se arma un nuevo (DT)
+
+*** Ejemplo 1 (de final)
+    Si tenemos las siguientes (TT) Tabla de Transición de dos (AF) Autómatas Finitos,
+
+    |-----+---+---|
+    | TT1 | a | b |
+    |-----+---+---|
+    |  0- | 1 | 1 |
+    |  1+ | - | - |
+    |-----+---+---|
+
+    |-----+---+---|
+    | TT2 | a | b |
+    |-----+---+---|
+    |  2- | - | 3 |
+    |   3 | 4 | - |
+    |  4+ | 4 | - |
+    |-----+---+---|
+
+    La (TT3) es un "intento" de AFD intersección entre los dos (AF) anteriores,
+    pero... como el *conjunto de estados finales* es Vacío, NO EXISTE intersección entre dichos Autómatas
+ 
+    |------------+----------+----------|
+    | TT3        | a        | b        |
+    |------------+----------+----------|
+    | (0, 2)-=q0 |          | (2,3)    |
+    | (0, 3)     | (1,4)    |          |
+    | (0,4)      | (1,4)    |          |
+    | (1, 2)     |          |          |
+    | (1, 3)     |          |          |
+    | (1,4)+     | PROBLEMA | PROBLEMA |
+    |------------+----------+----------|
+
+    Del primer (AF) las palabras que reconoce son dos, la letra 'a' y la letra 'b' que es lo mismo que {a, b}
+    es decir algunos lenguajes serían: L0={a}, L2={b}, L3={a,b}
+    
+    Del segundo (AF) las palabras de menor longitud que reconoce son: {baa}
+    es decir todas las palabras que empiezan con 'b' seguido de dos o más 'a'
+    los lenguajes que reconoce serian: L0={baa}, L1={baa,baaa, baaaaa}
+   
+    Una manera rápida (sólo para AFD simples) sería..
+    El AFD Intersección de ambos es el conjunto vacío {} ó ∅ (ambas representan lo mismo),
+    porque no reconocen las mismas palabras, no tienen palabras en común.
+
+** Complemento
+* (AFP) Autómata Finito de Pila
+** Conceptos
+  - Es una 7-upla, mientras que el AF es 5-upla
+  - Tiene *pila* de capacidad *infinita* (almacena simbolos para recordar un estado previo, osea recuerda la lectura de un caracter)
+  - La definición formal es similar al de (AF) pero se agregan dos símbolos más p0 y r
+    - r: Alfabeto de la pila (se representan con letras en mayuscula)
+    - p0: Símbolo inicial de la pila (suele estar vacía)
+    - T: Función de transición QxSigmaxAlfabetoDePila
+    - Q: conjunto de Estados
+    - F: Conjunto de estados finales
+    - Sigma: Alfabeto 
+    - e0: Estado Inicial
+** Función de Transición
+   - A diferencia de un (AF) tiene de entrada un parámetro más (el símbolo de la pila)
+   - En cada transición se saca (hacer pop) el *símbolo* que esté en el tope de la pila, y se puede agregar otro (hacer push) o no
+   
+   #+BEGIN_EXAMPLE
+   T(4,a,Z) = {(4,RPZ), (5,e)}
+   
+   Observación: Hagamos de cuenta que la e representa el símbolo griego de Epsilon
+
+   T(4,a,Z) quiere decir
+   1. si el estado actual es el 4
+   2. y en el tope de la pila está śimbolo Z 
+   3. entonces el autómata lee el caracter 'a'
+
+   (4,RPZ) quiere decir que cuando se cumpla T(4,a,Z)
+   1. se mantiene en el estado 4
+   2. sacó del tope de la pila la Z, e hizo push nuevamente de la Z, luego de P, y luego de R
+   3. quedando en el tope la pila R, luego P, y debajo Z
+   
+   (5,e) quiere decir que cuando se cumpla T(4,a,Z)
+   1. Cambia de estado del 4 al 5
+   2. No se agrega nada en la pila (por el epsilon)
+   3. pero se sacó (se hizo pop) del símbolo Z de la pila
+   #+END_EXAMPLE
+
+** Modos de Aceptación
+*** Por Pila Vacía
+    - Cuando la Pila del autómata queda sin símbolos
+    - Si al reconocer una cadena y llegar al final de su lectura, la pila no está vacía, se rechaza la cadena.
+    - Si al reconocer una cadena y llegar al final de su lectura, la pila está vacía, se acepta la cadena.
+    - No se consideran los estados finales
+*** Por Fin de Cadena (FDC)
+    - Sería como un centinela
+    - En otros libros se agrega el símbolo e (epsilon)
+*** Por Estado Final
+    - Es lo mismo que los (AF)
+** (AFPD) Autómata Finito de Pila "Determinístico"
+   - La *función de transición* todos los conjuntos de salida tienen cardinalidad 1
+   - Cuando no hay ninguna transición que tenga el mismo estado, símbolo de pila pero lea otro caracter (del alfabeto Sigma)
+  
+    #+BEGIN_EXAMPLE
+    T(4,a,Z) = {(4,RPZ)}
+   
+    T(5,b,Z) = {(5,e)}
+    #+END_EXAMPLE
+** (AFPN) Autómata FInito de Pila "NO Determinístico"
+   - La *función de transición* tiene algún conjunto de salida tienen cardinalidad 2 o mayor
+   - Cuando hay alguna transición que tenga el mismo estado, símbolo de pila pero lea otro caracter (del alfabeto Sigma)
+   
+    #+BEGIN_EXAMPLE
+    T(4,a,Z) = {(4,RPZ), (5,e)}
+   
+    Como el conjunto de salida de T(4,a,Z) cardinalidad 2, por tener (4,RPZ) y (5,e) es "No Deterministico"
+    #+END_EXAMPLE
+   
+    #+BEGIN_EXAMPLE
+    T(4,e,Z) = {(5,e)}
+    T(4,a,Z) = {(5,e)}
+   
+    Al haber dos transiciones que parten del estado 4 y leen el símbolo Z del alfabeto de la pila,
+    que leen un caracter distinto del Alfabeto del Lenguaje que reconoce,
+    se convierte en "No Deterministico"
+    #+END_EXAMPLE
+** (TM) Tabla de Movimientos
+   - Similar a la (TT) Tabla de Transición de los (AF)
+   - La diferencia con la (TT) es que cada fila tiene un Estado de origen (Ej. e0, e1,..) , y el Símbolo de la Pila que debe tener en el tope ($, X, Y, ..)
+   - Recordar que los símbolos de la pila se denotan con letras en mayuscula
+   - El símbolo $ suele denotar el símbolo inicial del tope de la pila, sirve como referencia para saber cuando la pila está vacía
+  
+   #+BEGIN_EXAMPLE
+   Suponiendo que la definición de autómata de pila es 
+   APD = ({e0,e1,e2}, {a,b,c}, {$,X,Y}, TM, e0, $, {e2})
+   
+   {e0,e1,e2} son los estados del autómata
+   
+   {a,b,c} son los caracteres que pertencen al alfabeto del lenguaje que se desea reconocer/analizar
+
+   {$,X,Y} son los símbolos de la pila
+
+   TM hace referencia a la función de transición QxSigmaxAlfabetoDePila
+
+   e0 es el estado inicial del autómata
+
+   $ es el Simbolo inicial de la pila, es el que se encuentra en el tope
+
+   {e2} son los Estados Finales
+   #+END_EXAMPLE
+
+   La (TM) sería la siguiente
+
+  |------+------------+------------+------+------|
+  | TM   | a          | b          | c    | fdc  |
+  |------+------------+------------+------+------|
+  | e0,$ | e0,X$      | e0,Y$      | e1,$ |      |
+  | e0,X | e0,XX      | e0,YX      | e1,X |      |
+  | e0,Y | e0,XY      | e0,YY      | e1,Y |      |
+  | e1,X | e1,epsilon |            |      |      |
+  | e1,Y |            | e1,epsilon |      |      |
+  | e1,$ |            |            |      | e2,$ |
+  |------+------------+------------+------+------|
+
+* Sintaxis y (BNF) Forma Normal de Backus
+** Concepto (BNF) 
+   - Se considera un *metalenguaje* para describir los (LP)
+   - Para documentar ó describir un lenguaje de programación y determinar
+     - Las *Categorías Léxicas* ó Tokens (LR) que lo componen
+     - Las *Categorías Sintácticas* (LIC) del lenguaje, con sus restricciones (limitaciones de las GIC)
+   - Tiene una notación similar a las (GIC) Gramáticas independientes de contexto
+** Categorías Léxicas (ó Tokens)
+*** Conceptos
+  - Las *Categorías Léxicas* (ó Tokens) son (LR) y se clasifican en
+    1) Identificadores
+    2) Constantes (/enteras, reales, de caracter, de enumeración/)
+    3) Literal Cadena
+    4) Caracter de Puntación
+    5) Palabras reservadas
+    6) Operadores
+  - Cada palabra generada por esos (LR) se los denomina *Lexema* 
+*** Identificadores
+**** Conceptos (Objeto-Tipo-Valor)
+    Sirven para designar: Funciones, Variables, tipos de datos (typedef), macros
+    - *Objeto*: Es una variable (NO el nombre de la variable, sinó la variable tipo+identificador+valor que representa un valor que se almacena en memoria)
+    - *Tipo*: Define el tipo de valores y operaciones
+    - *Valor*: Representan bits de la memoria (varía según el tipo)
+**** [#A] Declaración
+     - En la *Declaración de una variable* se especifíca el *tipo de la variable*, y el *identificador* (osea el nombre)
+     - En la *Declaración de una función* (llamado prototipo) se especifíca el tipo de la función, seguido del identificador, y de los parámetros con su tipo
+     
+     #+BEGIN_QUOTE
+     Al declarar una *variable* también se está *definiendo*..
+     Porque es un objeto, y se almacena en memoria.
+     NO importa si no se inicializa, porque se le asigna valor basura (cualquier valor ej. 123128318101912).
+
+     Mientras que al declarar una *función*, ésta NO SE DEFINE.
+     Una función se define cuando se agrega el código delimitado por ~{ }~
+
+     (todo el código que está delimitado entre ~{ }~ se llama *Bloque* ó *Sentencia Compuesta*)
+     #+END_QUOTE
+**** Definición
+     - También es una *declaración*
+     - Si es un *objeto* se reserva memoria (en base al tipo declarado, porque con él se determina cuanto espacio se reservará)
+     - Si es una *función* se agrega el código
+**** Ambito ó Scope
+     - Lugar donde el *identificador* puede ser usado (En todo el archivo, dentro de un bloque, ...)
+     - Un mismo *identificador* puede designar a distintos *objetos* en distintos *ámbitos*
+
+     #+name: concepto-ambito
+     #+BEGIN_EXAMPLE
+     Dos funciones pueden tener una variable con igual nombre, pero con distinto valor
+     #+END_EXAMPLE
+     
+     #+name: ambito-scope
+     #+BEGIN_SRC c
+       int a; // ámbito: el archivo
+
+       void f1(void){
+         int b; // ámbito: en f1
+       }
+
+       void f2(void){
+         int b; // otro ámbito: en f2
+       }
+     #+END_SRC
+     
+**** Vinculación (ó Linkage)
+     Sería como una restricción si se puede usar desde otros archivos o no
+
+     - Externa (no confundir con ~extern~)
+     - Interna (Cuando usamos la palabra reservada ~static~)
+     - Sin vinculación (sólo en su bloque, son las variables locales y los argumentos de la función)
+ 
+     #+name: vinculacion-linkage
+     #+BEGIN_SRC c
+       int a; // vinculacion externa
+
+       static b; // vinculación interna (sólo se puede usar en este archivo, Ej. las commons de sisop hacen esto)
+       extern c; // vinculación externa (declaramos una variable que fué definida en otro archivo)
+
+       void f1(void){
+         int a; // sin vinculación (variable local)
+         static b; // vive durante toda la ejecución
+       }
+     #+END_SRC
+*** Constantes
+**** Constantes Numéricas Enteras
+     - Si no se le agrega sufijo es del tipo ~int~
+     - Los prefijos/sufijos se pueden mezclar excepto ~l~ y ~LL~ (/Ej. ul, UL, ULL, uLL/)
+     - Los prefijos/sufijos ~u~ (unsigned), ~l~ (long) son algunos de los *especificadores de tipo* [[Especificadores de tipo][(Ir a Referencia)]]
+
+     #+name: concepto-constantes-enteras
+     #+BEGIN_QUOTE
+     El tipo de una *constante entera* depende de su valor y será
+     representada como primero corresponda, siendo alguno de estos:
+     1) int ó unsigned int
+     2) long ó unsigned long
+     #+END_QUOTE
+
+     #+name: constantes-enteras
+     |------------------+---------------------------------------------------------------------------|
+     | Constante Entera | Descripción                                                               |
+     |------------------+---------------------------------------------------------------------------|
+     | Decimal          | Del 0 al 9 (no puede comenzar con 0, si no sería octal)                   |
+     | Hexadecimal      | Comienza con 0x ó 0X (Luego del 9 es A=10, B=11, C=12, D=13, E=14, F=15)  |
+     | Octal            | Comienza con 0 (del 0 al 7)                                               |
+     |------------------+---------------------------------------------------------------------------|
+
+     #+name: sufijo-constantes-enteras
+     |--------+-------------|
+     | Sufijo | Descripción |
+     |--------+-------------|
+     | u, U   | unsigned    |
+     | l, L   | long        |
+     | ll, LL | long long   |
+     |--------+-------------|
+
+     #+name: ejemplo1-constantes-enteras
+     #+BEGIN_EXAMPLE
+     12 // decimal (tipo int)
+     12u // decimal (tipo unsigned)
+     
+     01 // octal (tipo int)
+     07 // octal (tipo int)
+     05l // octal (tipo long)
+     
+     0x1 // hexadecimal (tipo int) 
+     0xF // hexadecimal (tipo int), la F representa al 15
+     0xALL // hexadecimal (tipo long long), la A representa el 10
+     #+END_EXAMPLE
+**** Constantes Numéricas Reales
+     - Si no se le agrega sufijo ~f~ ó ~F~, entonces es del tipo ~double~ (por defecto)
+     - Se agrega el sufijo ~f~ ó ~F~ para el tipo ~float~
+     - Los sufijos se pueden mezclar excepto ~l~ y ~LL~ (Ej. ul, UL, ULL, uLL)
+     - El ~.~ se denomina *punto decimal* y puede tener o no digitos delante o detrás
+     - Los sufijos ~u~ (unsigned), ~l~ (long) son algunos de los *especificadores de tipo* [[Especificadores de tipo][(Ir a Referencia)]]
+      
+     #+name: concepto-constantes-reales
+     #+BEGIN_QUOTE
+     Los números reales se definen con “float” o “double”.
+     La diferencia entre ambas es la *precisión* que ofrece su representación interna.
+     
+     Hay un _número infinito de reales_, pero _se representan con un número finito de bits_.
+     A mayor número de bits, mayor número de reales se representan, y por tanto, mayor precisión.
+
+     Los reales definidos con “double” tienen el doble de tamaño que los definidos con “float”
+     #+END_QUOTE
+
+     #+name: constantes-reales
+     |----------------+-------------------------------------------------------------------------------------------------------------------------|
+     | Constante Real | Descripción                                                                                                             |
+     |----------------+-------------------------------------------------------------------------------------------------------------------------|
+     | Decimal        | Debe tener la *parte fraccionaria* (el punto) ó el exponente (e ó E) ó ambos                                            |
+     | Hexadecimal    | Comienza con ~0x~ ó ~0X~ seguido de la parte fraccionaria (en hexa), debe tener el exponente (p ó P) que está en base 2 |
+     |----------------+-------------------------------------------------------------------------------------------------------------------------|
+
+     #+name: sufijo-constantes-reales
+     |--------+-------------+------------|
+     | Sufijo | Descripción |            |
+     |--------+-------------+------------|
+     | f, F   | float       | IMPORTANTE |
+     |--------+-------------+------------|
+     | u, U   | unsigned    |            |
+     | l, L   | long        |            |
+     | ll, LL | long long   |            |
+     |--------+-------------+------------|
+
+     #+name: tipos-constante-real
+     |-----------+---------+-------------+-----------------|
+     | Constante | Sufijo  | Tipo        | Rango/Precisión |
+     |-----------+---------+-------------+-----------------|
+     | Real      | Ninguno | double      |                 |
+     | Real      | f ó F   | float       | menor           |
+     | Real      | l o L   | long double | mayor           |
+     |-----------+---------+-------------+-----------------|
+
+     #+name: codigo-ejemplo1-constantes-reales
+     #+BEGIN_SRC C :results verbatim
+       #include <stdio.h>
+
+       int main(){
+         double a = 5e4;
+
+         printf("a=%e\n", a);
+         printf("a=%E\n", a);
+
+         return 0;
+       }
+     #+END_SRC
+
+     #+RESULTS: codigo-ejemplo1-constantes-reales
+     : a=5.000000e+04
+     : a=5.000000E+04
+
+     #+name: ejemplo1-constantes-reales
+     #+BEGIN_QUOTE
+     5e4 // double 5x10^4 (la ~e~ es el exponente para *constante real decimal* porque no empieza con ~0x~ ni ~0X~)
+     .2f // float con valor 0,2
+     3.L  // long double con valor 3,0
+
+     0xAp2 // double con valor 10x2^2 (porque la ~p~ es el exponente para *constante real hexadecimal* éste empieza con ~0x..~ y tiene base 2)
+     0xBp3 // double con valor 11x2^2
+     #+END_QUOTE
+
+**** Constantes de Carácter
+     - Se delimitan con comillas simples ~'~ (/no confundir con las comillas dobles, que es para las cadenas de caracteres/)
+     - Su tipo es ~int~ (apesar que las declaremos ~char~) porque representan los caracteres de la tabla *ASCII*
+  
+    #+NAME: ejemplo-constante-caracter
+    #+BEGIN_QUOTE
+    ~\0~ es el *caracter nulo* y representa fin de una cadena 
+    ~\n~ representa al *caracter de salto de linea* (new line), a veces se usa en conjunto con \r 
+    ~\r~ hace referencia a las maquinas antiguas, donde se hace el salto de linea y luego se tabula
+   #+END_QUOTE
+**** Constantes de Enumeración
+*** Literal de Cadena
+    - Se delimitan con comillas dobles ~"~
+    - Al final siempre tienen ~'\0'~ que indica *fin de cadena* se suele abreviar como *(fdc)*
+    - El ~char[]~ y ~char*~ representan lo mismo
+*** Caracter de Puntuación (punctuator)
+     - Algunos símbolos de puntuación también son operadores
+     - El compilador determina su uso a partir del contexto.
+     - Tienen un significado sintáctico y semántico diferente (DETALLAR UN POCO MAS.. CON EJEMPLOS QUIZAS?)
+
+     #+BEGIN_QUOTE
+     Un *caracter de puntuación* puede representar un *Operador* si y sólo si..
+     1) Produce *efecto de lado* (/Ej. asignación de un valor a una variable/)
+     2) ó Genera un valor (/Ej. incrementar una variable numérica/)
+     #+END_QUOTE
+
+    |-----------------------+------------------------------------------------------------------------|
+    | Símbolo de Puntuación | Descripción                                                            |
+    |-----------------------+------------------------------------------------------------------------|
+    | ;                     | Convierte una *expresión* en una *sentencia*                           |
+    | ;                     | Separa parámetros de un bucle ~for~                                    |
+    |                       |                                                                        |
+    | ,                     | Separa la *declaración* ó *definición de variables*                    |
+    | ,                     | Separar paraḿetros de una función                                      |
+    |                       |                                                                        |
+    | { }                   | Delimitar bloques de código                                            |
+    | ...                   | Para declarar ó definir funciones con una cant. variable de parámetros |
+    |                       |                                                                        |
+    | #                     | Directiva del preprocesador de C                                       |
+    | :                     | Etiquetas de un switch                                                 |
+    |-----------------------+------------------------------------------------------------------------|
+
+    #+name: punctuator-bnf-lenguaje-c
+    #+BEGIN_EXAMPLE
+    punctuator: one of
+    [ ] ( ) { } . ->
+    ++ -- & * + - ~ !
+    / % << >> < > <= >= == != ^ | && ||
+    ? : ; ...
+    = *= /= %= += -= <<= >>= &= ^= |=
+    , # ##
+    #+END_EXAMPLE
+*** Palabras Reservadas (keyword)
+*** Operadores
+**** Operador de Incremento y Decremento
+     - El operador de incemento es ~++~ y el operador de decremento es ~--~
+     - Según si se colocan antes o después de la expresión, el operador estará como *prefijo* ó *postfijo*
+     - El *operando* (osea el identificador, que es la *expresión* más simple) debe ser un *ValorL modificable* [[ValorL y ValorR][(Ir a Referencia)]]
+     - Si el *operando* es un *ValorL modificable*, se incrementa en 1 su valor y hay *Efecto de lado* [[Efecto Lateral][(Ir a Referencia)]]
+  
+     #+name: operador-incremento-como-postfijo
+     #+BEGIN_SRC C :results verbatim
+       #include <stdio.h>
+
+       int main(){
+         int a = 5;
+
+         // POST INCREMENTO
+         // 1. Se suma 2 al valor del operando del operador ++
+         // 2. El resultado se le asigna como Valor al Objeto num (Osea.. num = 5+2 = 7)
+         // 3. Luego se incrementa en 1 el valor del operando del operador ++ (porque el operando a, es ValorL modificable)
+         // osea después que el resultado de sumarle 2 al valor original de a
+         int num = a++ + 2;
+
+         printf("num=%d (hizo 5+2 en vez de 6+2)\n", num);
+         printf("a=%d\n", a);
+
+         return 0;
+       }
+     #+END_SRC
+
+     #+RESULTS: operador-incremento-como-postfijo
+     : num=7 (hizo 5+2 en vez de 6+2)
+     : a=6
+
+     #+name: operador-incremento-como-prefijo
+     #+BEGIN_SRC C :results verbatim
+       #include <stdio.h>
+
+       int main(){
+         int a=5;
+
+         // PREINCREMENTO
+         // 1. Se incrementa el valor del operando de ++ (porque es un ValorL modificable)
+         // 2. El valor incrementado en 1 del operando, se le suma 2
+         //
+         // - el identificador num, se conoce como ValorL (y es modificable)
+         // (que también se conoce como Objeto, ó como la Expresión mas simple)
+         //
+         // - el resultado de la operación de preincrementar a, y sumarle 2, es el ValorR
+         // (que también es valor del objeto num)
+
+         int num = ++a + 2;
+         printf("num=%d (hizo (5+1) + 2)\n", num);
+         printf("a=%d\n\n", a);
+
+         int test = ++a+2; // es válido juntar todo
+
+         printf("test=%d (hizo (6+1) + 2)\n", test);
+         printf("a=%d\n", a);
+       }
+     #+END_SRC
+
+     #+RESULTS: operador-incremento-como-prefijo
+     : num=8 (hizo (5+1) + 2)
+     : a=6
+     : 
+     : test=9 (hizo (6+1) + 2)
+     : a=7
+     
+     #+name: valorl-errores
+     #+BEGIN_SRC C :results verbatim
+       /*
+        ,* ERROR (1): Porque primero se ejecuta el operador de incremento ++ que está como prefijo,
+        ,* el resultado será una Constante Numerica Entera, por tanto ya no es un ValorL modificable
+        ,* que es lo que necesita el operador de incremento ++ que esta como postfijo
+        ,* (además "suponiendo" que pudiera avanzar, faltaría un operador para operar con el 1)
+        ,*
+        ,* ERROR (2): Porque primero se ejecuta el operador de incremento ++ que esta como postfijo
+        ,* e incrementa en 1 el valor de su operando a (porque es un ValorL),
+        ,* el resultado de haberlo incrementado es una Constante Numerica Entera, por tanto ya no es un ValorL modificable
+        ,* y el operador de incremento ++ que le sigue hace que tire error (porque necesita un ValorL modificable)
+        ,* y al romper ahí ya no evalúa lo que le sigue que es +a;
+        ,* */
+       int main(){
+         int x = 1;
+         printf("x=%d (1), x=%d (1), x=%d (2)\n\n", x, x++, x++); // <-- medio raro .. (?)
+
+         x = 1;
+         printf("x=%d (1), ", x);
+         printf("x=%d (1), ", x++);
+         printf("x=%d (2), ", x++);
+         printf("x=%d (3)\n\n", x);
+
+         int a = 5;
+         int b = ++a + 2; // en la asignación (5+1) + 2, quedando a=6
+         printf("b=%d, a=%d\n", b, a);
+
+         int c = ++a+2; // en la asignación (6+1) + 2, quedando a=7
+         printf("c=%d, a=%d\n", c, a);
+
+         // int d = ++a++1; // ERROR (1)
+
+         // int h = a+++++a; // ERROR (2) hubiera estado OK si fuese a++ + ++a
+
+         int f = a+++a++; // ok.. es igual que "a++ + a++".. en la asignación f=7 + 8 ? (al leer 'a' por 2da vez tiene valor 8?), luego a=9
+         printf("f=%d, a=%d\n", f, a);
+
+         int i = ++a+a++; // ok.. en la asignación i=((9+1) + (10+1) ) <- al leer, luego a= 11
+         printf("i=%d, a=%d\n", i, a);
+
+         printf("\na=%d, b=%d, c=%d, f=%d, i=%d\n", a, b, c, f, i);
+
+         return 0;
+       }
+     #+END_SRC
+
+     #+RESULTS: valorl-errores
+     #+begin_example
+     x=3 (1), x=2 (1), x=1 (2)
+
+     x=1 (1), x=1 (1), x=2 (2), x=3 (3)
+
+     b=8, a=6
+     c=9, a=7
+     f=15, a=9
+     i=21, a=11
+
+     a=11, b=8, c=9, f=15, i=21
+     #+end_example
+**** Operador * (asterisco)
+     - Declarar una expresión tipo puntero (a un objeto ó a una función)
+     - Desreferenciar un puntero (obtener el valor del al que apunta el puntero)
+     - Ser un operador binario, y operar dos operandos (constantes numéricas) para obtener su producto (resultado de una multiplicación)
+**** Tabla Comparativa
+   
+   #+name: tabla-precedencia-operadores
+   |-------------+----------+-------------------------------------------------+---------------------|
+   | Precedencia | Operador | Descripción                                     | Asociatividad       |
+   |-------------+----------+-------------------------------------------------+---------------------|
+   |           1 | ++ --    | Incremento/Decremento prefijo y postfijo        | Izquierda a Derecha |
+   |             | ()       | llamada a función                               |                     |
+   |             | []       | arreglo/array                                   |                     |
+   |             | .        | acceso a miembro de estructuras/union           |                     |
+   |             | ->       | acceso de miembro a puntero de estructura/union |                     |
+   |-------------+----------+-------------------------------------------------+---------------------|
+   |           2 | ++ --    | Incremento/Decremento prefijo y postfijo        | Derecha a Izquierda |
+   |             | + -      |                                                 |                     |
+   |             | (type)   | operador de casteo                              |                     |
+   |             | *        | Operador de indirección o desreferencia         |                     |
+   |             | &        | de dirección ó referencia                       |                     |
+   |-------------+----------+-------------------------------------------------+---------------------|
+   |             | * / %    | Multiplicación, división, Resto                 | Izquierda a Derecha |
+   |             | + -      |                                                 |                     |
+   |             | << >>    |                                                 |                     |
+   |             | < <=     | Operadores Relacionales                         |                     |
+   |             | > >=     | Operadores Relacionales                         |                     |
+   |             | == !=    | Operadores Relacionales                         |                     |
+   |             | ^        |                                                 |                     |
+   |             | && (AND) | Operador Logico AND                             |                     |
+   |             | ll (OR)  | Operador Logico OR                              |                     |
+   |-------------+----------+-------------------------------------------------+---------------------|
+   |             | ?:       | Condicional ó Operador Ternario                 | Derecha a Izquierda |
+   |             | =        | Asignacion simple                               |                     |
+   |             | += -=    |                                                 |                     |
+   |-------------+----------+-------------------------------------------------+---------------------|
+   |          15 | ,        | Coma                                            | Izquierda a Derecha |
+   |-------------+----------+-------------------------------------------------+---------------------|
+** Tokens que representan LR Finitos/No Finitos 
+   + Los tokens que representan *Lenguajes Regulares Finitos*
+     * Las palabras reservadas (son un caso particular de los identificadores)
+     * Los operadores
+     * Los caracteres de puntuación
+   + Los tokens que representan *Lenguajes Regulars NO fininitos* (infinitos)
+     * Las constantes *reales* y *enteras*
+     * Los identificadores
+** Categorías Sintácticas (ó Gramáticales)
+   Son los (LIC) que se usan para la *Sintáxis* del lenguaje y se clasifican en Declaraciones, Definiciones, Sentencias y Expresiones
+   
+*** Declaraciones y Definiciones
+**** Declaraciones
+     - Se especifica la interpretación y los atributos de un *Identificador*
+**** Definiciones
+     - Si es un *Objeto* se reserva espacio en memoria
+     - Si es una *Función* se completa con el código
+    
+     #+name: definicion-de-objetos
+     #+BEGIN_SRC c
+       #include <stdio.h>
+
+       int main(){
+         // Definimos el tipo de un objeto
+         // - la variable telefono será Entero
+         // - el compilador reservará memoria para un tipo int
+         // - al no estar inicializada, tendrá valor basura (Ej. 010101, 12931230, ...) valores sin sentido
+         int telefono;
+
+         // Igual que con el objeto telefono, estamos definiendo un objeto edad
+         // pero al inicializarlo no tendrá valor basura
+         int edad=90;
+
+        return 0;
+       }
+
+     #+END_SRC
+*** Sentencias
+    #+BEGIN_QUOTE
+    Las llaves ~{ }~ que indican que es una *Sentencia Compuesta* pueden no tener nada, y no harán nada
+
+    El punto y coma ~;~ indica *fin de una expresión*, pero...
+    si no tiene ninguna expresión antes del ; entonces se conoce como *Sentencia Nula*.
+    Si antes del ~;~ hay alguna expresión (Ej. a ó 1+1  ó 1) es una *Sentencia Expresión*
+    (Por ejemplo, estas son tres sentencias expresión.. ~a;~ ~1+2;~ ~1;~)
+    
+    Se puede poner ~2+3;~ y dará un WARNING pero NO es un error, porque es una *Sentencia Expresión*
+    #+END_QUOTE
+**** Sentencia Etiquetada 
+     - Hay de tres tipos, luego de los dos puntos : debe ir una sentencia "si o si"
+     - La primera se utiliza con goto (que ya no se utiliza tanto)
+     - La segunda (con case) y tercera (con defaut) se utilizan con la *Sentencia de Seleccion* switch
+     - No generan un corte en la estructura a menos que se use la palabra reservada *break*, (osea si no la usamos, se siguen ejecutando)
+
+     *IMPORTANTE*: Seguido de los dos puntos :, debe ir una sentencia, si es otra cosa es *Error sintáctico* porque no respeta la BNF de C
+
+     #+name: tipos-sentencia-etiquetada
+     #+BEGIN_EXAMPLE
+     1) identificador : sentencia
+     
+     2) case expresion-constante : sentencia
+
+     3) default : sentencia
+     #+END_EXAMPLE
+    
+     #+name: sentencia-case-errores-sintacticos
+     #+BEGIN_EXAMPLE
+    ... ?  
+    ... ?  
+    ... ?  
+    ... ?  
+     #+END_EXAMPLE
+     
+**** Sentencia Compuesta 
+     - Se define entre llaves ~{ }~
+     - También se denomina *Bloque*
+     - Define un nuevo *ámbito* delimitado por las llaves ~{ }~ [[Ambito ó Scope][(Ir a Referencia)]]
+**** Sentencia Expresión
+     - Es una expresión que termina con un punto y coma ;
+     - El *Caracter de Puntuación* punto y coma ; actúa como *Punto de Secuencia* [[Secuenciación y Punto de Secuencia][(Ir a Referencia)]]
+**** Sentencia Selección
+     - Abarca los if, y switch
+     - Recordemos que las expresiones que controlan al if y al switch son *Puntos de Secuencia* [[Secuenciación y Puntos de Secuencia][(Ir a Referencia)]]
+    
+     #+name: sentencias-de-seleccion
+     |------------------------+------------------------------------------------------------------------------------------|
+     | Sentencia de Selección | Descripción                                                                              |
+     |------------------------+------------------------------------------------------------------------------------------|
+     | if                     | 1. Puede no tener else                                                                   |
+     |                        | 2. Si tiene un else, se asocia con el if más cercano                                     |
+     |------------------------+------------------------------------------------------------------------------------------|
+     | switch                 | 1. El tipo de dato de la expresión que controla al switch (osea un *Punto de Secuencia*) |
+     |                        | debe ser una *CONSTANTE ENTERA* (Sino es *Error Semántico*)                              |
+     |                        | 2. Los case NO son obligatorios (aunque no tiene sentido de ser si no los tuviera)       |
+     |------------------------+------------------------------------------------------------------------------------------|
+
+     #+name: ejemplo-sentencias-de-seleccion
+     #+BEGIN_EXAMPLE
+     if (expresion) sentencia
+     
+     if (expresion) sentencia else sentencia
+
+     switch (expresion) sentencia
+     #+END_EXAMPLE
+
+     #+name: ejemplo-switch
+     #+BEGIN_SRC c
+       #include <stdio.h>
+       /**
+        ,* ERROR (2): Porque la expresión que controla a un switch debe ser una CONSTANTE ENTERA
+        ,*
+        ,*/
+
+       int main(){
+         int suma; // está en otro ámbito, por tanto es otro Espacio de Nombres 
+
+         int a = 1;
+
+         a = 0;
+         switch(a){
+         case 0: printf("hola\n");
+           break;
+         }
+
+         char *c;
+         //switch(c){ // ERROR SEMANTICO (2)
+         //      case 0: printf("hola\n");
+         //      break;
+         //}
+
+         float b;
+         //switch(b){ // ERROR SEMANTICO(2)
+         //      case 1.1: printf("error..?\n");
+         //      break;
+         //}
+
+         return 0;
+       }
+     #+END_SRC
+**** Sentencia Iteración
+     - Abarca los bucles (ó loops) cuyas *palabras reservadas* son:
+       - for
+       - while
+       - do while
+     - El tipo de la expresión que controla la iteración debe ser *Escalar* (osea Entero, Real flotante ó Puntero)
+     - La expresión que controla la iteración es un *Punto de Secuencia*
+     - Iteran hasta que la expresión sea el número CERO
+
+     
+     #+name: ejemplo1-sentencia-for
+     #+BEGIN_EXAMPLE
+     for (exp1 ; exp2 ; exp3)
+       sentencia
+     
+     1. Las expresiones exp1 y exp3 se consideran del tipo void
+     
+     2. En donde está la exp1 se pueden definir variables, siendo el ámbito dentro del bloque del for
+     
+     3. Todas las expresiones exp1,exp2,exp3 son OPCIONALES
+     
+     4. Si se omite exp2, se reemplazará por una constante verdadera (osea el número 1)
+     y la sentencia se ejecutará de forma infinita, loop infinito.
+     #+END_EXAMPLE
+     
+     #+name: ejemplo2-sentencia-for
+     #+BEGIN_EXAMPLE
+     La siguiente sentencia es un loop infinito
+     sólo ejecutará la sentencia expresión 1+1; y no avanzará en el código del programa
+
+     for(;;) 1+1;
+     
+     for(;;) printf("hola");
+     #+END_EXAMPLE
+     
+     #+name: ejemplo-sentencia-while
+     #+BEGIN_EXAMPLE
+     exp1;
+     while (exp2){
+       sentencia
+
+       exp3;
+     }
+     #+END_EXAMPLE
+
+**** Sentencia Salto
+*** Expresiones
+**** Conceptos
+    - La expresión más simple son los *Identificadores* (Y SU TIPO SE DESIGNA EN SU *DECLARACION*)
+    - Es una *SECUENCIA DE OPERANDOS Y OPERADORES* que
+      - Producen un valor
+      - Representan a un *Objeto* (se reserva espacio en memoria para este) ó una *Función*
+      - Pueden generar *Efecto de Lado* (Ej. Asignarle un nuevo valor a una variable, ó modificar su valor)
+      - Los paréntesis pueden cambiar la *precedencia*
+        1) ~1+1*2 != (1+1)*2~
+        
+    #+name: expresiones-primarias-o-elementales
+    #+BEGIN_QUOTE
+    Se las llama *Expresiones Primarias* ó *Elementales*
+    a las Variables, las Constantes y llamados a funciones
+    #+END_QUOTE
+**** Tipos
+     - _Le da un significado (la semántica) al dato_ que se guarda en un Objeto
+     - Los tipos básicos son char, los Enteros, y los Reales
+     - No existe el tipo *Booleano*, se utiliza el ~0~ como ~FALSE~ y distinto de cero como ~TRUE~
+       (una alternativa sería definirlo con una Constante de Enumeración)
+       
+     #+BEGIN_QUOTE
+     Si los *operadores* tienen *operandos* de distinto tipo (Ej. int y float, ó.. float y double),
+     entonces se hará una *Conversión Implícita* (al tipo que tiene mayor capacidad de representar valores)
+     #+END_QUOTE
+      
+     #+name: ejemplo-simular-tipo-booleano
+     #+BEGIN_SRC c
+       typedef enum{ false, true} booleano;
+
+       int main(){
+         booleano estado = false;
+
+         if(estado)
+           printf("es verdadero..!\n");
+         else
+           printf("es falso..!\n");
+
+         return 0;
+       }
+     #+END_SRC
+**** Reglas de Conversión/Promoción
+     - Si los *operandos* de una *operacion binaria* son de distinto tipo
+       => _el Compilador los convierte a un tipo común_ según las *reglas de conversión* (varía según el compilador)
+     - Previo a resolver una *expresión arimética* el Compilador iguala los tipos y
+       los convierte al tipo que mayor capacidad tenga de representar valores (Ej. double tiene mayor capacidad que int)
+     - Está relacionado con la *Conversión Implícita* [[Conversión de Tipos][(Ir a Referencia)]] que _no requiere de operadores para la conversión, es automática_
+     - La *Promoción de Tipo* se da en *expresiones ariméticas* de al menos dos *operandos* que son de distinto tipo
+
+     #+name: ejemplo-reglas-de-conversión
+     #+BEGIN_QUOTE
+     La conversión automática suele ser: char -> int -> float -> double 
+
+     1) Los ~char~ se convierten en ~int~ (tomando el valor que representan de la tabla ASCII),
+     2) Los ~int~ en ~float~ (almacenando el valor entero, y 0 en la parte decimal),
+     3) Los ~float~ en ~double~ (almacenando en simple precisión y redondeando los decimales)
+     #+END_QUOTE
+     
+     #+name: ejemplo-conversion-implicita-promocion
+     #+BEGIN_QUOTE
+     1.En estos ejemplos sólo ponemos la expresión arimética, porque importa la conversión de esa expresión.
+       Es decir no ponemos int n = 1+1f, sólo la expresión del lado derecho
+       
+     2. NO olvidar que *las operaciones + y - son ASOCIATIVAS de Izquierda a Derecha*,
+     por lo cual _el resultado de cada operación binaria será el nuevo operando (del lado izq) de otra operacion binaria_
+     suponiendo que hubiese otra operación binaria a la derecha
+     Ej. a+b+c+d, hará ((A+B)-C)+D, primero operando A+B, su resultado lo operará con C, y ese otro resultado con D
+     #+END_QUOTE
+
+     #+BEGIN_QUOTE
+     'a'+1
+     el char 'a' se promociona a int (usando el valor de la tabla ascii) que es 97
+     quedando 97+1
+
+     5 + 1.0
+     el int 5 se promociona a double (guardando el valor entero 5, con 0 como parte decimal)
+     quedando 5.000000
+     Nota: recordemos que una Constante Real por defecto es del tipo double (a menos que coloquemos el sufijo f de float)
+    
+     char n;
+     int a, b, c, d;
+     float r, s, t;
+
+     'A' + 9 + 1.f
+     el 'A' se convierte a int (porque 9 es int), tomando el valor de la tabla ascii
+     al resultado de ('A'+9) lo convierte a float (porque 1.f es float)
+     por tanto el resultado final será un valor del tipo float
+    
+     1.f + 10 - .5f + 3
+     el 10 se convierte en float (porque 1.f es float),
+     el resultado de (1.f + 10) sigue siendo float (porque .5f es float) y se opera con .5f
+     el 3 se convierte a float (porque la operacion anterior arrojaba un valor tipo float)
+     el resultado final será un valor del tipo float
+     #+END_QUOTE
+**** Conversión Explícita e Implícita
+     1. En una asignación el tipo de dato a asignar se convertirá de forma automática al tipo de la variable 
+     2. Una *Conversión Implícita* (conversión automática) no requiere de *operadores* para la conversión, se hace de forma automática.
+     3. Una *Conversión Explícita* (casting/casteo ó conversión forzosa) utiliza operadores para pasar de un tipo a otro.
+     4. Términos relacionados
+        a. *Truncar* un número es reducir el número de dígitos a la derecha del separador decimal (coma), descartando los dígitos menos significativos (NO confundir con redondear)
+        b. *Castear* un valor es que pase de un tipo de dato a otro tipo de dato 
+       
+     #+name: ejemplos-conversiones-de-tipos
+     #+BEGIN_EXAMPLE
+     Hacemos referencia a los puntos del principio
+
+     Punto (1)
+     int a = 1f, el float se convertirá en int que es el tipo de la variable 'a'
+     
+     Punto (2)
+     Es el operador casteo, que precede al identificador y son paréntesis que tienen el tipo de dato
+     
+     Punto (5.b)
+     de int a float, float a int, int a float, int a double, ...
+     #+END_EXAMPLE
+
+     #+name: ejemplo-truncamiento
+     #+BEGIN_EXAMPLE
+     Si tenemos las siguientes constantes reales
+     3,14159265358979…
+     32,438191288
+     6,344444444444
+     -3,23456789…
+     
+     Truncar estos números a 4 dígitos decimales consiste en limitar a 4 los dígitos a 
+     la derecha de la coma decimal. El resultado es:
+
+     3,1415
+     32,4381
+     6,3444
+     -3,2345
+     
+     Otro método más fácil de explicar es decir que simplemente del número,
+     la parte decimal nos quedamos con 4 cifras:
+     
+     23,456735 quedaría 23,4567
+     #+END_EXAMPLE
+      
+     #+name: funciones-de-conversion
+     |--------------+-------------|
+     | Función de C | Descripción |
+     |--------------+-------------|
+     | atoi         |             |
+     | atof         |             |
+     | atol         |             |
+     | itoa         |             |
+     |--------------+-------------|
+   
+     #+name: conversion-por-asignacion
+     |----------------------------+-----------------------------------------------------------------|
+     | conversion tipo = otroTipo | descripción                                                     |
+     |----------------------------+-----------------------------------------------------------------|
+     | int    =  char            | se almacena el código ASCII del carácter                        |
+     | int    =  float           | se almacena como entero truncando los decimales                 |
+     | float  =  double          | se almacena en simple precisión redondeando los decimales       |
+     | float  =  int             | se almacena el valor entero con parte decimal 0                 |
+     | float  =  char             | se almacena el código ASCII del carácter con su parte decimal 0 |
+     | char   =  float            | se almacena el carácter correspondiente truncando los decimales |
+     |----------------------------+-----------------------------------------------------------------|
+
+     #+name: ejemplo3-conversiones
+     #+BEGIN_EXAMPLE
+     NOTA: El número 65 representa a la 'A' en la tabla ASCII
+     
+     a = 4 + 61.5
+     si a es int, el resultado será 65
+     si a es float, el resultado será 65.500000
+     si a es char, el resultado será 'A'
+
+     a = 'A' + 3.0
+     si a es int, el resultado será 68
+     si a es float, el resultado será 68.000000
+     si a es char, el resultado será 'D'
+     #+END_EXAMPLE
+ 
+     #+name: ejemplo-conversion-implicita
+     #+BEGIN_SRC c
+       #include <stdio.h>
+
+       int main(){
+         int a = 1;
+         float b = 0.5;
+         char c = 'a'; // equivale al valor 97 de la tabla ascii
+
+         a = 0.1; // conversión implicita de float a int
+         a = b;  // conversión implicita de float a int
+
+         // b tiene conversión implícita a int
+         // el resultado será 1
+         a = 1 + b;
+
+         // chequear y validar si esta 100% ok esto
+         a = 5;
+         printf("%c", a); // conversión implícita de int a char por %c
+
+
+         return 0;
+       }
+     #+END_SRC
+
+     #+name: ejemplo-conversion-explicita
+     #+BEGIN_SRC c
+       #include <stdio.h>
+
+       int main(){
+         int a = 5, b = 2;
+         float c;
+         double d = 1.2;
+         short p;
+
+         // conversión explícita de double a int
+         int suma = a + (int)d;
+
+         p = (short) a; // conversión Explícita de Int a Short (es un entero pero más chico)
+
+         // Conversión explicita, el valor almacenado será del tipo float
+         // valor guardado será 2.5000000
+         c = (float)a / (float)b;
+         printf("%f\n", c);
+
+         // Conversión Implicita, el valor almacenado será la parte decimal del flotante, perdiendo información
+         // el valor almacenado será 2.000000
+         c = a / b;
+         printf("%f\n", c);
+
+         return 0;
+       }
+     #+END_SRC
+    
+     #+name: ejemplo1-conversiones
+     #+BEGIN_SRC c
+       #include <stdio.h>
+
+       int main(){
+         float b;
+
+         // IMPORTANTE: el 1/2 es un entero por tanto sumará la parte entera del 0.5, osea el 0
+         // el resultado será 0 (porque al ser enteros hace 0+0)
+         b = 1/2 + 1/2;
+         printf("1/2+1/2=%f\n", b);
+
+         // el resultado será 0.5
+         // porque 0.5+0=0
+         // porque 1/2 es un entero, a menos que usemos el operador de casteo (tipo)
+         b = (float)1/2 + 1/2;
+         printf("(float)1/2+1/2=%f\n", b);
+
+         // el resultado será 1.0
+         // porque 0.5 + 0.5 = 1.0
+         b = (float)1/2 + (float)1/2;
+         printf("(float)1/2 + (float)1/2=%f\n", b);
+
+         // el resultado será 1.0
+         // porque 0.5 + 0.5 = 1.0
+         b = 0.5 + 0.5;
+         printf("0.5 + 0.5=%f\n", b);
+
+         // el resultado será 1.0
+         // IMPORTANTE: Aunque pongamos el sufijo f de float, la función printf promociona el tipo float a double
+         b = .5f + .5f;
+         printf(".5f + .5f=%f\n", b);
+
+         // el resultado será 1.0
+         // IMPORTANTE: El %f en realidad es double, la función printf() promociona el tipo float a double
+         b = .5 + .5;
+         printf(".5f + .5f=%f\n", b);
+
+         return 0;
+       }
+     #+END_SRC
+     
+     #+name: ejemplo2-conversiones
+     #+BEGIN_SRC c
+       #include <stdio.h>
+
+       int main(){
+         int i;
+         float f;
+
+         // el valor a "truncar" es un flotante con resultado 0.5
+         f = 1.0 / 2.;
+
+         // el valor que se le asigna es también un flotante con resultado 1.5
+         f = 3 / 2.0;
+
+         // el valor "truncado" será un entero que tiene como resultado el 0,
+         // porque apesar que el resultado es un flotante el tipo de i es entero y se "castea" de flotante a entero
+         i = 1 / 3;
+
+         // el resultado será también un entero con valor 0
+         i = 3.0 / 2.0;
+
+         // el valor a "truncar" es 0 porque 1/2 es entero
+         f = 1/2 + 1/2;
+
+         // el valor truncado es 0.0 debido a que con (int) castea el flotante a
+         //  entero, y (float) lo castea nuevamente a flotante
+         f = (float)(int)0.9;
+
+         return 0;
+       }
+     #+END_SRC
+     
+**** Calificadores
+     Bender menciona que son los prefijos u, l, U, L
+     que se usan en las constantes numéricas(enteras/reales)
+     La u también se puede usar constante caracter
+     
+     [[Constantes][(Ir a Referencia)]]
+**** ValorL y ValorR
+   - Son definiciones integradas por *MROC* (manual de referencia oficial de C)
+   - El *valorL* es una *expresión* que permite ubicar un *Objeto* y recuperar su *Valor*
+   - El *valorR* es una *expresión* y representa al *Valor* del Objeto
+   - EL *valorL* es *modificable* si no fue clasificado como 
+     - Arreglos (no sus elementos, si no al arreglo en si)
+     - Constante
+     - Estructura
+     - Unión con un miembro calificado como Constante
+     - Tipos incompletos [[Tipos Incompletos][(Ir a Referencia)]]
+**** Efecto de Lado
+     - Se conoce como Side Effect ó Efecto de Lado
+     - Cuando cambia el valor a un objeto
+     - Cuando se escribe un archivo (se modifica con funciones de C)
+**** Evaluación
+     - La *asociatividad* esta dada por la recursividad (a izquierda ó a derecha)
+     - La *precedencia* esta dada por la cercanía o no al axioma (+ lejos = + precedencia)
+     - La asociatividad y la precedencia, indican el orden de las operaciones (osea la *Secuenciación*)
+     
+     #+name: evaluacion-expresiones
+     #+BEGIN_EXAMPLE
+     la expresión a+b*c se evaluará como a+(b*c)
+
+     la expresión a=b=c se evaluará como a=(b=c)
+     #+END_EXAMPLE
+**** Secuenciación y Punto de Secuencia (OJO..!)
+     - La *Secuenciación* permite una orden de ejecución de eventos
+     - Un *Punto de Secuencia* es un instante que divide dos ejecuciones (Ej. dos llamados a funciones)
+     - El orden de los *operandos* no está definido (pero hay excepciones, mediante los puntos de secuencia)
+
+     #+name: puntos-de-secuencia
+     |--------------------------+---------------------------------------------------------------------------------|
+     | Puntos de Secuencia      | Descripción                                                                     |
+     |--------------------------+---------------------------------------------------------------------------------|
+     | Operadores               |                                                                                 |
+     |                          |                                                                                 |
+     | Operador && y ll (el or) | Evalúan de izq a der. (detiene la evaluación cuando el resultado está definido) |
+     |                          |                                                                                 |
+     | Operador coma            | Evalúa a las expresiones (operandos de coma) de izq a der                       |
+     |                          |                                                                                 |
+     | Operador ternario :?     | Evalúa el primer operando, luego el segundo, y asi..                            |
+     |--------------------------+---------------------------------------------------------------------------------|
+     | Expresiones              | La expresión que controla un: if, switch, while, do-while                       |
+     |                          | Cualquiera de las expresiones de un for                                         |
+     |--------------------------+---------------------------------------------------------------------------------|
+
+     #+name: ejemplo-punto-de-secuencia
+     #+BEGIN_COMMENT
+     Si hay un punto de secuencia entre dos ejecuciones (Ej. A y B)
+     se cumplirá cuando se terminen todas las Evaluaciones y Efectos Laterales
+     del que hayamos elegido como primero en ejecutarse 
+
+     y NO continua con el segundo (su evaluación y efectos laterales que hubiera tenido)
+     #+END_COMMENT
+** Las (GIC) Gramaticas Independientes de Contexto
+   - Permiten balancear símbolos (ej. los paréntesis)
+   - Permite la *asociatividad* de los OPERADORES (se da por la recursividad, puede ser de izquierda a derecha, o al revés)
+   - Permite establecer *precedencia* de los OPERADORES (los más cercanos al axioma, tienen menor precedencia)
+** Proceso de Derivación
+   - Una gramática es *ambigua* si existen dos *derivaciones* distintas para una cadena ó bien existen dos (AAS) *Árboles Sintácticos* distintos
+     (a partir de dos derivaciones distintas, llego a la misma cadena analizada)
+   - Una cadena es *sintácticamente* correcta, si al hacer la *tabla de derivación* llegamos desde el *axioma* hasta esa cadena
+** Proceso de Reducción/Evaluación
+   - También se conoce como *proceso de evaluación*, y es el proceso inverso a la *derivación*
+   - Se parte del resultado del *proceso de derivación*, se vuelven a aplicar las reglas de la GIC
+** (BNF Original) Meta Símbolos
+   |--------------+--------------------------------------------------|
+   | MetaSimbolo  | Descripcion                                      |
+   |--------------+--------------------------------------------------|
+   | <NoTerminal> | Entre < > se escriben los No Terminales          |
+   | ::=          | Reemplaza al simbolo de la producción que era -> |
+   |--------------+--------------------------------------------------|
+
+   #+BEGIN_EXAMPLE
+   <identificador> ::= <letra> | <identificador> <letra> | <identificador> <digito>
+   <letra> ::= A | B | .. | Z
+   <digito> ::= 0 | 1 | .. | 9
+   #+END_EXAMPLE
+** (EBNF) BNF Extendida
+   - Le agregan el operador { }, las llaves son la clausura de kleene
+
+   #+BEGIN_EXAMPLE
+   <identificador> ::= <letra> {<letra o digito>}
+   <letra o digito> ::= <letra> | <digito>
+   #+END_EXAMPLE
+** (BNF) del Lenguaje C
+*** Conceptos
+   - Si un término es opcional se lo indica con subindice "opt"
+
+   #+name:tabla-bnf-c
+   |-------------------------------------------+------------------------------------------|
+   |                                           | BNF Lenguaje C                           |
+   |-------------------------------------------+------------------------------------------|
+   | Terminales                                | Van en negrita                           |
+   | No Terminales                             | Van en cursiva                           |
+   | MetaSimbolo Producciones ->               | son los dos puntos ~:~                   |
+   | Para las opciones el operador l (el pipe) | No se usa, se escribe en una nueva linea |
+   | Para opciones de conjunto de caracteres   | Se agrega ~one of~                       |
+   |-------------------------------------------+------------------------------------------|
+*** Ejemplo
+   #+BEGIN_EXAMPLE
+   identificador:
+      identificador identificador-letra
+      identificador digito
+
+   identificador-letra: one of
+     a b c d
+     f g h i
+
+   digito: one of
+     0 1 2 3 8 9
+   #+END_eXAMPLE
+* [#A] Semántica
+** Concepto
+  - Guía al código que se va a generar
+** Semantica Estática
+   - Son las *restricciones que no aparecen en la BNF*, son *restricciones que aparecen en la documentación del lenguaje* (Ej. en C sería en el MROC)
+   - Sólo es *semantica estatica* si las restricciones es detectado al compilar
+* Espacios de Nombres (Name Spaces)
+** Conceptos
+  - Permite que un *Identificador* haga referencia a *objetos* distintos en el mismo *ámbito*
+  - Se puede repetir el nombre de *Identificador* en distintos *espacios de nombre*, pero no en el mismo *espacio de nombre*
+
+  Conceptos anteriores a recordar sobre los *Identificadores*
+  - Objeto: es una variable
+  - Valor: Representa bits en memoria (varía según el tipo)
+  - Tipo: Define el tipo de valores y cuanto espacio ocupará el valor
+  - Ambito (ó scope)
+    - Lugar donde el *identificador* puede ser usado (En todo el archivo, dentro de un bloque, ...)
+    - Un mismo *identificador* puede designar a distintos *objetos* en distintos *ámbitos*
+** Clasificación de Espacios de Nombres en C
+*** Etiquetas
+    - Luego de su nombre llevan : (dos puntos)
+    - Las *etiquetas* tienen su propio *Espacio de Nombres*
+*** Tags
+    - Son los nombres de las Estructuras-Uniones-Enumeraciones (comparten el Espacio de Nombres)
+    - NO se puede repetir los nombres entre Estructuras-Uniones-Enumeraciones al estar en el mismo *Espacio de Nombres*
+    - Cada Tag (estructura-union-enumeracion) crea su propio *espacio de nombres*
+      por eso se pueden repetir los nombres de los *miembros* (atributos) entre distintas estructuras
+*** Identificadores
+    - Son las variables, funciones, constantes de enumeracion, alias de tipos con typedef
+    - Los alias de tipos NO son nuevos tipos
+    - *(IMPORTANTE):* Las *Constantes de Enumeración* comparten el *espacio de nombres* con los *identificadores*
+      (no confundir con las Enumeraciones, estas son las que contienen a las Constantes de Enumeración)
+** Ejemplos
+*** Ejemplo 1
+  #+name: espacios-de-nombres-en-C
+  #+BEGIN_SRC c
+    #include <stdio.h>
+    /*
+     ERROR (1): Porque los Identificadores y las Constantes de Enumeración
+     comparten el *Espacio de nombres*
+
+     ERROR (2): Porque las Estructuras y las Enumeraciones comparten el mismo *Espacio de Nombres*
+
+     Observación: No confundir una Enumeración co una Constante de Enumeración..
+    ,*/
+
+    int main(void){
+      int nombre;
+      int edad;
+
+      struct otra { int campo; }; // tag: otra
+      struct nombre{ int campo; int edad; }; // tag: nombre
+      enum fun{UNO, DOS edad}; // tag: fun, ERROR (1)
+
+      enum otra{ int campo; } // tag: otra --> ERROR (2)
+
+      nombre: return 0; // etiqueta: nombre
+
+      return 0;
+    }
+  #+END_SRC
+*** Ejemplo 2
+  #+name: enumeracion-y-constante-enumeracion
+  #+BEGIN_SRC c
+    #include <stdio.h>
+
+    int main(){
+      // pongo este struct para mostrar que se parece a una Enumeración
+      // pero NO
+      struct nombre{int campo; int dia}; 
+
+      enum dia{LUNES=1,MARTES,MIERCOLES}; // esto es una Enumeración
+
+      // dia: es una Enumeración
+      // LUNES,MARTES,MIERCOLES son "Constantes de Enumeración"
+
+    }
+  #+END_SRC
+* [#A] Clasificación de Tipos
+** Otros Conceptos
+  - Las expresiones más simples son los *Identificadores*, su tipo se especificó al ser *declararlo*
+** Tipos Incompletos
+   - NO pueden ser un *ValorL* [[ValorL y ValorR][(Ir a Referencia)]]
+   - No se puede *declarar* tipos incompletos (con la excepción de los punteros, que si se puede)
+   - Algunos tipos incompletos son
+     - Arreglos sin dimensión
+     - Estructuras ó Uniones sin sus miembros (atributos)
+     - ~void~ (tiene un conjunto vacío de valores, y no se puede completar)
+** Clasificación de Tipos
+  #+name: diferencia-tipos
+  |-------------------+----------------------------------------------------------------------------------------------------------|
+  | Tipos             | Descripción                                                                                              |
+  |-------------------+----------------------------------------------------------------------------------------------------------|
+  | Tipo de Objetos   | Son las variables (NO el nombre, sinó el objeto almacenado en memoria tipo+identificador+valor asignado) |
+  | Tipo de Funciones | Describen su firma                                                                                       |
+  |-------------------+----------------------------------------------------------------------------------------------------------|
+*** Tipos de Objetos
+   - Recordemos que los *Objetos* son las variables (identificadores)
+   - Y según el tipo varía el espacio en memoria que ocupará el *Valor* y que valores puede tener el objeto
+
+   *IMPORTANTE*: Los tipos Carácter, Enumerados, Enteros, Reales Flotantes, son tipos COMPLETOS.
+   Sólo el tipo especial que es void, es un tipo INCOMPLETO.
+
+   #+name: tipos-de-objetos
+    |------------------------+---------------------------------------|
+    | Tipos Especiales       | Descripción                           |
+    |                        |                                       |
+    | void                   | "ES UN TIPO INCOMPLETO"               |
+    |------------------------+---------------------------------------|
+    | Tipos de Carácter      | Descripcion                           |
+    |                        |                                       |
+    | char                   | Espacio guardar un carácter (un byte) |
+    | signed char            |                                       |
+    | unsigned char          |                                       |
+    |------------------------+---------------------------------------|
+    | Tipos Enumerados       | Descripción                           |
+    |                        |                                       |
+    |                        | "Cada vez que definimos un enum tag"  |
+    |------------------------+---------------------------------------|
+    | Tipos Enteros          |                                       |
+    |                        |                                       |
+    | int                    |                                       |
+    | char                   | (con y sin signo)                     |
+    | short, long, long long | (variantes de int)                    |
+    | enumeracion            |                                       |
+    |------------------------+---------------------------------------|
+    | Tipos Reales flotantes |                                       |
+    |                        |                                       |
+    | float                  |                                       |
+    | double                 |                                       |
+    | long double            |                                       |
+    |------------------------+---------------------------------------|
+*** Tipos Derivados
+   A partir de los *tipo de objetos* y *tipo de funciones* derivan otros
+  
+   #+name: tipos-derivados
+   |------------------+----------------------------------------------------------------------|
+   | Tipos Derivados  | Descripcion                                                          |
+   |------------------+----------------------------------------------------------------------|
+   | Tipo arreglo     | Es un espacio en memoria, con una cantidad NO VACIA de miembros      |
+   |                  | que son "Objetos" de un determinado "Tipo"                           |
+   |                  | (Ej. todos los miembros son sólo del tipo int, ó char, ó float, ...) |
+   |------------------+----------------------------------------------------------------------|
+   | Tipo estructura  | Guarda en memoria una secuencia NO VACIA de miembros                 |
+   |                  | que pueden ser "Objetos" de distintos "Tipos"                        |
+   |                  | (Ej. pueden haber varios de tipo int, char, float, ...)              |
+   |------------------+----------------------------------------------------------------------|
+   | Tipo unión       | Similar al Tipo Estructura                                           |
+   |                  | los miembros se guardan al principio de memoria de la unión          |
+   |                  | y tienen una zona contigua de memoria (uno al lado del otro)         |
+   |------------------+----------------------------------------------------------------------|
+   | Tipo puntero     | Puede derivar de un Tipo Objeto ó de un Tipo Función                 |
+   | (ó Referenciado) |                                                                      |
+   |------------------+----------------------------------------------------------------------|
+* Errores Sintácticos/Semánticos (chequear si son sintácticos ó semánticos)
+  - En los *arreglos* _el subindice debe ser una Constante Entera_ (si no arroja error)
+  - La *expresión que controla al switch* _debe ser una Constante Entera_ (si no arroja error)
+  - (Chequeado) las restricciones semánticas de l-value son "Sensibles al Contexto" (GSC)
+  - (Chequeado) La redeclaración de variables en una función
+    - Se puede si están en distintos bloques (osea en otro ámbito/scope)
+    - NO es error *Sintáctico*, porque necesitamos conocimiento del contexto osea de la (GSC)
+
+    #+BEGIN_COMMENT
+    Recordemos que las (GIC) Gramáticas Independientes de Contexto generan las 
+    *Categorías Sintácticas* (declaraciones, sentencias, expresiones) y "estas NO dependen del contexto"
+    #+END_COMMENT
+** Misma Sintáxis y distinta Semántica
+  #+name: lenguaje-c-sizeof
+  #+BEGIN_EXAMPLE
+  En C y C++ el sizeof('a') devuelve un valor distinto para ambos
+  #+END_EXAMPLE
+** Misma Semántica y distinta Sintáxis
+   - La asignación según el lenguaje puede variar
+  #+name: asignacion-distintos-lenguajes
+  #+BEGIN_EXAMPLE
+  numero =  15; (en C,C++, Java, ...)
+  numero := 15; (en pascal,algol, ...)
+  #+END_EXAMPLE
+** Constructos válidos (NO reportan error)
+  #+name: codigo-ejemplo1-constructos-validos
+  #+BEGIN_SRC c
+    #include <stdio.h>
+
+    void fi(int algo){ }
+
+    int main(){
+      int a, x;
+
+      // dos sentencias expresión
+     fi(x>0); a=x;
+
+     // una sentencia expresión, con dos expresiones
+     // separadas por el Caracter de Puntuación coma
+     fi(x>0), a=x;
+
+     return 0;
+    }
+  #+END_SRC
+** Errores Sintácticos (Usuario)   
+** Errores Semánticos (Usuario)
+   *Nota:* NO es lo mismo algo *Semánticamente correcto para el Compilador* que *Semánticamente correcto para el Usuario*
+
+   - Algo es semánticamente correcto para el Usuario, si ese algo hace lo que el usuario requiere
+   #+name: ejemplo1-error-semantico-usuario
+   #+BEGIN_EXAMPLE
+   si analizamos la siguiente expresión (no importa que no esté retornando un valor)
+   {int a,b,c; a < b < c; { }}
+
+   1. Es sintácticamente correcta para el Compilador porque:
+   - se puede derivar de la BNF de ANSI C (y algo más?) (osea derivar la GIC que representa a la BNF y genera la sintáxis)
+   (entonces el parser no reportará error sintáctico)
+   
+   2. Es semánticamente correcta para el Compilador porque
+   - es sintácticamente correcta (explicado en el punto 1)
+   - los identificadores (en este caso son variables, osea Objetos porque ocupan espacio en memoria) están definidos (también declarados)
+   - los tipos de los operandos son correctos
+   - cumple las restricciones... (las dos anteriores serian, o que más podria ser?) 
+   
+   3. NO es semánticamente correcta para el Usuario porque si queremos saber si 'b' está entre 'a' y 'c' 
+   necesitamos usar el operador AND lógico quedando
+   {int a,b,c; a < b && b < c; { }}
+   
+   4. NO es sintácticamente correcta para el Usuario porque si NO es semánticamente correcta, tampoco lo será sintácticamente
+   #+END_EXAMPLE
+** Errores Sintácticos (Compilador)
+*** Conceptos
+    - Cuando el Parser (Analizador Sintáctico) al analizar una expresión, ésta no se puede *derivar* de las *reglas sintácticas de la BNF*
+    - Cuando a partir de una expresión no se puede armar un árbol sintáctico
+    - Son errores en *tiempo de compilación*
+*** Ejemplos
+    #+name: errores-sintacticos
+    #+BEGIN_QUOTE
+    ~if x<0 a()~
+    porque la *sentencia de seleccion* ~if~,
+    requiere que la expresión que controla el if, esté entre paréntesis
+    #+END_QUOTE
+** Errores Semánticos (Compilador)
+   *Nota:* NO es lo mismo algo *Semánticamente correcto para el Compilador* que *Semánticamente correcto para el Usuario*
+   
+   Se puede detectar porque utiliza una (GSC) se tiene conocimiento del contexto
+
+   - Cuando la cadena es *derivable* de la BNF, pero NO cumple con las restricciones <- por ejemplo?
+   - Son errores en *tiempo de ejecución*
+   - El *compilador* reporta este error
+   - Errores semánticos de C
+     - (CHEQUEAR y dar EJEMPLOS) Verificación de tipos (algunos operadores operan sólo con algunos operandos, ej. los [] de los arreglos, los () de los condicionales, el ++,--, ...)
+     - (CHEQUEAR) Redeclaracion de identificadores (supongo que hace referencia a identificadores que son funciones, porque despues menciona las variables)
+     - Redefinición de variables (las variables son un tipo de identificador denominados Objetos, que requieren de un tipo y valor)
+     - (CHEQUEAR) Variables NO definidas 
+     - Identificador no declarado (variables/funciones)
+     - Funciones con cantidad o tipo incorrecto de parámetros (demasiados argumentos respecto a la declaración/prototipo de la función)
+     - Asignación a expresión que no es l-value modificable.
+     - Operador punto aplicado a expresión que no es estructura ni unión.
+     - Si una funcion void retorna algo, que tipo de error semántico sería (?) de tipos?
+
+   #+name: ejemplo1-error-semantico
+   #+BEGIN_SRC c
+     #include <stdio.h>
+
+     void XX (void);
+
+     int main(){
+       return 0;
+     }
+
+     void XX (void) {
+       int a;
+       double a; // Compilador (?) reporta Error semántico
+       /*
+        * Es error semántico porque...:
+        * Hay redefinición de identificadores (en este caso, hablamos de Objetos osea variables)
+        * que están el mismo "Ámbito" (Scope), por tanto comparten el mismo "Espacio de nombres" (Name Spaces)
+        *
+        * Observaciones:
+        * 1. NO sería error si las variables estuviesen definidas en bloques distintos (Sentencias Compuestas)
+        * 2. Cuando se define un identificador (tipo Objeto, es decir una variable) también se está declarando (porque se
+        declara el tipo, que luego determina cuanto se reserva en memoria para ese objeto)
+        * 3. Cuando se define un identificador (tipo Función) se utilizan los { }
+        */
+
+       if (a > a)
+         return 12;
+     }
+   #+END_SRC
+
+   #+name: error-semantico 
+   #+BEGIN_SRC C
+   if (var) i++;
+   // - Es sintácticamente correcto
+   // - Semánticamente correcto si var fue definida como un tipo escalar (numérico o puntero).
+   #+END_SRC
+   
+  #+name: errores-semanticos
+  #+BEGIN_SRC C
+  int i,j=5;
+  void *p;
+  p=&j;
+  i=*p; // error
+  // porque no se puede desreferenciar un puntero apuntando a void <- "creo que se puede, pero se debe castear" Ej. (int*)p
+
+  int p = 5;
+  8 = p-;
+
+  'F'=a++; // error
+  // porque el operador = necesita de un valorL modificable
+
+  ++42; // error
+  // porque el operador ++ necesita de un valorL y el operando 42 es una constante enteras
+
+  int *p, a[p]; // error
+  // porque expresion arreglo, necesita que entre los corchetes [ ] haya una constante entera
+ 
+  int *p
+  switch(p){ } // error
+  // porque la sentencia de seleccion switch, necesita que la expresion que controla al switch sea una constante Entera
+  #+END_SRC
+** Errores Léxicos 
+  #+name: errores-lexicos
+  #+BEGIN_SRC C
+  {int a=0; a @= 1;} 
+
+  // Porque @ no es un Operador. Además entre a y @ hay un espacio por tanto tampoco es un Identificador.
+  // Al no entrar en ninguna de la categorías de las Categorías Lexicas, es un Error Léxico.
+  #+END_SRC
+* RESTRICCIONES de C
+  - Si hay descripciones de BNF que no son exactas, se agregan restricciones en (LN) *Lenguaje Natural*
+  - Agregan características que la (GIC) ó la BNF no pueden representar de forma clara
+
+  - Para que algo sea *semánticamente* correcto para el *compilador*, tiene que:
+    - Ser *sintácticamente* correcto para el compilador
+    - Cumplir con las restricciones de la GSC (gramática sensible de contexto) que una GIC no podría representar
+
+   #+name: ejemplo-restriccion-de-c
+   #+BEGIN_QUOTE
+   *ANSI C* agrega una restricción en los operadores de asignación
+   "un operador de asignación debe tener un valorL modificable como su operando izquierdo"
+   
+   Por ejemplo lo siguiente: 1 = 2 
+   se puede derivar, por tanto debería ser sintáticamente válido...
+   Pero la restricción mencionada impide que sea totalmente válido.
+   #+END_QUOTE
+* [#A] (CODIGO) BNF de C
+** Identificadores
+   #+name: gramatica-bnf
+   #+BEGIN_EXAMPLE
+   <identificador> -> <no dígito> | <identificador> <no dígito> |
+                      <identificador> <dígito>
+   <no dígito> -> uno de _ a b c d e f g h i j k l m n o p q r s t u v
+   w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+
+   <dígito> -> uno de 0 1 2 3 4 5 6 7 8 9
+   #+END_EXAMPLE
+
+   #+name: formato-expresion-regular
+   #+BEGIN_EXAMPLE
+   (letra + subrayado)(letra + subrayado + digito)
+   #+END_EXAMPLE
+** Expresiones
+   #+name: expresiones-primarias
+   #+BEGIN_EXAMPLE
+   primary-expression:
+     identifier
+     constant
+     string-literal
+     ( expression )
+     generic-selection
+   #+END_EXAMPLE
+
+   #+name: expresion-asignacion
+   #+BEGIN_EXAMPLE
+   assignment-expression:
+     conditional-expression
+     unary-expression assig-operator assignment-expression
+   
+   assig-operator: one of
+     = *= /= %= += -= <<= >>= &= ^= |=
+   
+   expression:
+     assignment-expression
+     expression , assignment-expression
+   #+END_EXAMPLE
+   
+** Sentencias
+   #+BEGIN_EXAMPLE
+   statement:
+     labeled-statement
+     compound-statement
+     expression-statement
+     selection-statement
+     iteration-statement
+     jump-statement
+   #+END_EXAMPLE
+** Sentencia de Selección 
+   - Es importante los paŕentesis en la expresión que controla a la sentencia de selección, porque... (?)
+   - Seguido a la expresión puede ir cualquier tipo de sentencia
+   
+   #+name: sentencia-seleccion
+   #+BEGIN_EXAMPLE
+   selection-statement:
+     if ( expression ) statement
+     if ( expression ) statement else statement
+     switch ( expression ) statement
+   #+END_EXAMPLE
+* (CODIGO) Sintáxis de C
+  #+BEGIN_COMMENT
+    - En el *MROC* aparecen las *restricciones* sobre los constructos definidos
+    en la "Sintaxis" y que la BNF no expresa totalmente
+    - Para que algo sea *sintácticamente* correcto para el *compilador*, 
+    tiene que ser derivable de la BNF de ANSI C (mediante el proceso de derivación, puede ser horizontal ó vertical)
+  #+END_COMMENT
+** Declaraciones
+   - Una *declaración* especifica la interpretación y los atributos de un conjunto de identificadores.
+   - Si una declaración _provoca reserva de memoria_, se la llama *definición*
+    
+   #+name: ejemplo-declaracion
+   #+BEGIN_EXAMPLE
+      <declaración> ->
+          <especificadores de declaración> <lista de declaradores>?
+      
+      <especificadores de declaración> ->
+          <especificador de clase de almacenamiento> <especificadores de declaración>? |
+          <especificador de tipo> <especificadores de declaración>? |
+          <calificador de tipo> <especificadores de declaración>?
+
+      <lista de declaradores> ->
+          <declarador> |
+          <lista de declaradores> , <declarador>
+      #+END_EXAMPLE
+** Especificador de Clase de Almacenamiento
+   Aunque en la materia no se menciona al **typedef** como algo de almacenamiento,
+   si no que sirve para ponerle un nombre a un tipo de dato (NO CREA NUEVOS TIPOS)
+
+   #+BEGIN_EXAMPLE
+   Facilita definir estructuras (previamente declaradas)
+   Ej. En vez de definirlo "struct persona carlos" declararlo como "persona carlos" sin el struct.
+
+   Mejora la expresividad de tipos de datos existentes
+   Ej. en vez de "int telefono" , que sea "TELEFONO casa" (por asi decir, quizás haya ejemplos mejores)
+   #+END_EXAMPLE
+
+   #+name: especificador-de-clase-de-almacenamiento
+   #+BEGIN_EXAMPLE
+   <especificador de clase de almacenamiento> -> uno de
+                                                 typedef static auto register extern
+    - No más de un <especificador de clase de almacenamiento> puede haber en una declaración
+   #+END_EXAMPLE
+** Especificadores de tipo
+   #+name: especificadores-de-tipo
+   #+BEGIN_EXAMPLE
+   <especificador de tipo> -> uno de
+                              void char short int long float double signed unsigned
+
+   <especificador de "struct" o "union">
+   <especificador de "enum">
+   <nombre de "typedef">
+   #+END_EXAMPLE
+  
+   especificador de clase de almacenamiento... (?)
+* Scanner (Analizador Léxico)
+* Parser (Analizador Sintáctico)
+  Las actividades que realiza el Parser son
+  - Procesa una secuencia de tokens
+* Lex
+  - Puede contener reglas.
+  - Puede contener acciones.
+  - Puede contener condiciones.
+  - Puede contener partes en lenguaje C.
+  - Puede contener partes en notación RegEx.
+* Sitios de referencia
+** Punteros
+   1. http://conclase.net/c/curso/cap12
+** TypeCasting ó Conversión de tipos
+  1. https://www.improgrammer.net/type-casting-c-language/
+  2. https://developerinsider.co/type-casting-c-programming/
+  3. https://www.geeksforgeeks.org/type-conversion-c/
+  4. https://www.geeksforgeeks.org/integer-promotions-in-c/
+  5. http://conclase.net/c/curso/cap9
+** Operadores (releer)
+   1. https://docs.microsoft.com/es-es/cpp/c-language/c-operators?view=msvc-160
+** Preprocesador (releer)
+   1. https://docs.microsoft.com/es-es/cpp/preprocessor/preprocessor-directives?view=msvc-160
+** Tipos de datos
+   1. http://www.it.uc3m.es/pbasanta/asng/course_notes/data_types_es.html
+   2. http://profesores.fi-b.unam.mx/carlos/lcpi/p09/TIPOS%20DE%20DATOS%20EN%20C.pdf
+   3. https://www.fing.edu.uy/tecnoinf/mvd/cursos/prinprog/material/teo/prinprog-teorico05.pdf
+** Gcc
+   1. https://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando/

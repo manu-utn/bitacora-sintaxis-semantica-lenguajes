@@ -1,0 +1,194 @@
+#+TITLE: Resumen Parte Práctica
+* Punteros
+** Ejemplos
+  #+name: ejemplo1-punteros-raritos
+  #+BEGIN_EXAMPLE
+  int * [3] /* vector de 3 punteros a int */
+
+  int (*) [3] /* puntero a un vector de 3 ints */
+
+  int (*) ( void ) /* puntero a una función sin parámetros y que retorna un int */
+
+  int ( *[ ] ) ( unsigned, . . . )
+  /* vector de un número no especificado de punteros a funciones, cada una de las
+  cuales tiene un parámetro unsigned int más un número
+  no especificado de otros parámetros, y retorna un int
+  */
+  #+END_EXAMPLE
+** Ejemplos en código
+   #+name: ejemplo0-punteros-basico
+   #+BEGIN_SRC c
+     #include <stdio.h>
+
+     int main(){
+       // Es correcto colocar el asterisco de puntero detrás del identificador
+       // y no hacerlo delante del tipo (no tira error pero si luego puede prestar
+       // a confusión al declarar varios punteros)
+
+       // - Acá tenemos un puntero p que apunta a un int, y un int
+       int *p, x;
+
+       // - Colocar el asterisco de puntero delante del tipo de dato puede generar
+       // esta confusión. Creer que declaramos dos punteros apuntando a int, pero NO.
+       // Es sólo un puntero a int, y un int
+       int* a, b;
+
+       // Declarando dos o más punteros que apuntan al mismo tipo
+       int *p2, *p3;
+
+       // otra alternativa
+       int *p4;
+       int *p5;
+
+       return 0;
+     }
+   #+END_SRC
+
+   #+name: ejemplo1-punteros-arreglos
+   #+BEGIN_SRC c
+     #include <stdio.h>
+
+     int main(){
+       int arreglo[5] = {0,1,2,3,4};
+       int *puntero;
+
+       puntero = arreglo; // puntero = &arreglo[0]
+       (*puntero)++; // arreglo[0]++
+
+
+       // apunta a la dirección de memoria del siguiente elemento tipo int)
+       // el puntero se incrementa en la longitud de un int, se deplaza lo que ocupe en memoria el objeto tipo int
+       puntero++; // puntero = &arreglo[1]
+       printf("DIRECCION=%x, arreglo[1]=%d\n", puntero, *puntero);
+
+       { printf("%x\n", puntero); printf("%x\n", puntero);  /*imprimen lo mismo*/}
+
+       return 0;
+     }
+   #+END_SRC
+   
+   #+name: ejemplo2-punteros-arreglos
+   #+BEGIN_SRC c
+     #include <stdio.h>
+
+     int main(){
+       char cadena1[] = "carlitos";
+       char *cadena2 = "pedrito";
+       char * const cadena3 = "pepe"; // no se podrá hacer cadena3="hola"
+       const char * cadena4 = "morales"; // si se podrá hacer cadena="pepe"
+
+       printf("cadena1=%s\n", cadena1);
+       printf("cadena2=%s\n", cadena2);
+       printf("cadena3=%s\n", cadena3);
+       printf("cadena4=%s\n", cadena4);
+
+       printf("\n\n");
+       // cadena1++; // ERROR SEMÁNTICO..! :( OPERACIÓN INVALIDA
+       //
+       // - Es error porque el operador de incremento ++ necesita de un operandor "l-value MODIFICABLE"
+       // y el identificador cadena1 al ser definido como un arreglo se considera como un "puntero constante",
+       // que NO puede apuntar a otra dirección de memoria.
+       // - El compilador asigna de forma automática una zona en memoria para los arreglos (esto no sucede con los punteros)
+
+       // OPERACIÓN VALIDA :)
+       cadena2++;
+       printf("cadena2=%s\n", cadena2);
+
+       //cadena3++; // ERROR SEMANTICO
+       printf("cadena3=%s\n", cadena3);
+
+       cadena4 = "oh";
+       printf("cadena4=%s\n", cadena4);
+
+       return 0;
+     }
+   #+END_SRC
+
+   #+name: ejemplo3-punteros-arreglos
+   #+BEGIN_SRC c
+     #include <stdio.h>
+
+     int main(){
+       // colores 1 es un arreglo de char que almacena 4 cadenas de hasta 10 caracteres
+       char colores1[][10] = {"verde", "rojo", "azul", "blanco"};
+
+       // colores2 es un arreglo de punteros a char
+       // NOTA: cada elemento de arreglo es un puntero a char, hay 4 punteros a char
+       char *colores2[] = {"verde", "rojo", "azul", "blanco"};
+
+       printf("Tamaño de colores1: %d\n", sizeof(colores1));
+       printf("Tamaño de colores2: %d\n", sizeof(colores2));
+
+       return 0;
+     }
+
+   #+END_SRC
+
+   #+name: ejemplo4-punteros-structs
+   #+BEGIN_SRC c
+       #include <stdio.h>
+       #include <string.h>
+
+       // - declaramos una estructura empleado
+       // - definimos un arreglo de estructura empleado longitud 10 (reserva memoria para 10 elementos, que son tipo struct empleado)
+       struct empleado{
+         char nombre[15]; // cadena de caracteres, longitud 15
+         int edad;
+       } Empleados[10]; // con esta parte Empleados[10] se está definiendo el arreglo del tipo struct empleado
+
+       int main(){
+         struct empleado *cocineros; // declaramos un puntero que apunta a una estructura
+
+         // asignamos al puntero la dirección de memoria del primer elemento del arreglo de tipo struct empleado
+         cocineros = Empleados; // una expresion equivalente es: cocineros = &Empleados[0]
+
+         // - strcpy() es una función de la biblioteca string.h, para asignar una cadena de caracteres a un arreglo de tipo char
+         // - accedemos a los miembros de la estructura con el operador . (punto)
+         strcpy(Empleados[0].nombre, "pepe");
+         Empleados[0].edad = 5;
+
+         // ambos printf() imprimen el mismo resultado
+         // - el 1ro usa el arreglo del tipo struct empleado
+         // - el 2do usa el puntero que apunta al mismo arreglo del tipo struct empleado
+         printf("Empleados[0].nombre=%s, Empleados[0].edad=%d\n", Empleados[0].nombre, Empleados[0].edad);
+
+         // - accedemos a los miembros de un puntero a una estructura con el operador ->
+         printf("cocineros->nombre=%s, cocineros->edad=%d\n", cocineros->nombre, cocineros->edad);
+
+         printf("\n\n");
+
+         /*****************************************************************************************************/
+
+         struct empleado e1= { "carlitos", 10 };
+         Empleados[1] = e1;
+         // hacemos que el puntero apunte al siguiente dirección en memoria tipo struct empleado
+         // cocineros = &Empleados[1]
+         cocineros++;
+
+         // ambos printf() imprimen el mismo resultado
+         printf("Empleados[1].nombre=%s, Empleados[1].edad=%d\n", Empleados[1].nombre, Empleados[1].edad);
+         printf("cocineros->nombre=%s, cocineros->edad=%d\n", cocineros->nombre, cocineros->edad);
+         printf("\n\n");
+
+         /*****************************************************************************************************/
+
+         struct empleado e2= { "fede", 15 };
+         // el puntero, apunta al direccion de memoria del segundo elemento del arreglo de tipo struct empleado
+         // (recordá que Empleados[0] representa el primer elemento, Empleados[1] el segundo, y asi.. al menos asi es en C)
+         cocineros = &Empleados[1];
+         // - el índice negativo sólo se puede usar en punteros (NO SE PUEDE USAR INDICE NEGATIVO EN UN ARREGLO)
+         // - un arreglo NO puede tener indice negativo, porque NO puede acceder a una zona de memoria que no le pertenece a ese arreglo
+         // - el puntero cocineros[-1 ] apunta al primer elemento osea Empleados[0]
+         //
+         // 1) le asignamos a Empleados[0] la estructura empleado e2,
+         // 2) luego a cocineros[-1] que es lo mismo que decir Empleados[0] le asignamos también e2
+         // osea cocineros[-1] = e2 y Empleados[0] = e2 estarían haciendo lo mismo (suponiendo que cocineros=&Empleados[1])
+         cocineros[-1] = Empleados[0] = e2;
+         printf("Empleados[0].nombre=%s, Empleados[0].edad=%d\n", Empleados[0].nombre, Empleados[0].edad);
+         printf("Empleados[1].nombre=%s, Empleados[1].edad=%d\n", Empleados[1].nombre, Empleados[1].edad);
+
+         return 0;
+       }
+   #+END_SRC
+** Referencias
+   1. http://conclase.net/c/curso/cap12
