@@ -165,7 +165,7 @@
    | a=4+2 | a=6  |
    | a=6   |      |
    |-------+------|
-** [WAITING] [#A] Problema 6 (desconocido)
+** [#A] Problema 6 (desconocido)
 *** Enunciado
    #+BEGIN_SRC C
     int g(void){putchar('g');return 'g'-'f';}
@@ -180,17 +180,7 @@
    2. ~g()*f()~
    3. ~g()||f()~
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: Por qué la salida por stdout de evaluar ~g()*f()~ sería indeterminada?
-   Entiendo que el orden de evaluación de los operandos es a nivel semántico,
-   y que es de izquierda a derecha para los operadores lógicos como AND y OR
-
-   para el caso del operador arimético ~*~ "creo" que no está específicado,
-   el orden de evaluación de los operandos, porque no se sabe si se ejecuta primero f() ó g() ?
-   *OJO.. "que tuviste problema en el final con este tema..."*
-   #+END_COMMENT
-   
+*** Respuesta   
    | Expresión  | valor | salida por stdout |
    |------------+-------+-------------------|
    | ~g()&&f()~ |     0 | gf                |
@@ -209,13 +199,29 @@
       
    En la expresión ~g()*f()~
    - El valor de retorno es ~0~ porque al evaluarla resulta en ~1*0~ que es una operación arimética común
-   - La salida por stout es ~gf~ mismo caso que con el operador lógico AND &&
-      
+   - La salida por stout es *INDETERMINADA* el orden de evaluación de operandos sólo está específicado para
+     1) Operadores lógicos ~&&~ y ~||~
+     2) Operador ternario ~(exp1) exp2 ? : exp3~
+     3) Y para la coma ~,~
+     
    En la expresión ~g()||f()~
    - El valor de retorno es ~1~ porque como operadores lógicos se evalúan de izq. a der. (por su asociatividad),
      es suficiente para el operador lógico OR ~||~ con que uno de los operandos valga ~1~ para retornar ~1~,
    - La salida por stout es ~g~ misma explicación que antes, y también que el operando de la derecha no se llega a evaluar,
      ya que termina de evaluarse la expresión con que uno de los operandos valga ~1~ (para el operador lógico OR)
+   #+END_QUOTE
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   Por qué la salida por stdout de evaluar ~g()*f()~ sería indeterminada?
+   Entiendo que el orden de evaluación de los operandos es a nivel semántico,
+   y que es de izquierda a derecha para los operadores lógicos como AND y OR
+
+   *Rta:*
+   Si, la Semántica especifíca *el orden de evaluación de los operandos* conocido como *Secuenciación*
+   para sólo cuatro operadores (operadores lógicos AND/OR, la coma y el operador ternario)
+   La Sintáxis sólo *especifíca el orden de aplicación de los operadores*
+   que está dada por la Precedencia/Asociatividad según la BNF de C
    #+END_QUOTE
 * Evaluar Operandos y Operadores
 ** [#A] Problema 1 (2020-12-21) <- interesante
@@ -439,27 +445,7 @@
    4. Indique el *prototipo* de CopyUser.
    5. Escriba la *definición* de CopyUser
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: (resuelta) la resolución no consideró la "declaración" como una "sentencia expresión", por que?
-
-   *Rta:* (similar al parcial 2020-12-14). NO son lo mismo, porque hay 3 categorías sintácticas: Declaración, Sentencia, Expresion.
-   No es lo mismo una Sentencia que una Declaración.
-   
-   <sentencia> ->
-     <sentencia expresión> |
-     <sentencia compuesta> |
-     <sentencia de selección> |
-     <sentencia de iteración> |
-     <sentencia etiquetada> |
-     <sentencia de salto>
-   
-   <sentencia expresión> ->
-     <expresión>? ;
-
-   <nombre de tipo> está descripto más adelante, en la secciónDeclaraciones.
-   #+END_COMMENT
-   
+*** Respuesta   
    #+BEGIN_QUOTE
    (1) Una declaración es una sentencia donde se específica atributos para darles un significado (Ej. tipo de dato) a uno ó varios identificadores.
    Por tanto existe sólo una declaración en ese fragmento y es ~char user[1000]~ que tiene 5 tokens
@@ -507,7 +493,29 @@
 
 
    #+END_SRC
-** [WAITING] [#A] Problema 12 (2020-03-03) <- interesante
+*** Dudas Resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   La resolución no consideró la "declaración" como una "sentencia expresión", por que?
+
+   *Rta:*
+   (similar al parcial 2020-12-14). NO son lo mismo, porque hay 3 categorías sintácticas: Declaración, Sentencia, Expresion.
+   No es lo mismo una Sentencia que una Declaración.
+   
+   <sentencia> ->
+     <sentencia expresión> |
+     <sentencia compuesta> |
+     <sentencia de selección> |
+     <sentencia de iteración> |
+     <sentencia etiquetada> |
+     <sentencia de salto>
+   
+   <sentencia expresión> ->
+     <expresión>? ;
+
+   <nombre de tipo> está descripto más adelante, en la secciónDeclaraciones.
+   #+END_QUOTE
+** [#A] Problema 12 (2020-03-03) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Dado el fragmento: ~0xF+F0x+0L+L0~
@@ -523,12 +531,6 @@
       por *error de tipo*
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>:
-   El scanner para leer ~0xF+F0x+0L+L0~ hace 7 invocaciones a ungetc según la resolución, y yo veo 6
-   el 7 será el EOF?
-   #+END_COMMENT
-
    #+BEGIN_QUOTE
    (3) (4) el scanner hace 20 invocaciones a ~getchar~ (cant. de invocaciones nos da 4+2+4+2+3+2+2 = 20)
    - una invocación por cada caracter leído,
@@ -608,6 +610,13 @@
      // válido para usar con el operador '+'
      struct {} F0x, L0;
    #+END_SRC
+*** Dudas resueltas
+   #+BEGIN_QUOTE
+   El scanner para leer ~0xF+F0x+0L+L0~ hace 7 invocaciones a ungetc según la resolución, y yo veo 6
+   el 7 será el EOF?
+
+   *Rta:* Si, luego de leer ~L0~ lee un EOF
+   #+END_QUOTE
 ** [#A] Problema 14  (2020-02-12) <- interesante
 *** Enunciado
    #+BEGIN_SRC C
@@ -643,12 +652,6 @@
    ~<sentencia de salto> -> continue; | break; | return <expresion>? | goto <identificador>;~
    #+END_QUOTE
 
-   #+BEGIN_COMMENT   
-   <<DUDA>>: (resuelta) No estoy seguro si estará ok el de ungetc y getchar, la respuesta coincide con la resolución
-   pero la misma sólo da la cantidad, no detalla
-
-   *Rta*: te faltaba considerar la lectura del espacio, éste es también otro caracter más, al igual que el ~\n~ ó ~\0~ etc..
-   #+END_COMMENT
    
    |---------+---+---+----+---+----+--------+-----------+---+----+--------+-----------+---+---+----|
    |         | i | f | (  | 0 | )  | return | ~espacio~ | 1 | ;  | return | ~espacio~ | 4 | 2 | ;  |
@@ -703,6 +706,15 @@
    
    (3) Que el comportamiento de ~f~ es retornar siempre 42, ya que la condición de if nunca se cumple al pasarle ~0~
    #+END_QUOTE
+*** Dudas Resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   No estoy seguro si estará ok el de ungetc y getchar, la respuesta coincide con la resolución
+   pero la misma sólo da la cantidad, no detalla
+
+   *Rta*:
+   Te faltaba considerar la lectura del espacio, éste es también otro caracter más, al igual que el ~\n~ ó ~\0~ etc..
+   #+END_QUOTE
 ** [#A] Problema 27 (2018-12-17) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
@@ -712,24 +724,6 @@
    3. Nivel semántico — Escriba una *declaración* que haga *semánticamente correcta* a la expresión
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: (resuelta) (1) la resolución dice que son: [, ], (, )
-   pero yo detecté que era a,=,) y.. que algunos de los que menciona si requerían ungetc para ser detectados
-
-   **Rta:* cuando los leen en realidad hacen ungetc, pero no hay otro caracter que junto con los paréntesis, corchetes ó llaves
-   formen otra palabra que pertenezca a alguna de las Categorias léxicas.
-
-   1. a <- getchar
-   2. [ <- ungetc, por tanto 2 getchar
-   3. i <- getchar
-   4. ] <- ungetc, por tanto 2 getchar 
-   5. = <- getchar
-   6. f <- ungetc, por tanto 2 getchar 
-   7. ( <- ungetc, por tanto 2 getchar 
-   8. i <- getchar
-   9. ) <- ungetc, por tanto 2 getchar 
-   #+END_COMMENT
-
    #+BEGIN_QUOTE
    (1) Los caracteres que no requieren ~ungetc~ para su detección serían 4, los corchetes y los paréntesis,
    porque no hay una palabra en las *Categorias Lexicas* que esté formado con alguno de ellos,
@@ -763,6 +757,26 @@
    #+BEGIN_SRC C
      int i, a[10], f(int);
    #+END_SRC
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   En la (1) la resolución dice que son: [, ], (, )
+   pero yo detecté que era a,=,) y.. que algunos de los que menciona si requerían ungetc para ser detectados
+
+   *Rta:*
+   cuando los leen en realidad hacen ungetc, pero no hay otro caracter que junto con los paréntesis, corchetes ó llaves
+   formen otra palabra que pertenezca a alguna de las Categorias léxicas.
+
+   1. a <- getchar
+   2. [ <- ungetc, por tanto 2 getchar
+   3. i <- getchar
+   4. ] <- ungetc, por tanto 2 getchar 
+   5. = <- getchar
+   6. f <- ungetc, por tanto 2 getchar 
+   7. ( <- ungetc, por tanto 2 getchar 
+   8. i <- getchar
+   9. ) <- ungetc, por tanto 2 getchar 
+   #+END_QUOTE
 ** Problema 1 (2021-06-23)
 *** Enunciado
    #+BEGIN_SRC c
@@ -1120,18 +1134,6 @@
    2. ¿Explique para qué usaría la keyword ~union~ en la *construcción de scanners*?
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT   
-   <<DUDA>>: (resuelta) La resolución dice que hay 3 expresiones completas, cuales son? y cuales serian no completas(?)
-   *Rta:* son ~d=c-7~ (exp. de asignación), ~printf(..)~ (por ser una invocación) y ~d~ (expresión primaria, por ser identificador)
-   
-   <<DUDA>>: (resuelta) habia considerado la declaración ~int d = c-7;~ como sentencia expresión,
-   pero la resolución indicaba que había sólo 2, al derivar de la gramatica de la BNF
-   ésta no resulta como sentencia expresión entonces?
- 
-   *Rta:* NO, porque hay 3 categorías sintácticas: Declaración, Sentencia, Expresion.
-   No es lo mismo una Sentencia que una Declaración.
-   #+END_COMMENT
-   
    #+BEGIN_QUOTE
    (1) Cant. de sentencias: 2
    1. ~printf(...);~ (sentencia expresión)
@@ -1153,6 +1155,26 @@
      typedef enum {IDENTIFICADOR, OPERADOR, ...} TIPO_TOKEN;
      typedef union{ TIPO_TOKEN tipo; char* valor; } TOKEN;
    #+END_SRC
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   La resolución dice que hay 3 expresiones completas, cuales son? y cuales serian no completas(?)
+   
+   *Rta:*
+   son ~d=c-7~ (exp. de asignación),
+   ~printf(..)~ (por ser una invocación)
+   y ~d~ (expresión primaria, por ser identificador)
+   #+END_QUOTE
+**** Duda 2
+   #+BEGIN_QUOTE
+   habia considerado la declaración ~int d = c-7;~ como sentencia expresión,
+   pero la resolución indicaba que había sólo 2, al derivar de la gramatica de la BNF
+   ésta no resulta como sentencia expresión entonces?
+ 
+   *Rta:*
+   NO, porque hay 3 categorías sintácticas: Declaración, Sentencia, Expresion.
+   No es lo mismo una Sentencia que una Declaración.
+   #+END_QUOTE
 ** Problema 10 (2020-10-14)
 *** Enunciado
    #+BEGIN_QUOTE
@@ -1230,17 +1252,7 @@
    4. *Analice pragmáticamente* el renglón #2 en el contexto del renglón #1. Indique si hay un error
    pragmático o no. Justifique.
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: El scanner siempre detecta a los caracteres ~(~ y ~)~ como punctuator?,
-   en algún momento sabe que son operador ~()~ ?
-   
-   *Rta*: SI, el scanner sólo los detecta como punctuator porque no sabe si lo estás usando
-   como operador.. porque éste recibe una secuencia de caracteres..
-
-   Distinto hubiera sido si te pedían a nivel sintáctico, porque éste recibe una secuencia de tokens
-   #+END_COMMENT
-   
+*** Respuesta   
    #+BEGIN_QUOTE
    (1) Cant. de TOKENS: 11 (si analizamos *lexicamente*)
     1. ~int~ (palabra reservada)
@@ -1267,6 +1279,17 @@
    
    (4) En la declaración ~int f~, al no inicializar ~f~ y hacer ~f+=42~,
    lo que hará será sumarle 42 a un valor basura que tiene por defecto ~f~
+   #+END_QUOTE
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   El scanner siempre detecta a los caracteres ~(~ y ~)~ como punctuator?,
+   en algún momento sabe que son operador ~()~ ?
+   
+   *Rta*: SI, el scanner sólo los detecta como punctuator porque no sabe si lo estás usando
+   como operador.. porque éste recibe una secuencia de caracteres..
+
+   Distinto hubiera sido si te pedían a nivel sintáctico, porque éste recibe una secuencia de tokens
    #+END_QUOTE
 ** Problema 15 (2019-12-18)
 *** Enunciado
@@ -1349,7 +1372,7 @@
      <constante cadena> |
      (<expresión>)
    #+END_QUOTE
-** [WAITING] [#A] Problema 16 (2019-12-18)
+** [#A] Problema 16 (2019-12-18)
 *** Enunciado
    #+BEGIN_QUOTE
    1. Indique el orden de las *etapas fuera y dentro del proceso de compilación*, donde uno (1) es la
@@ -1369,10 +1392,6 @@
       - Para compilar con éxito una *unidad de traducción (UT)* debe tener las *definiciones de todos los identificadores* que aparecen en la misma  
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: Chequear con alguien las respuestas 2.2, 2.4, y 2.5
-   #+END_COMMENT
-
    #+BEGIN_QUOTE
    (1) etapas
    |---+----------------------+---------------+-----------------------------------------------------------------------------------------------------------|
@@ -1402,7 +1421,7 @@
    3) VERDADERO, porque las variables ~static~ se inicializan en 0 por defecto, si no se inicializan explicitamente
    4) FALSO, porque las variables definidas ~static~ sólo se pueden usar (scope/ámbito) en el archivo fuente donde se definió,
       no en toda la (UT) *Unidad de Traducción* que está formado por uno ó varios .c con uno ó varios archivos .h
-   5) FALSO, la (UT) puede tener sólo las declaraciones de los identificadores para compilar correctamente
+   5) FALSO, la (UT) puede tener sólo las declaraciones de los identificadores y compilará correctamente
    #+END_QUOTE
 ** [#A] Problema 17 (2019-09-24)
 *** Enunciado
@@ -1429,7 +1448,7 @@
    | v<v+1 | NO es lvalue, porque devuelve una constante entera como resultado de la expresión                                                   |
    |-------+-------------------------------------------------------------------------------------------------------------------------------------|
    #+END_QUOTE
-** [WAITING] [#A] Problema 18 (2019-09-24)
+** [#A] Problema 18 (2019-09-24)
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde todos los conceptos que se pueden definir con el *BNF del LF Expresiones de C*:
@@ -1441,21 +1460,6 @@
    5. *Aridad* (cantidad de operandos) de los operadores
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: Donde está definido el efecto de lado de C? En el MROC?,
-   Entiendo que es un concepto semántico, pero donde figura?
-   
-   <<DUDA>>: La asociatividad y la precedencia, indican el orden de las operaciones (osea la *Secuenciación*) ?
-   
-   <<DUDA>>: (resuelta) yo tenía anotado que...
-   la SEMÁNTICA especifíca el orden de evaluación de los operandos ?
-   y la SINTAXIS especifíca la asociatividad y precedencia de los operadores ?
-   
-   *Rta (mi suposicion)*: Si, porque en la semántica no es lo mismo ~n = 10~ (si n es int, ok) que ~10 = n~ (error semántico)
-   y en la sintáxis no es lo mismo ~*p++~ (no sabe sabe a donde apuntará p) que ~(*p)++~ (desreferencia el valor de la variable a la que apunta y luego lo incrementa)
-   porque ~++~ tiene mayor precedencia que el ~*~ (al parecer)
-   #+END_COMMENT
-   
    #+BEGIN_QUOTE
    (1) FALSO
 
@@ -1466,6 +1470,26 @@
    (4) FALSO, de los operadores
    
    (5) VERDADERO
+   #+END_QUOTE
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   La asociatividad y la precedencia, indican el orden de las operaciones (osea la *Secuenciación*) ?
+   
+   *Rta:* NO, 
+   La Sintáxis sólo *especifíca el orden de aplicación de los operadores*
+   que está dada por la Precedencia/Asociatividad según la BNF de C
+   y la Semántica especifíca *el orden de evaluación de los operandos* conocido como *Secuenciación*
+   para sólo cuatro operadores (operadores lógicos AND/OR, la coma y el operador ternario)
+   #+END_QUOTE
+**** Duda 2
+   #+BEGIN_QUOTE
+   la SEMÁNTICA especifíca el orden de evaluación de los operandos ?
+   y la SINTAXIS especifíca la asociatividad y precedencia de los operadores ?
+   
+   *Rta (mi suposicion)*: Si, porque en la semántica no es lo mismo ~n = 10~ (si n es int, ok) que ~10 = n~ (error semántico)
+   y en la sintáxis no es lo mismo ~*p++~ (no sabe sabe a donde apuntará p) que ~(*p)++~ (desreferencia el valor de la variable a la que apunta y luego lo incrementa)
+   porque ~++~ tiene mayor precedencia que el ~*~ (al parecer)
    #+END_QUOTE
 ** Problema 19 (2019-09-24)
 *** Enunciado
@@ -1557,7 +1581,7 @@
   4. y=7+1
   5. y=8
   #+END_QUOTE
-** [WAITING] Problema 22 (2019-05-23)
+** [#A] Problema 22 (2019-05-23) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Dado el siguiente fragmento de código C: ~x.1==1LU++LU~
@@ -1565,12 +1589,7 @@
    1. Enumere los *lexemas* en orden de aparición y separados por coma.
    2. Justifique si el fragmento es una *expresión sintácticamente correcta* o no.
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: En la resolución dice que "luego del operador sufijo ~++~ no se espera una expresión",
-   no se referirá a que no espera antes del operador una "constante real"?
-   #+END_COMMENT
-   
+*** Respuesta   
    #+BEGIN_QUOTE
    (1) Los lexemas de ~x.1==1LU++LU~ son
    | Lexema | Tipo de Token (no lo pide)                      |
@@ -1585,8 +1604,22 @@
    (2) La expresión ~x.1==1LU++LU~ NO es sintacticamente correcta,
    porque al derivarla de las reglas sintácticas (BNF) luego del identificador ~x~ no se espera una constante real ~.1~,
    por lo cual el compilador arroja un error sintáctico y no sigue evaluando el resto de la expresión.
+   
+   Además luego de leer ~1LU++~ (expresión sufijo, según la BNF de C) no se esperaba una expresión es decir el identificador que le sigue ~LU~,
+   porque ~1LU++~ se considera una *expresión sufijo* aunque esta sea *semanticamente incorrecta*
    #+END_QUOTE
-** [WAITING] [#B] Problema 23 (2019-02-25)
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   En la resolución dice que "luego del operador sufijo ~++~ no se espera una expresión",
+   no se referirá a que no espera antes del operador una "constante real"?
+
+   *Rta:*
+   No, la respuesta de la resolución es correcta porque es nivel sintáctico,
+   luego de leer ~1LU++~ no se esperaba una expresión es decir el identificador que le sigue ~LU~,
+   porque ~1LU++~ se considera una *expresión sufijo* aunque esta sea *semanticamente incorrecta*
+   #+END_QUOTE
+** [#B] Problema 23 (2019-02-25)
 *** Enunciado
    #+BEGIN_QUOTE
    Analice la siguiente declaración: ~int var;~
@@ -1597,20 +1630,24 @@
    3. Lexicamente y Sintacticamente, si se eliminan los espacios, ¿sigue siendo un *constructo sintáctico válido*? Justifique.
    4. Sintacticamente, si el *lexema* ~int~ se reemplaza por ~T~ ¿sigue siendo una *declaración*? Justifique.
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: si los identificadores de las variables, funciones, comparten el mismo namespaces,
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   Si los identificadores de las variables, funciones, comparten el mismo namespaces,
    porque si tengo una función y una variable con mismo identificador no rompe al compilar?
    
-   *Rta (mi suposicion)*: si definis el mismo identificador al definir una función y al declarar una variable,
-   arrojará error semántico si tratamos de usarlo para invocar una función porque ahora es una variable
-
-   
-   <<DUDA>>: si los identificadores y las constantes de enumeración y los alias de tipo (typedef)
+   *Rta*:
+   En realidad si falla, pero sólo si la variable declarada ó la función definida
+   están en el mismo scope.
+   #+END_QUOTE
+**** Duda 2
+   #+BEGIN_QUOTE
+   si los identificadores y las constantes de enumeración y los alias de tipo (typedef)
    comparten namespace porque no rompe al compilar?
-   *Rta (mi suposicion)*: idem similar al anterior supongo?
-   #+END_COMMENT
    
+   *Rta*: idem similar al anterior
+   #+END_QUOTE
+*** Respuesta
    #+BEGIN_QUOTE
    (1) Para la declaración ~int var;~ se necesitan 11 invocaciones a ~getchar~
    
@@ -1707,7 +1744,7 @@
        char* ptr; return ptr;
      }
    #+END_SRC
-** [WAITING] [#B] Problema 26 (2019-02-11)
+** [#B] Problema 26 (2019-02-11)
 *** Enunciado
    #+BEGIN_QUOTE
    Analice la siguiente declaración: ~int f ( int ) ;~
@@ -1717,27 +1754,6 @@
    3. Escriba una *expresión* que use ~f~ pero que sea *semánticamente incorrecta*. Justifique: 
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: Si el identificador de un arreglo porque si apunta a una dirección de memoria
-   se considera lvalue no modificable..
-   
-   *Rta: (mi suposición)*: si tenés ~int arr[1]~ el identificador ~arr~ es lvalue por ser un dir. de memoria,
-   pero NO es modificable porque debe desreferenciar con el operador de indirección ~*~
-   ó.. usar el operador ~[]~ de acceso a elementos de una matriz.
-   Ej. Lvalue modificables del ejemplo anterior serian ~*arr~ (desreferencia la posicion del primer elemento)
-   ó también ~arr[0]~ ó ~*(arr+0)~
-
-   <<DUDA>>:
-   el identificador de una función también apunta a una dir. de memoria, pero no es lvalue,
-   por tanto sería una excepción a ser lvalue?
-   Ej. Si ~f~ es una función entonces en estas expresiones f no es lvalue, no? f++; f=1;
-
-   <<DUDA>>:
-   porque las sig. definición, y la sentencia no arrojan error de tipo incompatibles?
-   int x="hola";
-   int f(int x){}; f("hola");
-   #+END_COMMENT
-   
    #+BEGIN_QUOTE
    (1) Si a la declaración ~int f ( int ) ;~ le removemos los espacios,
    nos queda la siguiente sentencia expresión ~intf(int);~ que contiene 5 lexemas
@@ -1767,6 +1783,28 @@
      f[0]; // error semántico, f no es un arreglo
      f.a; // error semántico, f no es un struct ó union
    #+END_SRC
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   Si el identificador de un arreglo porque si apunta a una dirección de memoria
+   se considera lvalue no modificable..
+   
+   *Rta:*:
+   si tenés ~int arr[1]~ el identificador ~arr~ es lvalue por ser un dir. de memoria,
+   pero NO es modificable porque debe desreferenciar con el operador de indirección ~*~
+   ó.. usar el operador ~[]~ de acceso a elementos de una matriz.
+   Ej. Lvalue modificables del ejemplo anterior serian ~*arr~ (desreferencia la posicion del primer elemento)
+   ó también ~arr[0]~ ó ~*(arr+0)~
+   #+END_QUOTE
+**** Duda 2
+   #+BEGIN_QUOTE
+   el identificador de una función también apunta a una dir. de memoria, pero no es lvalue,
+   por tanto sería una excepción a ser lvalue?
+   Ej. Si ~f~ es una función entonces en estas expresiones f no es lvalue, no? f++; f=1;
+
+   *Rta:*
+   Es lvalue todo operando que puedas poner a la izquierda del operador de asignación
+   #+END_QUOTE
 ** Problema 28 (2018-07-30)
 *** Enunciado
    #+BEGIN_QUOTE
@@ -1806,10 +1844,6 @@
    3) Escriba una declaración que haga la sentencia anterior semánticamente correcta
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: (1) porque la solución de zuñiga, no considera que el ungetc también devuelve el ~;~ ???
-   #+END_COMMENT
-
    |                | fi | (  | x | >  | 0  | )  | a | =  | x  | ; |
    |----------------+----+----+---+----+----+----+---+----+----+---|
    | ungetc         |    | x  |   | x  | x  | x  |   | x  | x  | x |
@@ -1923,22 +1957,17 @@
    | 20 | }      | caracter de puntuación           |
    |----+--------+----------------------------------|
 * Nivel Léxico
-** [WAITING] [#B] Problema 2 (2021-02-10) <- LEX/FLEX
+** [#B] Problema 2 (2021-02-10)
 *** Enunciado
    #+BEGIN_QUOTE
     Indique todas las afirmaciones verdaderas acerca del *análisis léxico*
     
-    1. Es realizado por *lex/flex*
-    2. Detecta a ~"hola\"~ como *léxicamente correcto*
-    3. Reconoce a ~main~ como *palabra clave (keyword)*
-    4. Puede generar un mismo *token* a partir de diferentes *lexemas*
-    5. Puede diferenciar cuando un símbolo actúa como *operador, punctuator, ó separador* .
+    1. Detecta a ~"hola\"~ como *léxicamente correcto*
+    2. Reconoce a ~main~ como *palabra clave (keyword)*
+    3. Puede generar un mismo *token* a partir de diferentes *lexemas*
+    4. Puede diferenciar cuando un símbolo actúa como *operador, punctuator, ó separador* .
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: Las últimas dos preguntas, estarán ok?
-   #+END_COMMENT
-   
    #+BEGIN_QUOTE
    (2) FALSO. La secuencia de caracteres ~"hola\"~ no es léxicamente correcta,
    al usar el ~\~ se escapa las comillas dobles (que son un caracter especial) y las toma como un caracter común,
@@ -1959,16 +1988,15 @@
    1) En C el scanner (analizador léxico) NO puede almacenar/buscar en la (TS) *tabla de símbolos*
    2) En LP simples, el analizador léxico podría almacenar/buscar en la (TS)
    #+END_QUOTE
-** [TODO] Problema 3 (2021-02-17) <- LEX/FLEX
+** Problema 3 (2021-02-17)
 *** Enunciado
    #+BEGIN_QUOTE
    Indique todas las afirmaciones verdaderas sobre el *análisis léxico*:
    
-   1. Lo puede realizar la salida de lex/flex.
-   2. Utiliza *lexemas* para construir *tokens*.
-   3. Detecta a ~'\''~ como *léxicamente correcto*
-   4. Reconoce a ~printf~ como *palabra clave (keyword)*
-   5. Detecta cuando el asterisco (*) actúa como *operador binario* o *unario*
+   1. Utiliza *lexemas* para construir *tokens*.
+   2. Detecta a ~'\''~ como *léxicamente correcto*
+   3. Reconoce a ~printf~ como *palabra clave (keyword)*
+   4. Detecta cuando el asterisco (*) actúa como *operador binario* o *unario*
    #+END_QUOTE
 *** Respuesta
    #+BEGIN_QUOTE
@@ -1985,7 +2013,7 @@
    por tanto no sabe si el operador ~*~ actúa como operador binario o unario,
    sólo sabe que es un operador
    #+END_QUOTE
-** [WAITING] [#A] Problema 6 (2018-10-03) <- interesante
+** [#A] Problema 6 (2018-10-03) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Analice la siguiente función: ~int f(void){return 1<*p++;}~
@@ -1994,19 +2022,6 @@
    3. Indique por lo menos tres *tokens* que no requieran ~ungetc~ para su detección
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: (2) Los identificadores son LF infinitos porque apesar de que tiene un número finito de caracteres el alfabeto,
-   se pueden generar un número infinito de palabras?
-
-   <<DUDA>>: (2) Las constantes numéricas, son LF infinitos por lo mismo de arriba?
-
-
-   <<DUDA>>: (resuelta) (3) porque la resolución dice que el (, ), no necesitan ungetc?
-   
-   **Rta:* cuando los leen en realidad hacen ungetc, pero no hay otro caracter que junto con los paréntesis, corchetes ó llaves
-   formen otra palabra que pertenezca a alguna de las Categorias léxicas.
-   #+END_COMMENT
-   
    |----------------+-----+-----------+---+----+------+----+---+--------+-----------+---+----+---+----+----+---+---|
    |                | int | ~espacio~ | f | (  | void | )  | { | return | ~espacio~ | 1 | <  | * | p  | ++ | ; | } |
    |----------------+-----+-----------+---+----+------+----+---+--------+-----------+---+----+---+----+----+---+---|
@@ -2066,6 +2081,54 @@
    Aunque no se pide en el enunciado, ponemos las llamadas a getchar y ungetc durante la lectura de la cadena de caracteres
    por el Scanner
    #+END_QUOTE
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   En la (2) Los identificadores son LF infinitos porque apesar de que tiene un número finito de caracteres el alfabeto,
+   se pueden generar un número infinito de palabras, por ser un (LR) recursivo. Lo mismo con las constantes numéricas?
+
+   *Rta:*
+   Correcto, son LF infinitos porque son (LR) recursivos
+   El caso opuesto a las dudas de arriba sería el LF de las *Palabras Reservadas* y *Caracter de puntuación*,
+   porque apesar que también tienen un número finito de caracteres en el alfabeto,
+   ninguno de los dos es un (LR) recursivo.
+   #+END_QUOTE
+**** Duda 2
+   #+BEGIN_QUOTE
+   En la (3) porque la resolución dice que el (, ), no necesitan ungetc?
+   
+   *Rta:*
+   Cuando los leen en realidad hacen ungetc, pero no hay otro caracter que junto con los paréntesis, corchetes ó llaves
+   formen otra palabra que pertenezca a alguna de las Categorias léxicas.
+   #+END_QUOTE
+** Problema 5 (2019-12-04) <- interesante
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca del *análisis léxico*
+   
+   1. *Recibe lexemas* y *genera tokens*
+   2. ~ungetc~ devuelve al flujo el último token leido.
+   3. Un *token* puede ser generado por *diferentes lexemas*
+   4. En C, ~prontf("hola")~, es siempre *léxicamente correcto*
+   5. Se puede determinar el operador que representa el lexema asterisco (*).
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   (1) FALSO, el Scanner recibe una secuencia de caracteras y genera tokens (para el Parser) y lexemas (para el analizador semantico)
+
+   (2) FALSO, cuando el Scanner invoca el ~ungetc~, éste devuelve el último caracter leído,
+   suponiendo que éste no pertenece al tipo de TOKEN de la secuencia de caracteres leidos que le precede
+
+   (3) VERDADERO, un TOKEN del tipo Identificador podría ser generador por varios lexemas
+   (Ej. estos tres lexemas edad, nombre, apellido son identificadores)
+
+   (4) VERDADERO, ~prontf("hola")~ para el Scanner está formado por identificador,punctuator,literal cadena, punctuator
+   porque lee caracter por caracter invocando ~getchar~ y por cada caracter que no pertenece a la gramática de la secuencia leida
+   invoca a ~ungetc~ y continúa leyendo, por tanto reconoceria cada lexema
+
+   (5) FALSO, el Scanner no sabe del contexto y no puede determinar que tipo de operador es
+   el lexema asterisco ~*~ solo reconoce el tipo de TOKEN, en este caso operador
+   #+END_QUOTE
 ** Problema 1
 *** Enunciado
    #+BEGIN_QUOTE
@@ -2080,7 +2143,7 @@
    4. )
    5. ;
    #+END_QUOTE
-** [WAITING] [#B] Problema 4 (2019-12-11)
+** [#B] Problema 4 (2019-12-11) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde todas las afirmaciones verdaderas acerca del *análisis léxico*
@@ -2091,14 +2154,7 @@
    4. Un *lexema* dado puede generar diferentes *lexemas*
    5. Diferencia entre *identificadores* y *palabras clave (keywords)*
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: Como justificar mejor la 4, 5 (?)
-
-   <<DUDA>>: (4) podriamos decir..? si tenemos el lexema ~abc~ no puede representar otro a menos que lo alteremos,
-   osea le saquemos ó agregemos otro caracter
-   #+END_COMMENT
-   
+*** Respuesta   
    #+BEGIN_QUOTE
    (1) VERDADERO, el Scanner (analizador léxico) se puede implementar con un AF,
    donde la transición de un estado a otro depende de la secuencia de caracteres leídos
@@ -2145,33 +2201,13 @@
        w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
      <dígito> -> uno de 0 1 2 3 4 5 6 7 8 9
    #+END_QUOTE
-** Problema 5 (2019-12-04)
-*** Enunciado
+*** Dudas Resueltas
+**** Duda 1
    #+BEGIN_QUOTE
-   Tilde todas las afirmaciones verdaderas acerca del *análisis léxico*
-   
-   1. *Recibe lexemas* y *genera tokens*
-   2. ~ungetc~ devuelve al flujo el último token leido.
-   3. Un *token* puede ser generado por *diferentes lexemas*
-   4. En C, ~prontf("hola")~, es siempre *léxicamente correcto*
-   5. Se puede determinar el operador que representa el lexema asterisco (*).
-   #+END_QUOTE
-*** Respuesta
-   #+BEGIN_QUOTE
-   (1) FALSO, el Scanner recibe una secuencia de caracteras y genera tokens (para el Parser) y lexemas (para el analizador semantico)
+   En la (4) podriamos decir..? si tenemos el lexema ~abc~ no puede representar otro a menos que lo alteremos,
+   osea le saquemos ó agregemos otro caracter
 
-   (2) FALSO, cuando el Scanner invoca el ~ungetc~, éste devuelve el último caracter leído,
-   suponiendo que éste no pertenece al tipo de TOKEN de la secuencia de caracteres leidos que le precede
-
-   (3) VERDADERO, un TOKEN del tipo Identificador podría ser generador por varios lexemas
-   (Ej. estos tres lexemas edad, nombre, apellido son identificadores)
-
-   (4) VERDADERO, ~prontf("hola")~ para el Scanner está formado por identificador,punctuator,literal cadena, punctuator
-   porque lee caracter por caracter invocando ~getchar~ y por cada caracter que no pertenece a la gramática de la secuencia leida
-   invoca a ~ungetc~ y continúa leyendo, por tanto reconoceria cada lexema
-
-   (5) FALSO, el Scanner no sabe del contexto y no puede determinar que tipo de operador es
-   el lexema asterisco ~*~ solo reconoce el tipo de TOKEN, en este caso operador
+   *Rta:* Correcto, si modificás un lexema entonces será un lexema nuevo
    #+END_QUOTE
 ** Problema 29 (2018-02-19)
 *** Enunciado
@@ -2202,22 +2238,17 @@
    (5) Verdadero
    #+END_QUOTE
 * Nivel Sintáctico
-** [TODO] [#C] Problema 2 (2021-02-17) <- YACC/BISON
+** [#C] Problema 2 (2021-02-17)
 *** Enunciado
    #+BEGIN_QUOTE
    Indique todas las afirmaciones verdaderas sobre el *análisis sintáctico*:
    
    1. Detecta un error en ~printf()~
    2. Recibe una *secuencia de caracteres*
-   3. Lo puede realizar la salida de *yacc/bison*
-   4. Puede diferenciar si un *token* se usa como *puntuación* u *operador*
-   5. Puede detectar un error en la cantidad de argumentos usados al invocar una función.
+   3. Puede diferenciar si un *token* se usa como *puntuación* u *operador*
+   4. Puede detectar un error en la cantidad de argumentos usados al invocar una función.
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: La última estará bien justificada (???)
-   #+END_COMMENT
-   
    #+BEGIN_QUOTE
    (1) FALSO. Es un error semántico, que lo detecta el Analizador Semántico
 
@@ -2228,14 +2259,13 @@
    (5) FALSO. Es el analizador semántico, que chequea la cant. de argumentos de invocar una función,
    comparando con la firma de la función invocada, porque analiza según el contexto
    #+END_QUOTE
-** [TODO] Problema 6 (2019-12-04) <- YACC
+** Problema 6 (2019-12-04)
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde todas las afirmaciones verdaderas acerca del *análisis sintáctico*
    
-   1. *Yacc* es un *parser*
-   2. Un parser procesa una *secuencia de tokens*
-   3. En C, ~prontf("hola")~ es siempre *sintácticamente correcto*
+   1. Un parser procesa una *secuencia de tokens*
+   2. En C, ~prontf("hola")~ es siempre *sintácticamente correcto*
    #+END_QUOTE
 *** Respuesta
    #+BEGIN_QUOTE
@@ -2243,7 +2273,7 @@
 
    (5) VERDADERO
    #+END_QUOTE
-** [WAITING] [#A] Problema 5 (2019-12-11) <- PAS
+** [#A] Problema 5 (2019-12-11)
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde todas las afirmaciones verdaderas acerca del *análisis sintáctico*
@@ -2253,15 +2283,11 @@
    3. ~s(printf)~ es siempre *sintácticamente correcto*
    4. El *operador de acceso a miembro* ~(.)~ *es conmutativo*
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: (1) está ok la justificación?
-
-   <<DUDA>>: (3) como la derivamos de la BNF? <- arbol sintáctico?
-   #+END_COMMENT
-   
+*** Respuesta   
    #+BEGIN_QUOTE
    (1) FALSO, procesa una secuencia de TOKENs (son lexemas, que el Scanner generó según las reglas léxicas de una secuencia de caracteres)
+
+   (2) Verdadero,los PAS son como un wrappers sobre el Scanner
    
    (3) VERDADERO, la expresión ~s(printf)~ la podemos derivar de la BNF de C
    
@@ -2305,7 +2331,14 @@
      <constante cadena> |
      (<expresión>)
    #+END_QUOTE
-** [WAITING] [#B] Problema 1 (2021-02-10) <- interesante
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   En la (3) como la derivamos de la BNF, con el arbol sintáctico?
+
+   *Rta:* Correcto, y en éste se observa la precedencia de los operadores
+   #+END_QUOTE
+** [#B] Problema 1 (2021-02-10) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
     Indique todas las afirmaciones verdaderas acerca del *Análisis Sintáctico*
@@ -2328,14 +2361,10 @@
    
    (4) Verdadero, La expresión ~printf(main)~ es sintácticamente correcta porque se puede derivar de la BNF de C,
    pero es semanticamente incorrecta porque la firma de printf espera una cadena de caracteres como primer argumento
+   
+   (5) Falso, la sintáxis define el orden de evaluación de los operadores según la precedencia/asociatividad
+   que se indica en la BNF de C (GIC, contiene las reglas sintácticas ó bien constructos sintácticos)
    #+END_QUOTE
-
-   #+BEGIN_COMMENT
-   Falso, C especifica que el *orden de evaluación del Operador Ternario* ~exp1 ? exp2 : exp3~ es de de izq. a derecha,
-   el Parser evalúa de Izq a Der ó Der a Izq según la precedencia y asociatividad de los OPERADORES según la sintáxis del lenguaje,
-   osea según las reglas/constructos sintácticos de la BNF de C, donde si dos operadores tienen igual precedencia
-   se evaluará según la asociatividad
-   #+END_COMMENT
 ** [WAITING] [#C] Problema 8 (2018-10-03) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
@@ -2346,11 +2375,6 @@
    3. Indique cuántas *expresiones*, contando las *subexpresiones*, hay; por ejemplo 40+2 tiene tres expresiones
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: (3) porque no consideró como expresiones a ~*p~ y ~1<*p~ ?
-   la resolución solo dice que hay cinco.. 1, p, p++, *p++, 1<*p++
-   #+END_COMMENT
-
    #+BEGIN_QUOTE
    (1) En la sentencia compuesta ~{return 1<*p++;}~ no hay declaraciones
 
@@ -2407,6 +2431,16 @@
      <constante cadena> |
      (<expresión>)
    #+END_QUOTE
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   En la (3) porque no consideró como expresiones a ~*p~ y ~1<*p~ ?
+   la resolución solo dice que hay cinco.. 1, p, p++, *p++, 1<*p++
+
+   *Rta:*
+   Debe ser error del final, porque ~*p~ es una expresión sufijo,
+   y ~1<*p~ es una expresión relacional
+   #+END_QUOTE
 ** [TODO] Problema 3 (2020-03-03)
 *** Enunciado
    #+BEGIN_QUOTE
@@ -2424,7 +2458,7 @@
    2. Indique y justifique el valor de verdad de la siguiente afirmación:
       Los LP C y C++ tienen la misma sintaxis.
    #+END_QUOTE
-** [WAITING] [#A] Problema 7 (2019-02-11)
+** [#A] Problema 7 (2019-02-11)
 *** Enunciado
    #+BEGIN_QUOTE
    Indique con Verdadero/Falso los *conceptos asociados a la sintaxis*
@@ -2435,11 +2469,7 @@
    4. Precedencia de operadores.
    5. Orden de evaluación de operandos  
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: En la (2) es Verdadero... sería el orden en que los recibe/lee?
-   #+END_COMMENT
-   
+*** Respuesta   
    #+BEGIN_QUOTE
    (1) Verdadero, la BNF contiene las reglas/constructos sintácticas del lenguaje
 
@@ -2453,6 +2483,13 @@
    (5) Falso, la sintaxis no especifíca el orden de evaluación de los operandos,
    pero si el de los operadores en la BNF.
    #+END_QUOTE
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   En la (2) es Verdadero... sería el orden en que los recibe/lee?
+   
+   *Rta*: Si
+   #+END_QUOTE
 ** [#A] Problema 9 (2018-02-19)
 *** Enunciado
    #+BEGIN_QUOTE
@@ -2464,14 +2501,7 @@
    4. Contiene por lo menos tres *sentencias*
    5. Contiene por lo menos cinco *subexpresiones*
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: (resuelta) la resolución de la (3) dice que es verdadera, por que? cuales son?
-   para mi habian dos y eran las *expresiones de asignación* la tercera sería la expresión que controla al switch?
-
-   *Rta:* Si, la tercera es la expresión que controla al switch (exp)
-   #+END_COMMENT
-   
+*** Respuesta   
    |---+------------+-------------------------|
    |   | expresión  | tipo de expresión       |
    |---+------------+-------------------------|
@@ -2517,6 +2547,15 @@
    10. m2
    11. v.m2
    #+END_QUOTE
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   la resolución de la (3) dice que es verdadera, por que? cuales son?
+   para mi habian dos y eran las *expresiones de asignación* la tercera sería la expresión que controla al switch?
+
+   *Rta:*
+   Si, la tercera es la expresión que controla al switch (exp)
+   #+END_QUOTE
 ** [#A] Problema 10 (desconocido)
 *** Enunciado
    #+BEGIN_QUOTE
@@ -2553,21 +2592,35 @@
    | ~}}~      | no se espera un segundo ~}~                            |
    |-----------+--------------------------------------------------------|
 * Nivel Semántico
-** [WAITING] [#A] Problema 7 (2019-07-15) <- Interesante
+** [#A] Problema 7 (2019-07-15) <- Interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Escriba un ejemplo de una *declaración C* con por lo menos un *error semántico*. Justifique.
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   Los dos de abajo son de la resolución, deberian estar bien, pero no son errores sintácticos?
+*** Respuesta   
+   #+BEGIN_SRC C
+     // redeclaración de un identificador en el mismo scope
+     int a, a;
+     struct {int x; int x;} X;
+
+     // el tamaño del vector no es un tipo entero
+     int b[0.5];
+   #+END_SRC
+*** Dudas Resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   ~static auto int edad;~ no es error sintáctico?
    
-   <<DUDA>>: (resuelta) ~static auto int edad;~ no es error sintáctico?,
-   *Rta:* en Lenguaje natural se dice que sólo puede tener un *especificador de clase de almacenamiento* por declaración,
+   *Rta:*
+   en Lenguaje natural se dice que sólo puede tener un *especificador de clase de almacenamiento* por declaración,
    por tanto puede tener uno u otro, pero no ambos
+   #+END_QUOTE
+**** Duda 2
+   #+BEGIN_QUOTE
+   ~int double valor;~ no es error sintactico? // <-- multiples tipos en los especificadores de tipo de la declaración (es int ó double, no ambos)
    
-   <<DUDA>>: ~int double valor;~ no es error sintactico? // <-- multiples tipos en los especificadores de tipo de la declaración (es int ó double, no ambos)
-   *Rta:* en realidad con las reglas sintácticas de la BNF, en la declaración de una variable se puede tener más de un *especificador de tipo*,
+   *Rta:* NO, no es error sintáctico...
+   en realidad con las reglas sintácticas de la BNF, en la declaración de una variable se puede tener más de un *especificador de tipo*,
    por tanto es sintacticamente correcto pero NO es semanticamente correcto..
    la resolución habrá tratado de llegar a que si es sintacticamente incorrecta, tampoco será semánticamente correcta?
 
@@ -2580,34 +2633,30 @@
    6. int double <decla>
    7. int double <identificador>
    8. int double x
-   #+END_COMMENT
-   
-   #+BEGIN_SRC C
-     // redeclaración de un identificador en el mismo scope
-     int a, a;
-     struct {int x; int x;} X;
-
-     // el tamaño del vector no es un tipo entero
-     int b[0.5];
-   #+END_SRC
-** [WAITING] [#A] Problema 9 (2019-05-23) <- interesante
+   #+END_QUOTE
+** [#A] Problema 9 (2019-05-23) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Dada la declaración ~struct{double x,y;}p;~ escriba una *expresión semánticamente incorrecta*
    utilizando como *operandos solo constantes (literales)* y los *identificadores* declarados en la
    anterior *declaración*
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: El enunciado pide "como operandos constantes (literales) y en la resolución
-   hace ~0=p.x+p.y~ dónde está la constante literal ahi..?
-   #+END_COMMENT
-   
+*** Respuesta   
    #+BEGIN_SRC C
-     p.x="y";
-     p.y="b";
+     0=p.x+p.y
    #+END_SRC
-** [WAITING] [#A] Problema 11 (2018-12-10) <- interesante
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   El enunciado pide "como operandos constantes (literales) y en la resolución
+   hace ~0=p.x+p.y~ dónde está la constante literal ahi..?
+  
+   *Rta:* (suposición)
+   Pide como operandos sólo constantes, entonces lo resuelve
+   usando una constante (entera) a la izquierda como lvalue, 
+   y otra constante (real) a la derecha como rvalue
+   #+END_QUOTE
+** [#A] Problema 11 (2018-12-10) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Indique cuál error no es detectable durante el análisis semántico:
@@ -2619,11 +2668,6 @@
    6. Operador punto aplicado a expresión que no es estructura ni unión.
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: La (2) según la resolución no se detectaen el analisis semántico, por que?
-   Si se utiliza un identificador que no fue declarado, no es error semántico, porque debe analizar el contexto?
-   #+END_COMMENT
-
    #+BEGIN_QUOTE
    (1) La redefinición de variable es un error detectable en el fase del Analisis Semantico,
    porque debe ver el contexto..
@@ -2641,6 +2685,14 @@
    (6) Si la expresión no es estructura ni unión y se usa como operando del operador punto,
    se detecta como error en el Analisis semántico,
    porque debe ver en el contexto el tipo de dato del operando cuando se declaró
+   #+END_QUOTE
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   La (2) según la resolución no se detecta en el analisis semántico, por que?
+   Si se utiliza un identificador que no fue declarado, no es error semántico, porque debe analizar el contexto?
+
+   *Rta:* error en la resolución quizás
    #+END_QUOTE
 ** Problema 1 (2021-08-04)
 *** Enunciado
@@ -2683,15 +2735,16 @@
    las firmas de las funciones y detectar si faltan o no argumentos,
    cuando son invocadas.
    #+END_QUOTE
-
-   #+BEGIN_COMMENT
-   <<DUDAS>>:
+*** Dudas resueltas
+   #+BEGIN_QUOTE
    No es responsabilidad del *analizador semántico* detectar si una variable se usa sin inicializar,
    pero si debe validar la redeclaración de una variable, ó redefinición de una función, por ej.
-   
-   la sentencia expresión ~struct S{struct S m;};~ NO es semánticamente correcta,
-   porque... (?)
-   #+END_COMMENT
+   la sentencia expresión ~struct S{struct S m;};~ NO es semánticamente correcta, porque... (?)
+
+   *Rta:*
+   No es semánticamente correcta porque se está tratando de declarar una variable de tipo ~struct S~
+   pero esa estructura aún no fue declarada. Se podría si éste fuese un puntero.
+   #+END_QUOTE
 ** Problema 3 (2021-02-17)
 *** Enunciado
    #+BEGIN_QUOTE
@@ -2950,37 +3003,44 @@
    #+END_SRC
 
 * Etapas compilación
-** [TODO] Problema 1 (2019-07-29) <- interesante
+** Problema 1 (2019-07-29) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Indique cuál es la entrada a la parte (o proceso) de *síntesis de un compilador*
    #+END_QUOTE
-*** Respuesta (resolución)
+*** Respuesta
    #+BEGIN_QUOTE
-   La representación intermedia <-- según la resolución
+   Es el código intermedio que genera el análisis semántico (etapa de análisis),
+   recordando que la etapa de análisis es la primera etapa en el proceso de compilación
+   seguido de la segunda etapa que es la de *sintesis* y que ambas son procesos internos al compilador
+   (resaltamos internos porque los externos son el preprocesamiento, enlazado, ...)
    #+END_QUOTE
-** [WAITING] [#A] Problema 2 (2019-07-15)
+** [#A] Problema 2 (2019-07-15)
 *** Enunciado
    #+BEGIN_QUOTE
    Indique las *fases de la parte de análisis de un compilador*
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   Me parece que te falta desarrollar un poco más...
-   <<DUDA>>: En el *análisis sintáctico* se especifica el orden de evaluación de los OPERADORES?
-   *Rta:* Si. Mientras que en el semántica el de los operandos.
-
-   <<DUDA>>: En el *análisis sintáctico* si los operadores tienen igual precedencia, se evalúa por asociatividad ?
-
-   <<DUDA>>: En el análisis semántico, que tiene de entrada? lexemas?
-
-   <<DUDA>>: En el análisis semántico se verifica las restricciones en (LN) de la BNF,
-   y también de la (GSC) que la BNF no puede representar?
-
-   <<DUDA>>: En el *MROC* aparecen las *restricciones* sobre los constructos definidos
-    en la "Sintaxis" y que la BNF ó una GIC no podría representar de forma clara?
-   #+END_COMMENT
+*** Dudas Resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   En el *análisis sintáctico* se especifica el orden de aplicación de los OPERADORES?
    
+   *Rta:*
+   Si. Mientras que en el semántica el orden de evaluación de los operandos.
+   #+END_QUOTE
+**** Duda 2
+   #+BEGIN_QUOTE
+   En el *análisis sintáctico* si los operadores tienen igual precedencia, se evalúa por asociatividad ?
+
+   *Rta:* Correcto
+   #+END_QUOTE
+**** Duda 3
+   #+BEGIN_QUOTE
+   En el *MROC* aparecen las *restricciones* sobre los constructos definidos
+   en la "Sintaxis" y que la BNF ó una GIC no podría representar de forma clara?
+   *Rta:* Correcto
+   #+END_QUOTE
+*** Respuesta
    #+BEGIN_QUOTE
    1. Análisis Léxico (Scanner)
       - recibe y procesa una secuencia de caracteres, los agrupa en lexemas y clasifica por tipo de TOKENs
@@ -2992,7 +3052,7 @@
    3. Análisis Semántico
       - se especifíca el orden de evaluación de los OPERANDOS
    #+END_QUOTE
-** [WAITING] Problema 3 (2018-07-30)
+** Problema 3 (2018-07-30) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde todas las afirmaciones verdaderas con respecto al proceso de compilación:
@@ -3003,18 +3063,6 @@
    5) Incluye una etapa de análisis y otra de síntesis.
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: (2) la resolución dice que es verdadera (?)
-
-   <<DUDA>>: (5) sintesis? 
-   UN fragmento del apunte de ferreiros..
-   "la segunda etapa del compilador — la Síntesis — y del programa objeto que se obtiene, como hemos visto en el capítulo 
-   anterior, aunque éstos no sean temas para profundizar en este libro. "
-
-   Otro fragmento del apunte de ferreiros..
-   ArchivoFuente (.c) -> Analisis (Léxico, Sintáctico, Semántico) -> Sintesis -> Ensamblado -> Enlazado -> ArchivoEjecutable (.exe)
-   #+END_COMMENT
-
    #+BEGIN_QUOTE
    (1) Verdadero. La última etapa del proceso de compilación es el *Analisis Semántico*,
    y en este se detectan los *errores semánticos*
@@ -3026,21 +3074,32 @@
    (4) FALSO. La etapa preprocesamiento, es externa al compilador,
    la realiza el Preprocesador de C, que remueve los comentarios, y aplica las directivas (#define, #if, #include, ...)
    #+END_QUOTE
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   En la (2) la resolución dice que es verdadera (?)
+
+   *Rta:* Si, porque son las dos etapas dentro del proceso de compilación
+   #+END_QUOTE
+**** Duda 2
+   #+BEGIN_QUOTE
+   En la (5) sintesis? 
+
+   *Rta:*
+   es la segunda etapa del compilador — la Síntesis 
+   ArchivoFuente (.c) -> Analisis (Léxico, Sintáctico, Semántico) -> Sintesis -> Ensamblado -> Enlazado -> ArchivoEjecutable (.exe)
+   #+END_QUOTE
 ** Problema 4 (2018-06-07)
 *** Enunciado
    #+BEGIN_QUOTE
    V/F? En un programa la línea ~#include <stdio.h>~ permite vincularlo (link) con la biblioteca estándar.
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: está ok lo del preprocesador?
-   #+END_COMMENT
-
    #+BEGIN_QUOTE
    FALSO. El Linker/Enlazador no recibe la cabecera.
    La directiva ~#include~ es analizada por el *Preprocesador de C*, éste se encarga de las directivas
    #+END_QUOTE
-** [WAITING] Problema 5 (2018-02-19)
+** Problema 5 (2018-02-19) <- interesante
 *** Enunciado
    #+BEGIN_QUOTE
    Indique el orden en el cual se ejecutan los siguientes procesos o subprocesos:
@@ -3051,18 +3110,22 @@
    -  Preprocesamiento
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: Qué es el backend?
-   #+END_COMMENT
-
    #+BEGIN_QUOTE
    - (1) Preprocesamiento
    - (2) Scanner
    - (3) Parser
-   - (4) *Backend* <--
+   - (4) *Backend*
    - (5) Linker
    #+END_QUOTE
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   Qué es el backend?
 
+   *Rta:*
+   Es la segunda etapa, conocida también como *Sintesis*
+   y la primera etapa es la *etapa de análisis* (conocido como Frontend)
+   #+END_QUOTE
 * [TODO] Arboles sintácticos
 ** Problema 1 (2020-10-14)
 *** Enunciado
