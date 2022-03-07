@@ -1,4 +1,4 @@
-#+TITLE: Resumen de Finales - Etapas de Compilación
+#+TITLE: Resumen de Finales - Etapas de lex yacc bison
 * [TODO] Lex
 ** Problema 1 (2018-07-30)
 *** Enunciado
@@ -32,6 +32,10 @@
    Indique si las siguientes afirmaciones son verdaderas o falsas y justifique su respuesta   
    1. Puede ser implementada directamente, es decir, sin aplicar ninguna transformación a la gramática, por *Yacc/Bison*
    #+END_QUOTE
+*** Respuesta (resolucion)
+   #+BEGIN_QUOTE
+   Verdadera, porque Yacc/Bison admiten recursión a izquierda.
+   #+END_QUOTE
 ** Problema 2 (2018-12-10)
 *** Enunciado
    #+BEGIN_QUOTE
@@ -44,4 +48,35 @@
    1. Indique si es LL(1) o no; si es justifique, si no, reescríbala para que sí sea:
    2. Indique si el lenguaje generado es regular o no, justifique:
    3. Escriba las reglas Lex para los dos tokens:
+   #+END_QUOTE
+*** Respuesta (Resolución)
+   #+BEGIN_QUOTE
+   (1) No.
+   Expresión
+   : Entero ColaDeTérminos
+   ;
+   ColaDeTérminos
+   : "+" Entero ColaDeTérminos
+ ||
+   ;
+
+   
+   (2) Sí.
+   ~{Entero}("+"{Entero})*~
+   con ~Entero=[1-9][0-9]*.~
+   
+   (3).
+   "+" return ' +';
+   {Entero} return Entero;
+   #+END_QUOTE
+** Problema 3 (2019-12-04)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Tilde todas las afirmaciones verdaderas acerca del *análisis sintáctico*
+   
+   1. *Yacc* es un *parser*
+   #+END_QUOTE
+*** Respuesta (resolución)
+   #+BEGIN_QUOTE
+   Falso
    #+END_QUOTE
