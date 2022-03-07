@@ -1,0 +1,49 @@
+#+TITLE: Capitulo 6 - Estructuras
+
+* Ejemplos 
+
+  #+BEGIN_SRC C
+    #include <stdio.h>
+
+    // declaramos la estructura
+    // y a su vez también inicializamos
+    struct alumno{
+       char nombre[20];
+       int dni;
+    } pepe={"carlitos"};
+
+    // lo mismo con esta otra estructura
+    // pero se podria hacer por separado
+    // Ej. struct profesor alonso = {"alonso", 45}
+    struct profesor{
+       char nombre[20];
+       int cantidadAlumnos;
+    } alonso = {"Alonso", 45};
+
+    int main(){
+      // 
+      struct alumno a1 = {"Carlos", 10747991};
+
+      printf("Alumno:");
+      printf("- Nombre: %s\n", a1.nombre);
+      printf("- DNI: %d\n", a1.dni);
+
+      printf("\n------------------------\n");
+
+      // probamos con una estructura que fue inicializada
+      // posterior a la declaración de dicha estructura
+      printf("Alumno:\n");
+      printf("- Nombre: %s\n", pepe.nombre);
+      // como lo habiamos inicializado unicamente el atributo "nombre"
+      // los otros se inicializaran con otros valores por defecto
+      printf("- DNI: %d\n", pepe.dni);
+
+      printf("\n------------------------\n");
+
+      printf("Profesor:\n");
+      printf("- Nombre: %s\n", alonso.nombre);
+      printf("- Cantidad Alumnos: %d\n", alonso.cantidadAlumnos);
+
+      return 0;
+    }
+  #+END_SRC

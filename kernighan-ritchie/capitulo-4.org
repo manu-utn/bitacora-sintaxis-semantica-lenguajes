@@ -1,0 +1,286 @@
+#+TITLE: Capitulo 4 - Kernighan Ritchie
+* Declaración Vs. Definición
+  + *Declarar* una función, es determinar el *tipo* y sus *parámetros* (cuantos y el tipo)
+  + *Definir* una función, es desarrollarla y darle una funcionalidad.
+    Si nó se *declaró* previamente, la definición será su declaración también.
+
+  + *Declarar* una variable, es determinar su *tipo*
+  + *Definir* una variable, se reserva espacio en memoria.
+  + *Inicializar* una variable, es asignarle un valor
+
+    |           |                      | Descripción                    |
+    |           |                      |                                |
+    | Variables | Declarar             | Determina el tipo              |
+    |           | Definir              | Reserva espacio en memoria     |
+    |           | Inicializar          | Le asigno un valor, un dato    |
+    |           |                      |                                |
+    | Funciones | Declarar             | Determino el tipo y parámetros |
+    |           | Definir              | Desarrollo su funcionalidad    |
+
+  #+NAME: Definir, declarar funciones y variables
+  #+BEGIN_SRC c 
+      // declaramos y definimos la variable nombre
+      char nombre[10];
+      // declaramos la función saludar()
+      // - es opcional ponerle nombre a los parámetros, porque al definirla es cuando los utilizaremos
+      void saludar(char [10]);
+
+      main(){
+        // Inicializamos la variable nombre (le asignamos un valor)
+        nombre = "pepe";
+      }
+
+      // definimos la función saludar(), desarrollamos su funcionalidad
+      void saludar(char nombre[10]){
+        printf("Hola %s", nombre);
+      }
+  #+END_SRC
+
+* El ambito (scope) de las Variables
+  - Lo mismo aplica para las funciones
+    
+    #+NAME: Ambito de una variable, tabla comparativa
+    | Tipo                             | Ambito, desde donde se puede acceder    | Tiempo de vida             |
+    | :----------------                | :----------------------------------     | :------------------------  |
+    | Variables Globales               | Desde cualquier parte del programa      | Hasta el fin del programa  |
+    | Variables Automáticas            | Sólo desde la función donde se declaran | Hasta el fin de la función |
+    | Variables Estáticas              | Sólo desde el archivo donde se declaró  |                            |
+    | Funciones Globales (por defecto) | Desde cualquier parte del programa      |                            |
+    | Funciones Estáticas              | Sólo desde el archivo donde se declaró  |                            |
+    
+*** Variables Globales
+    En el libro las llama *external*, no confundir con *extern*
+
+    + Una variable es *global* si fué definida fuera de una función
+    + Se pueden acceder a ellas desde cualquier parte del programa (por cualquier función)
+    + Las *funciones* son globales por defecto, porque no se pueden definir dentro de otra función
+    + Su *tiempo de vida* es hasta que termine el programa (en las automáticas su tiempo de vida es menor)
+    + También se pueden definir como *variables estáticas*
+
+    #+NAME: variables-globales.c
+    #+BEGIN_SRC c 
+      // declaro y defino la variable precio
+      // - es una variable global, porque la declaré fuera de una función
+      // - puedo acceder a ella desde cualquier función
+      int precio = 10;
+
+      bool productoCostoso(int precio){
+        return precio > 500;
+      }
+
+      void imprimirPrecio(int precio){
+        printf("El precio es %d", precio);
+      }
+    #+END_SRC
+
+    #+NAME: saludoInformal.c
+    #+BEGIN_SRC c 
+      // esta variable fue declarada en otro archivo
+      // pero hacemos referencia para utilizarla en este otro
+      extern char apodo[10];
+
+      void saludoInformal(char apodo[10]){
+        printf("Hey que tal %s, bienvenido!", apodo);
+      }
+    #+END_SRC
+    
+*** Variables Automáticas
+    + Se las conoce como *variables internas*, y se pueden acceder a ellas, unicamente dentro de la función donde se declararon.
+    + *Nacen* cuando se llama a la función que las utiliza
+    + Su *tiempo de vida* es hasta que termine la función que la utiliza  (en cambio las globales viven hasta 
+    el fin del programa), se podría decir que son temporales porque viven un determinado tiempo.
+
+    #+NAME: variables-automaticas.c
+    #+BEGIN_SRC c
+      // esta es una variable global
+      // - por no estar definida dentro de la función
+      // - se puede acceder desde cualquier función Ej. precioPremium()
+      char barrio[10];
+      // esta otra también es una variable global
+      int precio = 100;
+
+      bool esPrecioPremium(char barrio, int unPrecio){
+        // esta variable es automática por estar declarada dentro de una función
+        // - su ámbito(scope) es unicamente en la funcion precioPremium(), no se puede acceder fuera de ella
+        // - nace cuando se llama a precioPremium()
+        // - su tiempo de vida es cuando finaliza precioPremium()
+        int precio = 300;
+
+        return barrio == "palermo" && unPrecio >= precio;
+      }
+    #+END_SRC
+
+*** Variables Estáticas
+    + Se dice que una *variable estática* vive dentro de archivo donde se declaró
+    + Una *función* por defecto es global, pero si se le agrega el prefijo *static*, sólo se podrá
+      usar en el archivo que se declaró, quedará oculta para los otros archivos por más que se utilice el *include*
+    + También se pueden definir dentro de funciones
+
+    #+BEGIN_SRC c
+
+      for (int i = 0; i < 5; ++i) {
+        static int n = 0;
+        printf("%d ", ++n);
+      }
+    #+END_SRC
+
+    #+NAME: saludar.c
+    #+BEGIN_SRC c
+      // Suponiendo que el archivo es saludar.c
+      // las variables y funciones estáticas, solo se pueden llamar desde este archivo
+      // si este archivo se incluye con include en otro, no podrán ser utilizadas
+      // se podría decir que están escondidas para otros archivos
+
+      // Se agrega el prefijo static, antes del tipo de la variable
+
+      // declaramos las variables
+      static char nombre[10];
+      static int  edad;
+      char apodo[10];
+      // declaramos las funciones
+      void saludar(char [10], int);
+      static bool esMayorDeEdad(int);
+
+      // definimos las funciones
+
+      // esMayorDeEdad sólo podrá usarse en este archivo
+      static bool esMayorDeEdad(int Edad){
+        return edad > 18;
+      }
+      // saludar() podrá ser utilizado en otro archivo si se quiere
+      void saludar(char nombre[10], int edad){
+        if(esMayorDeEdad(edad))
+          printf("Hola %s", apodo);
+      }
+    #+END_SRC
+
+    #+NAME: variables estaticas como locales
+    #+BEGIN_SRC c
+      void saludar(char nombre[]){
+        static char saludoFormal[] = "hey que tal";
+
+        printf("%s %s", saludoFormal, nombre);
+      }
+    #+END_SRC
+
+*** Declarar Variables con Extern
+    + Si una variable fue definida de forma *global* en un archivo se puede agregar el prefijo *extern* para declararla en otro archivo
+    + Si un *array* (arreglo) ya fue definido en un archivo1.c y se le asignó el tamaño,
+      cuando se hace referencia a él en otro archivo2.c con el prefijo *extern*, no se necesita volver a 
+      asignarle el tamaño.
+
+    #+NAME: archivo-1.c
+    #+BEGIN_SRC c 
+      // estamos declarando y definiendo la variable
+      // - al declarar estamos determinado el tipo, en este caso es int
+      // - al definir estamos reservando espacio en memoria
+      int edad;
+
+      // para los arrays (arreglos) deben asignarle el tamaño,
+      // si en otro archivo se declara con extern, no es necesario volver a asignar el tamaño
+      char nombre[10];
+
+      // inicializamos la variable
+      // - le asignamos un valor
+      edad = 5;
+    #+END_SRC
+    
+    #+NAME: archivo-2.c
+    #+BEGIN_SRC c
+      // declaramos la variable edad
+      // - pero no estamos reservando espacio en memoria,
+      // se reservó espacio en memoria cuando se declaró y definió en archivo-1.c
+      extern int edad;
+
+      // los arrays que ya fueron definidos y asignados un tamaño en otro archivo,
+      // no necesitan que se vuelva a asignar el tamaño
+      extern char nombre[];
+
+      // DUDAS:
+      // - La puedo inicializar acá?
+      // - Si ya estaba inicializada y pregunt su valor?
+      // - Que pasa si no la declaro y solo la uso? se puede?
+    #+END_SRC
+
+* Variables Register
+  + Una *declaración* de una variable register, le avisa al compilador que esa variable se va a utilizar de forma constante
+    (aunque el compilador lo puede ignorar)
+  + Sólo se puede utiliar con *variables automáticas* y *parametros de una función*
+  + No se puede acceder a la *dirección de memoria* de una variable register
+  + Existen ciertas restricciones de que tipos de variables o cantidad de variables pueden ser register,
+    eso varía según el ordenador a utilizar.
+
+  #+BEGIN_SRC c
+    register int x;
+    register char c;
+
+    void unaFuncion(register unsigned m, register long m){
+      register int i;
+    }
+  #+END_SRC
+
+* Header Files
+  + Se suelen colocar las declaraciones de las funciones/variables
+  + Para tener un código más organizado y separar las declaraciones de las definiciones
+* Block Structure
+  + Un bloque es toda *sentencia compuesta* (compound statement) es decir
+    toda declaracion de una expresion seguido de las llaves { }
+    Ej. Una función, un loop (for, while, do while), un condicional (if, else if, else), ..
+  + Las variables que se declaren dentro de un bloque, solo pueden ser utilizar dentro del bloque
+  + Una *variable automática* declarada en un bloque, se instancia cada vez que ingresa al bloque
+
+    #+NAME: Block structure
+    #+BEGIN_SRC c
+      if(n > 0){
+        // las llaves { } delimitan el bloque if, no se pueden acceder a las variables fuera de este
+        // Ej. la variable precio, puede usarse solo dentro del bloque if
+        // también se podría acceder dentro del for, pero.. si es posible declarar una nueva variable
+        // con el mismo nombre y otro tipo es válido (aunque no se recomienda, genera confusiones)
+        int precio;
+
+        for(i=0; i < n; i++){
+          // las llaves { } delimitan el bloque del for, no se pueden acceder fuera de este
+          //
+          // esta es otra variable precio por tanto le puedo declarar con otro tipo,
+          // y es válido en c porque es otro bloque
+          // "aunque no se recomienda, porque presta a confusiones"
+          double precio;
+
+        }
+      }
+
+      saludar(char nombre[]){
+        // las llaves { } delimitan el bloque
+        // todas la variables declaradas dentro, solo se pueden acceder desde este bloque
+        char saludoInformal = "eh, hola";
+      }
+    #+END_SRC
+
+* Initialization
+  La inicialización de variables, y arrays.
+
+  + Las *variables globales* y *variables estáticas* aunque no se inicializen, se inicializaran por defecto con el valor cero.
+  + Las *variables automáticas* y *register variables* se inicializan con *basura* es decir, pueden llegar a tener
+    valores que no tienen sentido.
+  + En los *arrays* (arreglos) si se asigna un tamaño, el compilador le asigna el tamaño según la cantidad de elementos que tenga
+
+  #+NAME: Inicializar array
+  #+BEGIN_SRC c
+    // al array dias no le asigné el tamaño entre los corchetes []
+    // - por tanto el compilador lo inicializará según la cantidad de elementos
+    // - en este caso tiene 5 elementos
+    // - por tanto lo inicializará como int dias[5]
+    int dias[] = {1,2,3,4,5}
+  #+END_SRC
+
+* Preprocesador de C
+  + Las directivas más utilizadas son #include y #define
+  + Con #include se incluyen archivos
+  + Con #define se reemplazan variables por strings (cadena/secuencia de caracteres)
+  + Condiciones de compilacion
+
+*** #Define
+    + Es una macro de sustición
+    + Reemplaza un *token* por una cadena/secuencia de caracteres
+    + Se le pueden pasar argumentos (pero se debe tener cuidado porque hay malas practicas)
+

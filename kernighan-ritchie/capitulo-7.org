@@ -1,0 +1,661 @@
+#+TITLE: Standard Input and Output (stdio.h)
+* Conceptos
+** Operador < de redirección
+** Operador >
+** Operador | pipe (tuberia)
+** (type) Especificaciones de Conversión
+   + Se utilizan dentro del parámetro format de scanf y printf
+   + Van precedidos del operador %
+
+   #+NAME: Tabla de los tipos de Conversión
+   |---------+----------------------|
+   | Formato | Descripción          |
+   |---------+----------------------|
+   | %d      | entero               |
+   | %s      | cadena de caracteres |
+   | %c      | caracter             |
+   |         |                      |
+   |---------+----------------------|
+
+** Caracteres ordinarios
+   - Son sólo caracteres comunes (que no son caracter espacio en blanco, debajo explico más en detalle cuales)
+   - Se diferencian de las especificaciones de conversión porque no contienen el %
+   - Los *white space characters* (espacios en blanco) son
+     - \t tabulación
+     - \n nueva linea
+     - \r carriage return (retorno de carro) "hace que se mueva el cursor a la primera posición de una línea"
+     - \v tabulación vertical "hace un salto de linea y tabulación de la misma longitud que la palabra anterior a \v
+     - tabulación vertical
+     - el caracter de espacio en blanco
+     - 
+  #+name: Ejemplos de usar \t \n \r
+  #+BEGIN_SRC C :results output
+    #include <stdio.h>
+
+    int main(){
+      char *s;
+
+      // PROBANDO - CARRIAGE RETURN
+      //
+      // esto va a imprimir la cadena de caracteres "bien jaja"
+      // porque posiciona el cursor al comienzo de esta nueva linea
+      //
+      // Obs: Se suele complementar con \n es decir el caracter de nueva linea
+      s ="hola\rcomo estas\rbien jaja";
+      printf("%s", s);
+
+      // otro ejemplo seria este
+      // 1. Hace un salto de linea con tabulación (por el \v)
+      // 2. Pero en vez de hacer tabulación a partir del número uno,
+      // hace que el cursor apunte al principio de linea (vuelve el cursor atrás, al principio)
+      s  = "0 \v 0 \v 0 \v 0\v\r1 2 3 4\n";
+      printf("%s", s);
+
+      /************************************************/
+
+      // PROBANDO - TABULACION VERTICAL
+      //
+      s = "0 0 0\v1\v2\v3\v4\v5 6 7 8 9";
+      printf("%s", s);
+
+      return 0;
+    }
+  #+END_SRC
+  
+  #+RESULTS: Ejemplos de usar \t \n \r
+  : holacomo estasbien jaja0  0  0  01 2 3 4
+  : 0 0 012345 6 7 8 9
+
+  #+BEGIN_SRC C :results output
+    #include <stdio.h>
+
+    int main(){
+      printf("hola probando...(?");
+
+      return 0;
+    }
+  #+END_SRC
+
+  #+RESULTS:
+  : hola probando...(?
+
+  #+BEGIN_EXAMPLE
+  Carriage return means to return to the beginning of the current line without advancing downward.
+  The name comes from a printer's carriage, as monitors were rare when the name was coined.
+  This is commonly escaped as \r, abbreviated CR, and has ASCII value 13 or 0x0D.
+
+  Linefeed means to advance downward to the next line; however, it has been repurposed and renamed.
+  Used as "newline", it terminates lines (commonly confused with separating lines).
+  This is commonly escaped as \n, abbreviated LF or NL, and has ASCII value 10 or 0x0A.
+  CRLF (but not CRNL) is used for the pair \r\n.
+
+  Form feed means advance downward to the next "page". It was commonly used as page separators, 
+  but now is also used as section separators. (It's uncommonly used in source code to divide logically 
+  independent functions or groups of functions.) Text editors can use this character 
+  when you "insert a page break". This is commonly escaped as \f, abbreviated FF, 
+  and has ASCII value 12 or 0x0C
+  #+END_EXAMPLE
+
+  #+name: Ejemplo de \r carriage return
+  #+BEGIN_EXAMPLE
+  r is carriage return and moves the cursor back like if i will do-
+  Ej.:
+  printf("stackoverflow\rnine")
+  ninekoverflow
+
+  means it has shifted the cursor to the beginning of "stackoverflow" and overwrites 
+  the starting four characters since "nine" is four character long
+  #+END_EXAMPLE
+
+  #+name: ejemplo de \n new line
+  #+BEGIN_EXAMPLE
+  \n is new line character which changes the line and takes the cursor to the beginning of a new line like-
+
+  printf("stackoverflow\nnine")
+  stackoverflow
+  nine
+  #+END_EXAMPLE
+
+  #+name: ejemplo de \f form feed
+  #+BEGIN_EXAMPLE
+  \f is form feed, its use has become obsolete but it is used for giving indentation like
+
+  printf("stackoverflow\fnine")
+  stackoverflow
+               nine
+  #+END_EXAMPLE
+
+** Formatear - Justificar/Alinear Salida - Especificador de precisión...
+*** Conceptos
+   + La salida estandar del printf() que va a la pantalla se puede
+     * Alinear/justificar hacia la izquierda ó derecha
+     * Determinar el *ancho de campo* con el punto que es el *especificador de precisión* para determinar cuantos caracteres mostraremos, su longitud.
+   + La salida, por defecto, se justifica a la derecha del ancho total que le hallamos dado al campo, que por defecto tiene como longitud la longitud de la cadena.
+   + En caso de error, el comportamiento de printf es indeterminado (undefined behavior)
+   + Toda marca, comienza por el símbolo % y termina con su tipo
+
+
+   #+name: Estructura de cada marca de agua (los que tienen %)
+   #+BEGIN_EXAMPLE
+     %[parameter][flags][width][.precision][length]type
+
+     Los campos entre corchetes son opcionales
+   #+END_EXAMPLE
+
+   #+name: Alineando a los costados
+   #+BEGIN_EXAMPLE
+   %12d especifica un ancho de campo de 12, jusitifica la cadena a la derecha (por defecto)
+   %-12d  especifica un ancho minimo de 12, saca la salida justificada a la izquierda (por el menos)
+   #+END_EXAMPLE
+
+   |-----------+--------------------------------------------------------------------------------------------|
+   | Parameter | Descripción                                                                                |
+   |-----------+--------------------------------------------------------------------------------------------|
+   | n$        | Se reemplaza “n” por un número para cambiar el orden en el que se procesan los argumentos. |
+   |-----------+--------------------------------------------------------------------------------------------|
+
+   |--------+--------------------------------------------------------------------------------------------------|
+   | Flag   | Descripción                                                                                      |
+   |--------+--------------------------------------------------------------------------------------------------|
+   | Numero | Rellena con espacios (o con ceros, ver siguiente flag) a la izquierda hasta el valor del número. |
+   | 0      | Se rellena con ceros a la izquierda hasta el valor dado por el flag anterior. Por ejemplo “%03d” |
+   | -      | Justifica el campo a la izquierda (por defecto ya hemos dicho que se justifica a la derecha)     |
+   |--------+--------------------------------------------------------------------------------------------------|
+
+   #+BEGIN_EXAMPLE
+   printf("%03d", 5) rellena tres ceros a la izquierda del 5, por defecto alinea a la derecha 
+   #+END_EXAMPLE
+
+   |--------+------------------------------------------------------------------------------------------|
+   | Width  | Descripción                                                                              |
+   |--------+------------------------------------------------------------------------------------------|
+   | número | Tamaño del ancho del campo donde se imprimirá el valor                                   |
+   | *      | Igual que el anterior, pero el número a utilizar se pasa como parámetro antes del valor. |
+   |--------+------------------------------------------------------------------------------------------|
+
+   #+BEGIN_EXAMPLE
+   printf("%*d", 5, 10) imprime el número 10, pero con un ancho de cinco dígitos
+   #+END_EXAMPLE
+
+   |-----------+---------------------------------------------------------------------------------------------------------|
+   | Precision | Descripción                                                                                             |
+   |-----------+---------------------------------------------------------------------------------------------------------|
+   | numero    | Tamaño de la parte decimal para números reales. Ò número de caracteres a imprimir para cadenas de texto |
+   | *         | Igual que el caso anterior, pero el número a utilizar se pasa como parámetro justo antes del valor.                                                                                                       |
+   |-----------+---------------------------------------------------------------------------------------------------------|
+
+   #+BEGIN_EXAMPLE
+   printf("%.*s", 3, "abcdef") imprime “abc”.
+   #+END_EXAMPLE
+  
+   |--------+------------------------------------------------------------|
+   | Type   | Descripción                                                |
+   |--------+------------------------------------------------------------|
+   | %c     | Imprime el carácter ASCII correspondiente                  |
+   | %o     | Conversión octal sin signo de un entero                    |
+   | %d, %i | Conversión decimal con signo de un entero                  |
+   | %u     | Conversión decimal sin signo de un entero                  |
+   | %x, %X | Conversión hexadecimal sin signo                           |
+   | %p     | Dirección de memoria (puntero)                             |
+   | %f, %F | Conversión a coma flotante con signo, usando punto decimal |
+   | %s     | Cadena de caracteres (terminada en '\0')                   |
+   | %%     | Imprime el símbolo %                                       |
+   |--------+------------------------------------------------------------|
+ 
+*** Ejemplos 1
+
+    #+BEGIN_SRC C :results output
+      #include <stdio.h>
+
+      int main(){
+        printf("..%-010s..\n", "hola");
+        printf("..%010s..\n", "hola");
+        printf("%010c", 1);
+
+        return 0;
+      }
+    #+END_SRC
+
+    #+RESULTS:
+    : ..hola      ..
+    : ..      hola..
+    :          
+
+    #+BEGIN_SRC C
+      for (int x = 0; x < 300; x += 9) {
+        printf("|%10d|\n", x); // lo alinea por defecto a la derecha a mnos q usemos el simbolo -
+       }
+    #+END_SRC
+
+*** Ejemplos 2 2 #  
+   #+name: Alinear una cadena a la derecha y a la izquierda
+   #+BEGIN_SRC C
+     // Para alinear lo que hacemos es completar con espacios en blanco
+     // a) Si usamos el signo menos luego del % alineará a la a la izquierda
+     // b) Si no usamos el signo menos luego de % entonces alineará a la derecha
+
+     // 3)
+     // ALINEAMOS A LA DERECHA (por no usar "menos" luego de %)  
+     // 1. alinea la cadena de caracteres a la derecha
+     // - completa con espacios en blanco a la izquierda
+     // - lo hace en base al total de caracteres + cuanto espacio
+     // entonces completa con 3 espacios a la izquierda 
+     // 
+     // 123hello world.
+     printf("3)");
+     printf("%15s", str); // 11 + 4
+     printf("0000\n");
+     printf("\n-------------------\n");
+
+     // 4)
+     // ALINEAMOS A LA IZQUIERDA (por el "signo menos" luego de %)
+     // - hace lo mismo que el (3) completa con los caracteres faltantes
+     // - pero lo hace a la derecha por usar el signo "menos"
+     // 
+     // hello world.
+     printf("4)");
+     printf("%-15s", str);
+     printf("0000\n");
+     printf("\n-------------------\n");
+   #+END_SRC
+   
+   #+name: Restringir la cantidad de caracteres y alinear la cadena
+   #+BEGIN_SRC C
+     // Para restringir la cantidad de caracteres utilizamos el punto
+     // a) si queremos restringir ponemos cuantos caracteres mostraremos luego del punto
+     //
+     // Obs: Se puede complementar con alinear a la izquierda/derecha
+     // Si la palabra es: 0000 (osea cuatro ceros)
+     char *palabra = "0000";
+     printf("%.2", palabra); // se imprimirá solo dos ceros
+     printf("%6", palabra);  // se alineará a la derecha, completa con dos espacios en blanco a la izquierda (porque ya tiene 4 caracteres)
+     printf("%-6", palabra); // se alineará a la izquierda, completa con dos espacios en blanco a la derecha (porque ya tiene 4 caracteres)
+
+     // 123 00
+     printf("%6.2", palabra); // se imprimirá dos ceros, y alineará a la derecha completando con cuatro espacios en blanco a la izq
+     printf("%-6.2", palabra); // se imprimirá dos ceros, y alineará a la derecha completando con cuatro espacios en blanco a la der
+
+
+     // 1)
+     // - con el punto restringimos la cantidad de caracteres
+     // - limitamos la cantidad de caracteres a 5
+     // - solo veremos "hello" seguido de la otra cadena "0000"
+     printf("1)");
+     printf("%.5s", str); //
+     printf("0000\n");
+     printf("\n-------------------\n");
+
+     // 2)
+     // 1. con el punto restringimos la cantidad de caracteres
+     // - limitamos la cantidad de caracteres a 5
+     // - solo veremos "hello" seguido de "0000"
+     // 2. completamos a la izquierda la cantidad de caracteres faltantes
+     // que serán (12-5)=7, por tanto completa con 7 caracteres a la izquierda
+     //
+     // 1234567hello
+     printf("2)");
+     printf("%15.5s", str);
+     printf("0000\n");
+     printf("\n-------------------\n");
+   #+END_SRC
+   
+   #+name: Pasar parametros
+   #+BEGIN_SRC C
+     // Si usamos el * seguido de punto .
+     // estamos diciendo que lo que antes pasabamos en el primer parámetro *format
+     // ahora lo pasaremos como segundo parámetro
+     //
+
+     // 5)
+     // - restringimos la cantidad de caracteres a 5
+     printf("5)");
+     printf("%.*s", 5, str); //
+     printf("0000\n");
+     printf("\n-------------------\n");
+   #+END_SRC
+
+*** Referencias
+    - http://www.it.uc3m.es/pbasanta/asng/course_notes/input_output_printf_es.html
+    - http://www.it.uc3m.es/pbasanta/asng/course_notes/input_output_function_scanf_es.html
+    - https://parzibyte.me/blog/2020/04/12/rellenar-alinear-texto-printf/
+    - https://www.dummies.com/programming/c/how-to-format-with-printf-in-c-programming/
+
+* I/O Standard Input/Output
+** Conceptos
+** Ejemplos
+   #+name: archivo_input
+   #+BEGIN_SRC bash :results none
+   echo "12" > input.txt # es el numero que ingresara en otros archivos como input
+   #+END_SRC
+   
+   #+name: Ejemplo - printf/fprintf y scanf/fscanf
+   #+BEGIN_SRC C :results output :var tmp=archivo_input :cmdline < input.txt
+     #include <stdio.h>
+
+     int main(){
+       // el printf() es la manera abreviada de usar fprintf()
+       printf("hola..!\n");
+       // le pasamos como flujo de salida, la pantalla de la terminal
+       fprintf(stdout, "hola..!\n");
+
+       /***********************************************************/
+
+       int x;
+       // el scanf() es la manera corta de usar fscanf()
+       scanf("%d", &x);
+       printf("el valor es %d\n", x);
+
+       // le asignamos como flujo de entrada, el teclado
+       fscanf(stdin, &x);
+       printf("el valor es %d\n", x);
+
+       return 0;
+     }
+   #+END_SRC
+
+   #+RESULTS: Ejemplo - printf/fprintf y scanf/fscanf
+   : hola..!
+   : hola..!
+   : el valor es 12
+   : el valor es 12
+
+    #+name: Ejemplo - stdin como archivo
+    #+BEGIN_SRC C :resuts output :var tmp=archivo_input :cmdline < input.txt
+          #include <stdio.h>
+
+          int main(){
+            FILE *archivo;
+            // utilizamos stdin como archivo
+            // stdin es una macro
+            // que será lo que se ingrese por teclado
+            archivo = stdin;
+
+            // es donde se guardará la información
+            int x;
+
+            printf("Ingrese un número: ");
+            // fscanf() funciona similar al scanf()
+            // - fscanf() tiene como estandar de entrada a un fichero
+            // - scanf() tiene como estandar de entrada al teclado
+            fscanf(archivo, "%d", &x);
+            printf("El número ingresado fue %d\n", x);
+
+            return 0;
+          }
+   #+END_SRC
+
+   #+RESULTS: Ejemplo - stdin como archivo
+   : Ingrese un número: El número ingresado fue 12
+   
+   #+name: Ejemplo - stdout como archivo
+   #+BEGIN_SRC C :results output
+     #include <stdio.h>
+
+     int main(){
+       FILE *archivo;
+       archivo = stdout; // stdout es una macro, por default es la pantalla de la terminal
+       // la propia pantalla de la terminal también es un archivo
+
+       // fprintf() funciona casi igual que printf()
+       // en fprintf() el flujo de salida (stream) suele ser un archivo
+       // en printf() el flujo de salida es la pantalla de la terminal
+       fprintf(archivo, "Probando..!\n");
+
+
+       return 0;
+     }
+   #+END_SRC
+
+   #+RESULTS:
+   : Probando..!
+   
+** Referencias
+   - http://www.it.uc3m.es/pbasanta/asng/course_notes/input_output_es.html
+   - https://www.youtube.com/watch?v=aI4YEOu60Ao
+   - http://c.conclase.net/librerias/?ansifun=fscanf
+* (STD I) Standard Input - Entrada
+** getchar
+** scanf
+   - El tipo es un entero
+   - Retorna la cantidad de asignaciones exitosas (es decir las que no tuvieron un error al guardar en los punteros)
+   - Son exitosas las que si se esperaba un entero %d, se ingresó un entero
+   - El *primer parámetro* al igual que printf() tiene las *espeficaciones de conversión* y *caracteres*
+     - Las *especificaciones de conversión* comienzan con un % seguido del tipo de conversión
+   - El segundo parámetro recibe el *operador elipsis* ... el de los tres puntos
+     - Quiere decir que recibirá uno o más parámetros
+     - Los parámetros deben ser *punteros* que son donde se almacenarán los input
+
+   #+name: El prototipo de scanf
+   #+BEGIN_EXAMPLE
+   int scanf(char* format, ...)
+   #+END_EXAMPLE
+ 
+   #+NAME: input_scanf_file
+   #+BEGIN_SRC bash :results none :exports none
+     echo "10 12" > input.txt
+     # si le pasara solo un valor de entrada en vez de 2,
+     # el scanf() retornaría un 1, diciendo que solo uno de los input tuvo exito
+   #+END_SRC
+
+   #+NAME: Ejemplo de scanf
+   #+BEGIN_SRC C :results output :var tmp=input_scanf_file :cmdline < input.txt
+     #include <stdio.h>
+
+     int main(){
+       int a[10], b[10];
+       // - si ingresamos 1 2, el resultado será 2,
+       // - si ingresamos 1 a, el resultado será 1
+       // scanf() devuelve la cantidad argumentos que tuvieron éxito (es decir que no tuvieron error)
+       printf("%d\n", scanf("%d%d", a,b));
+
+       return 0;
+     }
+   #+END_SRC
+
+   #+RESULTS: Ejemplo de scanf
+   : 2
+** sscanf
+   - Implementa lo mismo que el scanf() pero con un tercer parámetro, que va antes de *format
+   - El primer parámetro suplanta la *entrada estandar* (input) que suele ser la del teclado
+
+   #+name: Ejemplo sscanf
+   #+BEGIN_SRC C :results output
+     #include <stdio.h>
+
+     int main(){
+
+       char cadenaA[10];
+       char cadenaB[10];
+
+       // scanf(char* string, char* format, ...)
+       // - Primer parámetro será el input (estamos reemplazando la entrada standar que era el teclado)
+       // - Segundo parámetro, donde se guardan las especificaciones de conversión y caracteres ordinarios
+       // - El resto de los parámetros son los punteros donde se guardaran las especificaciones de conversión
+       sscanf("hola che", "%s %s", cadenaA, cadenaB);
+
+       // imprimimos por separado para comprobar
+       printf("cadenaA: %s\n", cadenaA);
+       printf("cadenaB: %s\n", cadenaB);
+       // imprimimos todo junto
+       printf("%s %s\n",cadenaA, cadenaB);
+
+       return 0;
+     }
+   #+END_SRC
+
+   #+RESULTS:
+   : cadenaA: hola
+   : cadenaB: che
+   : hola che
+
+** Referencias
+   - http://www.it.uc3m.es/pbasanta/asng/course_notes/input_output_es.html
+* (STD O) Standard Ouput - Salida
+** printf
+   - Según su prototipo, este retorna un entero
+     - Es la cantidad de caracteres del primer parámetro, lo que se imprimirá por pantalla
+   - Recibe como primer argumento una cadena de caracteres (se logra con un puntero)
+     - Es el formato con el que se imprimirá por pantalla (es la salida ó output predeterminada)
+     - Con fmt se refiere formato
+     - Hace las conversiones de los parámetros. Estan precedidas del % seguido del tipo de conversión (entero,caracter,etc..)
+   - Recibe como seguno parámetro el operador elipsis ... que son tres puntos seguidos
+     - El operador ... significa que recibirá uno o muchos parámetros.
+
+   #+NAME: Prototipo de printf()
+   #+BEGIN_EXAMPLE
+   int printf(char *fmt, ...) 
+   #+END_EXAMPLE
+
+   #+NAME: Ejemplo - Conversiones
+   #+BEGIN_SRC C
+     #include <stdio.h>
+
+     int main(){
+       char* texto = "hola";
+       char pepe = 'a';
+       //printf(pepe);
+       printf(":%5s:\n", texto);
+       printf(":%.10s:\n", texto);
+       printf(":%-15s:\n", texto);
+       printf(":%10.15s:\n", texto);
+       printf(":%-10.15s:\n", texto);
+
+       return 0;
+     }
+   #+END_SRC
+
+   #+RESULTS: Probando
+   | :      | hola: |
+   | :hola: |       |
+   | :hola  | :     |
+   | :      | hola: |
+   | :hola  | :     |
+
+   #+NAME: Probando
+  #+BEGIN_SRC C
+     #include <stdio.h>
+
+     int main(){
+       // - printf devuelve la longitud de caracteres del primer parámetro
+       // - también incluye los espacios
+       // - y los %formatos_de_conversion (que cuentan por un caracter)
+
+       printf("printf 2: %d\n", printf("110 %d%d", 5, 2));
+
+       return 0;
+     }
+   #+END_SRC
+
+   #+RESULTS:
+   : 110 52printf 2: 6
+** sprintf
+   - Implementa lo mismo que printf() pero con otro parámetro antes del de *format
+   - El primer parámetro es una cadena de caracteres, donde se guarda lo que tenga *format
+
+   #+NAME: Prototipo de sprintf()
+   #+BEGIN_EXAMPLE
+   sprintf(char* string, char* fmt, ...)
+   #+END_EXAMPLE
+
+   #+NAME: Ejemplo con sprintf
+   #+BEGIN_SRC C
+     #include <stdio.h>
+
+     int main(){
+       // si probamos guardar en un puntero a una cadena de caracteres,
+       // que no se reservó memoria de forma dinámica con malloc(), entonces rompe
+       // char *frase;
+
+       // reservamos memoria de forma estática
+       char frase[100];
+       // el sprintf() guarda el (char* format) en una (char* string)
+       // donde (char *format) era el primer parámetro del printf(),
+       sprintf(frase, "el numero %d no es %d\n", 1, 2);
+       // si no le pasamos un argumento parece romper (?)
+       printf(frase, 0);
+
+       //printf();
+
+       return 0;
+     }
+   #+END_SRC
+** putchar
+** Referencias
+   - http://www.it.uc3m.es/pbasanta/asng/course_notes/input_output_es.html
+* getchar && putchar definidas como Macros
+** Conceptos
+   #+BEGIN_EXAMPLE
+   Many of the “functions” you regularly use in C are defined as macros,
+   such as getchar() and putchar(). Still, they look like and operate like functions 
+   within the code. Technically, they’re macros.
+   #+END_EXAMPLE
+
+** Ejemplos
+   #+BEGIN_SRC C :results output
+     #define getchar() getc(stdin)
+     #define putchar(c) putc(c, stdout)
+
+     /*
+      * Otras macros más básicas
+      */
+
+     #define LEN 10
+     char str[LEN]; // el procesador reemplazará LEN por 10
+
+     #define MAX(a,b) ((a) > (b) ? (a) : (b))
+     int x = MAX(2,3); // el preprocesador reemplazará MAX por el operador ternario
+   #+END_SRC
+
+   #+RESULTS:
+
+** Referencias
+   + https://cindepthforsure.wordpress.com/tag/example-how-getchar-and-putchar-can-be-implement-as-macro/
+   + https://stackoverflow.com/questions/45760438/how-are-getchar-and-putchar-macros?rq=1
+   + https://c-for-dummies.com/blog/?p=3553
+   + https://en.wikipedia.org/wiki/Weak_symbol
+* Manejo de Errores (stderr)
+** ferror
+   + Devuelve un cero si hay un error con la comunicación con fp
+
+   #+name: Prototipo de ferror
+   #+BEGIN_EXAMPLE
+   int ferror(FILE* fp)
+   #+END_EXAMPLE
+** feof
+   + Retorna cero si se llega al final del archivo
+   + Actua similar al ferror
+
+   #+name: Prototipo de feof
+   #+BEGIN_EXAMPLE
+   int ferror(FILE* fp)
+   #+END_EXAMPLE
+
+* Archivos con (FILE *)
+* Referencias
+** Escribir archivos
+   - http://c.conclase.net/ficheros/?cap=002
+   - https://w3.ual.es/~abecerra/ID/archivos.pdf
+   - http://www.glue.umd.edu/afs/glue.umd.edu/system/info/olh/Programming/C_Programming_on_Glue/The_Third_C_Program_Character_Data/eof_stdio
+   - https://www.geeksforgeeks.org/scanf-and-fscanf-in-c-simple-yet-poweful/
+   - https://www.geeksforgeeks.org/c-program-copy-contents-one-file-another-file/
+   - http://www.mathcs.emory.edu/~cheung/Courses/561/Syllabus/3-C/text-files.html
+   - https://stackoverflow.com/questions/9206091/going-through-a-text-file-line-by-line-in-c
+   - https://www.geeksforgeeks.org/c-fopen-function-with-examples/
+   - https://overiq.com/c-programming-101/fscanf-function-in-c/
+   - https://pubs.opengroup.org/onlinepubs/007908799/xsh/fopen.html
+   - https://wiki.sei.cmu.edu/confluence/display/c/FIO06-C.+Create+files+with+appropriate+access+permissions
+** Otros
+  - https://www.geeksforgeeks.org/c-language-2-gq/input-and-output-gq/
+  - https://www.geeksforgeeks.org/return-values-of-printf-and-scanf-in-c-cpp/
+  - https://www.codesdope.com/blog/article/return-values-of-printf-and-scanf-in-c/
+  - https://www.geeksforgeeks.org/nested-printf-printf-inside-printf-c/
+  - [[https://es.wikipedia.org/wiki/Retorno_de_carro][Que es el \r Carriage return - Wikipedia]]
+  - [[https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2][Difference between \r \n and \n\r - knowledge.ni.com]]
+  - [[https://stackoverflow.com/questions/3091524/what-are-carriage-return-linefeed-and-form-feed][What are carriage return, line feed and form feed - Stackoverflow]]
+* Pendientes a revisar  
+  - https://stackoverflow.com/questions/3091524/what-are-carriage-return-linefeed-and-form-feed
+  - http://www.0l23456789.com/416/notes/c-tutorials/dup2.html
+  - http://kitchingroup.cheme.cmu.edu/blog/2015/01/04/Redirecting-stderr-in-org-mode-shell-blocks/
+  - org mode C redirect output to another file
+
+    
