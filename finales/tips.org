@@ -47,22 +47,22 @@
 * [WAITING] Relación entre LL(1) + ASDR + AAS + PAS + Funciones Match(t) y ProximoToken()
 ** PAS
   - La sigla (PAS) significa *Procedimiento de Análisis Sintáctico*
-  - Si el TOKEN leído NO es ninguno de los esperados, se produce un *error sintáctico*
+  - Si el *TOKEN* leído NO es ninguno de los esperados, se produce un *error sintáctico*
   - Las llamadas a los (PAS) *hacen que el análisis sea recursivo*
-    (se tienen funciones que llaman a otras funciones de forma recursiva, y así se genera el AAS)
+    (/se tienen funciones que llaman a otras funciones de forma recursiva, y así se genera el AAS/)
 ** ASDR y AAS
   - La sigla (ASDR) se refiere a un tipo de *Paser* y significa *Análisis Sintáctico Descendente Recursivo*
   - En el (ASDR) por cada (Vn) *No terminal* hay un (PAS) que lo implementa con el mismo nombre
-    (Ej. para el no terminal <identificador> el PASS sería ~Identificador()~)
+    (Ej. para el no terminal <identificador> el PASS sería ~Identificador()~ osea una función)
 
   #+BEGIN_QUOTE
   Durante el (ASDR) se arma un (AAS) *Árbol de Análisis Sintáctico* donde
   - Los (Vt) Terminales son *nodos* (interiores)
   - Los (Vn) No Terminales son *hojas*
 
-  Los nodos hijos representan la secuencia de (Vn) y (Vt) de una *producción* de ese (Vn) 
+  Los *nodos hijos* representan la secuencia de (Vn) y (Vt) de una *producción* de ese (Vn) 
   #+END_QUOTE
-** Match(t) y ProximoToken()
+** Función Match(t) y Función ProximoToken()
   - Son utilizadas por el *Parser* y son como *wrappers* sobre el Scanner
   - La función ~Match(t)~
     - es la única función que *hace avanzar al Scanner*
@@ -80,60 +80,77 @@
   porque no se lo hizo avanzar con ~Match(t)~
 
   Si al usar ~Match(t)~ para comparar un TOKEN con el próximo símbolo que devolverá el scanner,
-  y no hay coincidencia, eso implíca un *error sintáctico* pero igual hace avanzar al Scanner
-  por tanto si coincide ó no con que devolverá el Scanner lo hará avanzar igual
+  y no hay coincidencia, eso implíca un *error sintáctico* pero.. con error y todo igual hace avanzar al Scanner
+  por tanto si coincide ó no con lo que devolverá el Scanner lo hará avanzar igual
   #+END_QUOTE
-** [WAITING] LL(1) y LL(k)
-   - *LL* es una (GIC) *sin ambiguedad* (/para cualquier cadena de derivación, se tiene una única derivación ó bien sólo un árbol sintáctico/)
+** LL(1) y LL(k)
+   - *LL* es una (GIC) *sin ambiguedad* (/para llegar a cualquier cadena de derivación, se tiene una única derivación ó bien sólo un árbol sintáctico/)
    - Una (GIC) ~LL(k)~ puede conocer anticipadamente ~k~ *símbolos de preanálisis* (TOKENs)
-   - Una (GIC) ~LL(1)~ se refiere que usa ~ProximoToken()~ para ver *un símbolo por adelantado* (/un único símbolo adicional/)
+   - Una (GIC) ~LL(1)~ se refiere que usa ~ProximoToken()~ para ver *un símbolo por adelantado* (/un único símbolo adicional por eso el 1/)
    - El *Símbolo de Preanálisis* es el símbolo por adelantado que lee el ~LL(1)~ usando ~ProximoToken()~
 
    #+BEGIN_COMMENT
-   no entendi el ejemplo... (?)
+   <<DUDA>>: (3) ~S → abQ | acM~ es LL(2) porque... puede predecir hasta 2?
+   *Rta:* Si
    #+END_COMMENT
    
    #+BEGIN_QUOTE
    ~LL(1)~ decide  que producción usar con un único *símbolo de preanálisis*
    
-   1) ~S → aR | b~ es LL(1)
-   2) ~S → aR | a~ NO es LL(1)
+   1) ~S → aS | b~ es LL(1)
+   2) ~S → aS | a~ NO es LL(1)
    3) ~S → abQ | acM~ NO es LL(1) , es LL(2)
+
+   (1) ~S → aR | b~ es LL(1) porque los conjuntos primeros de la producción son disjuntos,
+   Primero(S) = Primero(aS) U Primero(b) = {a,b}
+
+   (2) ~S → aS | a~ NO es LL(1) porque los *conjuntos primeros* de la producción NO SON DISJUNTOS,
+   sabemos que no son disjuntos porque la intersección de los conjuntos primeros es distinto de vacío.
+   Primero(S) = Primero(aR) INTERSECCION Primero(a) != conjunto_vacio
+   Pero tiene solución, creando otra producción
+   Ej. en vez de ~S->aS | a~ podría ser..
+   S->aR
+   R->aR | epsilon
+   
+   <<DUDA>>: donde el Primero(S) = Primero(a) Union Primero(R)=a = {a} ?
    #+END_QUOTE
 ** [WAITING] Problemas entre LL(1) y ProximoToken()
 *** Recursividad a izquierda en la primera producción
    #+BEGIN_QUOTE
-   Si una producción es recursiva a izquierda, al llamar a ~ProximoToken()~ se hará un recursión/ciclo infinito
+   Si una producción es *recursiva a izquierda*, al llamar a ~ProximoToken()~ se hará un recursión/ciclo infinito
    porque se llamará de forma infinita a ~ProximoToken()~
    La siguiente producción sería el caso
    ~E-> E+T | T~
 
    E+E+E+E+E+E+E+...+T
 
-   *La solución es agregar una nueva producción* pero que haga una *gramática equivalente, que genere el mismo (LF)*
+   *La solución es agregar una nueva producción* que permita que sea una *gramática equivalente, que genere el mismo (LF)*
    ~E->T E'~
    ~E'->E'+T | epsilon~
+
+   Ahora la primera producción ya no es recursiva a izquierda y puede elegir ~T~
    #+END_QUOTE
-*** Producciones empiezan igual
+*** Producciones empiezan igual (igual conjunto primero)
    #+BEGIN_QUOTE
-   NO podemos aplicar ~LL(1)~ si varias producciones comienzan igual
+   NO podemos aplicar ~LL(1)~ si varias producciones comienzan igual,
+   porque *el algoritmo de LL(1) obtiene sólo un símbolo de preanálisis por tanto sólo puede predecir/adelantar un símbolo*
    ~A -> ab | ac | ad | ...~
 
    La solución es crear un nuevo (Vn) *no terminal* con el terminal que lo acompaña al que se repite
    ~A -> aB~
    ~B -> b | c | d | ...~
+
+   <<DUDA>>: Ok..?
+   En este caso si ahora hacemos Primero(A) = Primero(a) U Primero(b) = {a}
    #+END_QUOTE
 
-   #+BEGIN_COMMENT
-   no entendi el problema
-   #+END_COMMENT
-   
    #+BEGIN_QUOTE
-   Un caso similar es el de la *sentencia if* donde se repite *if(cond) sent*
-   ~<sentencia if> -> if(<condicion>) <sentencia> else <sentencia> | if(<condicion>) <sentencia>~
+   Un caso similar es el de la *sentencia if* donde se repite *if(condicion) sentencia*
+   <sentencia if> -> if(<condicion>) <sentencia> else <sentencia>
+   <sentencia if> -> if(<condicion>) <sentencia>
 
    La solución es también crear otra producción, y agregamos un (Vn) que reemplaza que acompaña al que se repite
-   ~<sentencia if> -> if(<condicion>) <sentencia> <opcion-else>~
+   ~<sentencia if> -> if(<condicion>) <sentencia> <opcion-else>~ <- el *if(...)* se repetía en ambos, le agregamos un (Vn) como auxiliar para el else
    ~<opcion-else> -> else <sentencia> | epsilon~
    #+END_QUOTE
 ** Ejemplos de PAS
@@ -175,30 +192,27 @@
   #+END_SRC
 *** Ejemplo 2 - PAS para producción con opciones
   #+BEGIN_SRC C
-    /*
-     ,* Dada la siguiente gramática
-     ,*
-     ,* <sentencia> -> ID = <expresion>;
-     ,* <sentencia> -> LEER ( <listaIdentificadores> );
-     ,*
-     ,* El PAS que implementa el (Vn) no terminal <sentencia> sería
-     ,*/
-    void Sentencia(void) {
-      TOKEN tok = ProximoToken();
-      switch (tok) {
-      case ID:
-        Match(ID); Match(ASIGNACION);
-        Expresión(); Match(PUNTOYCOMA);
-        break;
-      case LEER:
-        Match(LEER); Match(PARENIZQUIERDO);
-        ListaIdentificadores();
-        Match(PARENDERECHO); Match(PUNTOYCOMA);
-        break;
-      default:
-        ErrorSintactico(tok); break; // <-- FUNDAMENTAL, si el próximo TOKEN no coincide => error sintáctico (lanzado por una rutina semántica)
-      }
-    }
+        /*
+         ,* Dada la siguiente gramática
+         ,*
+         ,* <sentencia> -> ID = <expresion>;
+         ,* <sentencia> -> LEER ( <listaIdentificadores> );
+         ,*
+         ,* El PAS que implementa el (Vn) no terminal <sentencia> sería
+         ,*/
+        void Sentencia(void) {
+          TOKEN tok = ProximoToken(); // agarra el primer (Vt) terminal de cada producción, predice sólo la primera palabra/terminal/TOKEN de cada producción
+          switch (tok) {
+          case ID: // predice que ID es el primer terminal de la 1º producción
+            Match(ID); Match(ASIGNACION); Expresión(); Match(PUNTOYCOMA);
+            break;
+          case LEER:  // predice que LEER es el primer terminal de la 2da producción
+            Match(LEER); Match(PARENIZQUIERDO); ListaIdentificadores(); Match(PARENDERECHO); Match(PUNTOYCOMA);
+            break;
+          default:
+            ErrorSintactico(tok); break; // <-- FUNDAMENTAL, si el próximo TOKEN no coincide => error sintáctico (lanzado por una rutina semántica)
+          }
+        }
   #+END_SRC
 *** Ejemplo 3 - PAS para producción con repeticiónes
    #+BEGIN_SRC C
