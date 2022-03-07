@@ -1,66 +1,7 @@
 #+TITLE: Resumen de Finales - Lenguajes Formales + BNF de C + Autómatas
 #+STARTUP: inlineimages
-* Tips
-** Relación entre (LP), (LF) y la BNF
-   #+BEGIN_QUOTE
-   Un (LP) Lenguaje de Programación es una *notación* para describir
-   - algoritmos
-   - estructuras de datos
-   
-   Los (LP) están formados por
-   - (LRs) Lenguajes Regulares <- generados por (GRs)
-   - (LICs) Lenguajes Independientes del Contexto <- generados por (GICs)
-
-   Un (LF) Lenguaje Formal es un conjunto de palabras que
-   - tienen *sintáxis* (reglas gramáticales, forman la estructura, el orden, ...)
-   - NO tienen *semántica* asociada (permite que no sean ambíguos, osea tienen una única interpretación)
-
-   Características de una *BNF*
-   - es una notación sin ambiguedades, única interpetación
-   - describe la sintáxis de un (LP) Lenguaje de programación
-   - parecida a una (GF) Gramática Formal, pero con nuevos *metasímbolos*
-   #+END_QUOTE
-** Relación entre los (LF) y el Compilador
-   |----------------------+----------------------+-------------------------------------------+-------------------------------------|
-   | Jerarquía de Chomsky | Lenguaje Formal (LF) | Gramática que genera al (LF)              | Autómata que lo reconoce            |
-   |----------------------+----------------------+-------------------------------------------+-------------------------------------|
-   | Tipo 0               | LI                   | (GI) Gramática Irrestricta                | Maquina de Turing                   |
-   | Tipo 1               | LSC                  | (GSC) Gramática Sensible de Contexto      | (ALL) Autómata Linealmente Limitado |
-   | Tipo 2               | LIC                  | (GIC) Gramática Independiente de Contexto | (AP) Autómata de Pila               |
-   | Tipo 3               | LR                   | (GR) Gramática Regular                    | (AF) Autómata Finito                |
-   |----------------------+----------------------+-------------------------------------------+-------------------------------------|
-
-   |----------------------+-------------------------------------------+---------------------------------------------------|
-   | Lenguaje Formal (LF) | Gramática que genera al (LF)              | Relación con el Compilador                        |
-   |----------------------+-------------------------------------------+---------------------------------------------------|
-   | LI                   | (GI) Gramática Irrestricta                |                                                   |
-   | LSC                  | (GSC) Gramática Sensible de Contexto      |                                                   |
-   | LIC                  | (GIC) Gramática Independiente de Contexto | Sintáxis, las *Categorías Sintácticas* son (LICs) |
-   | LR                   | (GR) Gramática Regular                    | las *Categorías Léxicas* (ó TOKENs) son (LRs)     |
-   |----------------------+-------------------------------------------+---------------------------------------------------|
-   
-   |-----------+--------------------------------------------------------------------------------------------+-------------------------------------------------------|
-   | Gramática | Restricción                                                                                | dato de color                                         |
-   |-----------+--------------------------------------------------------------------------------------------+-------------------------------------------------------|
-   | (GI)      | Ninguna                                                                                    |                                                       |
-   | (GSC)     | Sea V->T una producción, el cardinal de V debe ser menor ó igual que el de T               | es una (GI) con restricción                           |
-   | (GIC)     | Sea V->T una producción, debe haber un único (Vn) no terminal a izquierda de la producción |                                                       |
-   | (GR)      | Sea V->T una producción, debe haber un único (Vn) no terminal a izquierda de la producción |                                                       |
-   | (GQR)     |                                                                                            | es una (GR) que agrupó un conjunto de (Vt) en un (Vn) |
-   |-----------+--------------------------------------------------------------------------------------------+-------------------------------------------------------|
-** [TODO] Relación entre Operandos/Operadores con la Sintáxis y Semántica
-   #+BEGIN_QUOTE
-   La Sintáxis define la precedencia(prioridad) y asociatividad de los OPERADORES
-   - La asociatividad
-   - La precedencia
-     
-   (/Ej. la asociatividad del operador.../)
-
-   La Semántica define la precedencia(prioridad) de los OPERANDOS
-   (/Ej. la asociatividad del operador.../)
-   #+END_QUOTE
-* [WAITING] BNF de C
-** [WAITING] Problema 1 (2019-02-25)
+* BNF de C
+** Problema 1 (2019-02-25)
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde la afirmación falsa con respecto a BNF:
@@ -74,9 +15,12 @@
    #+END_QUOTE
 *** Respuesta
    #+BEGIN_COMMENT
-   <<DUDA>>: La BNF no puede describir un LF tipo 1 osea (LSC), no?
+   <<DUDA>>: (resuelta) La BNF no puede describir un LF tipo 1 osea (LSC), no?
    me parece que no porque es una (GIC) y ésta no puede generar lo mismo que una (GSC)
    según la jerarquía de chomsky, no?
+   
+   *Rta:*: Claro, la BNF es similar a una (GIC) por tanto no puede generar lo mismo que una (GSC),
+   se podría decir que no es tan potente
    #+END_COMMENT
 
    #+BEGIN_QUOTE
@@ -95,7 +39,7 @@
 
    (6) Falso, una BNF podría no representar ciertas restricciones que si podría una (GSC)
    #+END_QUOTE
-** [WAITING] [#A] Problema 2 (2018-12-10)
+** [#A] Problema 2 (2018-12-10)
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde todos los conceptos que se pueden definir con el *BNF del LF Expresiones de C*
@@ -105,14 +49,7 @@
    4. *Orden de evaluación* de los OPERANDOS.
    5. Aridad (cantidad de operandos) de los OPERADORES.
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: Donde está definido el efecto de lado de C? En el MROC?
-   Yo creí que era Verdadero, porque.. como estaba la expresión de asignación (?)
-   
-   <<DUDA>>: La asociatividad y la precedencia, indican el orden de las operaciones (osea la *Secuenciación*) ?
-   #+END_COMMENT
-   
+*** Respuesta   
    #+BEGIN_QUOTE
    (2) Verdadero, la BNF del LF expresiones de C define la precedencia de los OPERADORES (por cercanía o no al axioma)..
    Más cercano esté del axioma, menos precedencia(prioridad)
@@ -122,6 +59,17 @@
    (4) FALSO. La BNF no define el *orden de evaluacion de los OPERANDOS*, sólo de los OPERADORES.
 
    (5) Verdadero, la regla lo indica explícitamente Ej. si el operador es unario tendrá sólo un operando
+   #+END_QUOTE
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   Donde está definido el efecto de lado de C? En el MROC?
+   Yo creí que era Verdadero, porque.. como estaba la expresión de asignación (?)
+   
+   *Rta:*
+   La BNF de LF expresiones de C no puede definir el *efecto de lado* de la expresión,
+   porque esto pertenece a la etapa de *Análisis Sintáctico*,
+   el efecto de lado es un concepto *Semántico*
    #+END_QUOTE
 ** [#A] Problema 3 (2018-06-07)
 *** Enunciado
@@ -144,7 +92,7 @@
        
    (2) Al calcular ~Primero(sentencia-for)~ obtenemos ~for~
 
-   (3) FALSO, la sentencia-for con menor cantidad de TOKENs es ~for(;;);~ que tiene 11 TOKENs
+   (3) FALSO, la sentencia-for con menor cantidad de TOKENs es ~for(;;);~ que tiene 11 TOKENs si agregamos 1 token por cada exp como minimo
 
    (4) Verdadero, porque al ser una *sentencia iteración* pertenece a una de las 3 *categorías sintácticas*,
    sabiendo que las Categorías Sintáctica son (LICs) generadas por (GICs) y pueden ser reconocidas por un (AP) Automáta de Pila
@@ -175,7 +123,7 @@
    |----+-----------+----------------------------------|
    | 11 | }         | caracter de puntuación           |
    |----+-----------+----------------------------------|
-** Problema 4 (2021-08-04)
+** [#A] Problema 4 (2021-08-04)
 *** Enunciado
    #+BEGIN_QUOTE
    Escriba el *BNF ó las reglas de la gramática* para un lenguaje que sea
@@ -192,13 +140,14 @@
    a=b*c
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_QUOTE
+   #+BEGIN_COMMENT
    Si la Multiplicación tiene mayor precedencia que la Asignación,
    entonces la producción de la Multiplicación debe estar lo más lejos del axioma (de la producción que genera las expresiones),
    y por tanto la Asignación estará lo más cerca posible del axioma
    
    Si la Multiplicación es *asociativa de Izquierda a Derecha*
    entonces es *recursiva a izquierda*, los valores son generados a izquierda de la primera expresión
+   S->aS | b, aaaaaaab
    Ej.
    1. b*a
    2. c*b*a
@@ -211,7 +160,7 @@
    2. a=b=c
    3. a=b=c=d
    4. a=b=c=d=....
-   #+END_QUOTE
+   #+END_COMMENT
    
    #+BEGIN_QUOTE   
    <expresion> ->
@@ -222,34 +171,6 @@
    <expresionMultiplicativa> ->
       <expresionMultiplicativa> * <expresionPrimaria>
       <expresionPrimaria>
-   #+END_QUOTE
-** [WAITING] [#A] Problema 5 (2021-02-17)
-*** Enunciado
-   #+BEGIN_QUOTE
-    Indique todas las afirmaciones verdaderas sobre las características del lenguaje C:
-    
-    1. Es interpretado.
-    2. Es de alto nivel.
-    3. Es estáticamente tipado.
-    4. Incluye el tipo de dato string (cadena).
-    5. En tiempo de ejecución asocia un tipo a cada valor
-   #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   Necesito más justificaciones..
-   #+END_COMMENT
-   
-   #+BEGIN_QUOTE
-   (1) Falso, el lenguaje C es un lenguaje compilado
-
-   (2) Verdadero
-
-   (3) Verdadero
-
-   (4) Falso, el lenguaje C no incuye el tipo de dato String,
-   se requiere de un puntero a char ó de un vector de char
-
-   (5) Falso, el tipo de dato se asocian en tiempo de compilación
    #+END_QUOTE
 ** Problema 6 (2019-12-04)
 *** Enunciado
@@ -313,6 +234,34 @@
        delete numero;  // <-- operador delete para liberar espacio en memoria, sólo en C++ existe
      }
    #+END_SRC
+** [WAITING] [#A] Problema 4 (2021-02-17)
+*** Enunciado
+   #+BEGIN_QUOTE
+    Indique todas las afirmaciones verdaderas sobre las características del lenguaje C:
+    
+    1. Es interpretado.
+    2. Es de alto nivel.
+    3. Es estáticamente tipado.
+    4. Incluye el tipo de dato string (cadena).
+    5. En tiempo de ejecución asocia un tipo a cada valor
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   Necesito más justificaciones..
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Falso, el lenguaje C es un lenguaje compilado,
+
+   (2) Verdadero
+
+   (3) Verdadero
+
+   (4) Falso, el lenguaje C no incuye el tipo de dato String,
+   se requiere de un puntero a char ó de un vector de char
+
+   (5) Falso, el tipo de dato se asocian en tiempo de compilación
+   #+END_QUOTE
 * Gramáticas Ambiguas
 ** [#A] Problema (1) - 2020-12-21
 *** Enunciado
@@ -355,7 +304,7 @@
    | 2 | if(expresion) if(expresion) sentencia else sentencia | regla 1                   |
    |---+------------------------------------------------------+---------------------------|
 * Lenguajes Formales
-** [WAITING] Problema 1 (2021-02-10)
+** Problema 1 (2021-02-10)
 *** Enunciado
    #+BEGIN_QUOTE
     Indique todas las afirmaciones verdaderas acerca de los *LIC*
@@ -367,15 +316,15 @@
     5. Las *declaraciones de C* son un ejemplo de *LIC*
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: (2) detallar el porque
-   #+END_COMMENT
-   
    #+BEGIN_QUOTE
    (1) Verdadero, porque los (LICs) son *Lenguajes Independientes de Contexto* generados por (GICs),
    y también pueden ser generados por (GSCs) según la jerarquía de chomsky..
 
    (2) FALSO, los (LICs) NO pueden ser representados por (ERs)
+   porque las (GRs) que generan los (LRs) que pueden ser representados por (ERs)
+   no soportan generar la misma cantidad símbolos en simultáneo (característica que si soportan las GICs),
+   en otras palabras *Una (GR) no puede hacer que si A aumenta N veces, B aumenta N veces también*
+   llevándolo a C no soportan el balanceo de paréntesis por ejemplo ~EXP->( EXP ) | ...~
 
    (3) Verdadero, los (LICs) son necesarios en los (LPs) para poder definir la sintáxis del (LP)
 
@@ -472,7 +421,7 @@
    (4) Verdadero, éste es un sublenguaje de los *identificadores*,
    una de categorías léxicas de C
    #+END_QUOTE
-** [WAITING] Problema 5 (2020-10-13)
+** [#A] Problema 5 (2020-10-13)
 *** Enunciado
    #+BEGIN_QUOTE
    Dado ~L={x^n y^(2n+1) | n>=0}~
@@ -481,12 +430,7 @@
    2. Indique la *intersección* de L con el *LF expresiones de C*
    3. Indique un *cambio en la definición de L* que lo haga *regular*
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: (3) La resolución sólo sugiere sacar el exponente de ~x~, pero agregar un exponente
-   para ~x~ y otro para ~y~ no sería también otra solución?
-   #+END_COMMENT
-   
+*** Respuesta   
    #+BEGIN_QUOTE
    (1) Las producciones de una gramática que genere a dicho lenguaje serían
    ~S -> y | xSyy~
@@ -494,8 +438,23 @@
    (2) LF Expresiones INTERSECCIÓN L = L, es decir el propio lenguaje L
    ya que éste es un sublenguaje del LF de Expresiones,
 
-   (3) Para hacer a L un LR, debería haber dos constantes, una para ~x~ y otra para ~y~
+   (3) Para hacer a L un LR, podrían haber dos constantes distintas, una para ~x~ y otra para ~y~
+   ya que los (GRs) no soportan generar palabras en misma cantidad en simultáneo
    Ej. ~L={x^n y^(2m+1) | n>=0, m>=0}~
+   
+   (3) Otra alternativa sería sacar la constante ~n~ de ~x~ ó de ~y~
+   quedando recursiva de un sólo lado, que si soportan las (GRs).
+   Ej. ~L={x y^(2n+1) | n>=0}~ ó ~L={x^n y^(2+1) | n>=0}~
+   #+END_QUOTE
+*** Dudas resueltas
+**** Duda 1
+   #+BEGIN_QUOTE
+   En la (3) La resolución sólo sugiere sacar el exponente de ~x~, pero agregar un exponente
+   para ~x~ y otro para ~y~ no sería también otra solución?
+   
+   *Rta:*
+   Si, sería otra solución, pero a lo que apunta la resolución es para que se recursiva a izquierda,
+   de esa manera entonces también es (LR)
    #+END_QUOTE
 ** [#A] Problema 6 (2020-03-03)
 *** Enunciado
@@ -522,7 +481,7 @@
    Es necesario usar la barra invertida ~\~ para considerar los símbolos como caracteres comunes,
    caso contrario actuarían como operadores (Ej. el * como la clausura de kleene, ó el + como la clausura positiva)
    #+END_QUOTE
-** [WAITING] Problema 8 (2020-02-12)
+** [#A] Problema 8 (2020-02-12)
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde todas las afirmaciones verdaderas.
@@ -536,28 +495,22 @@
    6. encontremos una *ER* que lo represente.  
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: (2)FALSO, por que?
-   Se que ASDR significa Análisis Sintáctico Descendente Recursivo,
-   que parte de la raíz/axioma hasta llegar a la palabra,...?
-   
-   y.. como el *Analizador Sintáctico* entiende (LICs), puede que ese (LF) no sea un (LR) si no bien un (LIC), no?
-
-   <<DUDA>>: (5) Verdadero,
-   Si existe un AFN que reconozca al LF, entonces LF es LR
-   además para todo AFD existe un AFN equivalente, no?
-   #+END_COMMENT
-   
    #+BEGIN_QUOTE
    (1) Verdadero, un LF finito puede ser representado por un LR
    Ej. las palabras reservadas, ó los caracteres de puntuación son LRs
 
+   (2) FALSO, porque un (ASDR) utiliza un Parser (analizador sintáctico)
+   que entiende (LICs), y puede que ese (LF) no sea un (LR) si no bien un (LIC)
+   
    (3) FALSO, puede haber una (GF) Gramática Formal como lo es una (GIC) que genere al LF,
    y ésta no sería un (LR), si no un (LIC).
 
    (4) FALSO, si definimos el sig. lenguaje por comprensión ~L={x^n y^n / n>=0}~
    vemos que no es un LR porque no se puede generar ~x~ e ~y~ en simultaneo del mismo tamaño
 
+   (5) Verdadero, Si existe un AFN que reconozca al LF, entonces LF es LR
+   además para todo AFD existe un AFN equivalente
+   
    (6) Verdadero, un LF es LR siempre que haya una ER que lo represente
    #+END_QUOTE
 ** Problema 9 (2019-09-24)
@@ -608,7 +561,7 @@
 
    #+RESULTS:
    [[file:img/automata1.png]]
-** [WAITING] Problema 12 (2019-02-18)
+** Problema 12 (2019-02-18)
 *** Enunciado
    #+BEGIN_QUOTE
    Sea ~P~ el ~LF~ nombres de los elementos de la tabla periódica,
@@ -620,17 +573,6 @@
    3. Escriba una ERX para el LF ~(P Interseccion D) Union O~:
    #+END_QUOTE
 *** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: En la (3) por que la resolución sólo considera la ERX de los octales?
-   (3)
-   - Una ERX para P sería: ~[A-Z]{2}~
-   - Una ERX para O sería: ~0[0-7]*~
-   - No habria una ERX para D, porque es un (LIC)
-
-   Entonces ~P INTERSECCION D~ daría ~[A-Z]{2}~,
-   y ~[A-Z]{2} union 0[0-7]*~ daría ~[A-Z]{2}+0[0-7]*~
-   #+END_COMMENT
-   
    #+BEGIN_QUOTE
    Tipos de Lenguajes, según la jerarquía de Chomsky
    - Tipo 0, (LI) Lenguaje Irrestricto
@@ -653,7 +595,7 @@
    entonces la unión entre un (LIC) y un (LR) es un (LIC),
    por tanto es del TIPO 2
    #+END_QUOTE
-** [WAITING] Problema 13 (2019-02-18)
+** [WAITING] [#A] Problema 13 (2019-02-18)
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde todas las afirmaciones verdaderas con respecto a las ER:
@@ -722,7 +664,7 @@
    Ej. una ER que indicaría como puede empezar un identificador sería ~(_+(a+b+..+z+A+B+..+Z+0+1+..+9))~
    mientras que una ERX sería más compacta ~_|[a-zA-Z0-9]~
    #+END_QUOTE
-** [WAITING] Problema 15 (2018-12-03)
+** [WAITING] [#A] Problema 15 (2018-12-03)
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde todas las afirmaciones verdaderas con respecto a los (LR)
@@ -787,7 +729,7 @@
    y la (GSC) *Gramática Sensible de Contexto* que no tiene restricciones del lado izquierdo ni derecho
    excepto que si V->T es una produccion ~|V|<=|T|~
    #+END_QUOTE
-** [WAITING] Problema 17 (2018-10-03)
+** [#A] Problema 17 (2018-10-03)
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde todas las afirmaciones verdaderas con respecto a las GIC:
@@ -797,16 +739,7 @@
    4. Sus producciones pueden tener terminales en su izquierda.
    5. Generan *LF procesables por Parsers con (ASDR) Análisis Sintáctico Descendente Recursivo*
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: En la (5) la resolución dice que es FALSo, por que?
-
-   yo había puesto Verdadero, porque un Parser lee (LICs) que son generados por (GICs),
-   que sea con (ASDR) *Análisis Sintáctico Descendente Recursivo* sólo indíca que el Parser
-   realiza el *proceso de derivación* osea desde el axioma hasta la cadena final
-   ó bien también desde el *árbol sintáctico* partiendo desde la raíz hasta las hojas
-   #+END_COMMENT
-   
+*** Respuesta   
    #+BEGIN_QUOTE
    (1) Verdadero, las (GICs) pueden generar *lenguajes infinitos*
 
@@ -816,6 +749,21 @@
 
    (4) FALSO, las (GICs) NO pueden tener (Vt) *terminales* a la izquierda de las producciones,
    sólo las (GSC) y (GI) pueden tenerlos.
+   #+END_QUOTE
+*** Duda Resuelta
+**** Duda 1
+   #+BEGIN_QUOTE
+   <<DUDA>>: En la (5) la resolución dice que es FALSo, por que?
+
+   yo había puesto Verdadero, porque un Parser lee (LICs) que son generados por (GICs),
+   que sea con (ASDR) *Análisis Sintáctico Descendente Recursivo* sólo indíca que el Parser
+   realiza el *proceso de derivación* osea desde el axioma hasta la cadena final
+   ó bien también desde el *árbol sintáctico* partiendo desde la raíz hasta las hojas
+
+   *Rta:*
+   Porque una GIC puede ser recursiva a izquierda, y como los (ASDR) usan LL(1) que no soportan recursividad a izq.,
+   entonces podrían no ser procesables por un parser con ASDR ya que podrían ser GICs
+   con recursividad por izquierda
    #+END_QUOTE
 ** Problema 18 (2018-07-30)
 *** Enunciado
@@ -878,7 +826,7 @@
    (6) Verdadero, las (ER) pueden describir el LF constantes entras octales de C,
    porque dicho LF es un (LR)
    #+END_QUOTE
-** [WAITING] Problema 20 (2018-07-16)
+** [WAITING] [#A] Problema 20 (2018-07-16)
 *** Enunciado
    #+BEGIN_QUOTE
    Tilde la afirmación falsa con respecto a las GIC:
@@ -896,6 +844,9 @@
    se agrega el *alfabeto de la pila* y el *símbolo inicial de la pila*
 
    <<DUDA>>: En la (1) es Verdadero, pero.. por que son utiles para programar PAS?
+   entiendo que (PAS) es *Procedimiento de Análisis Sintáctico* y que lo usa 
+   el (ASDR) *Análisis Sintáctico Descendente Recursivo* (que es un Parser),
+   y como este entiende (GICs).. es por eso (?)
    #+END_COMMENT
    
    #+BEGIN_QUOTE
@@ -925,7 +876,7 @@
 
    regex: ~[1-9][0-9]*~
    #+END_QUOTE
-* [TODO] LL
+* [TODO] [#A] LL
 ** Problema 1 (2018-12-17)
 *** Enunciado
    #+BEGIN_QUOTE
@@ -936,7 +887,26 @@
    4. Pueden tener *producciones con épsilon del lado derecho*
    5. El *conjunto primero* de los *no terminales* deben ser vacíos
    #+END_QUOTE
-*** Respuesta
+*** Respuesta Resolución
+   #+BEGIN_COMMENT
+   <<DUDA>>: (1) porque *los conjuntos primeros no son disjuntos*
+   Pero una solución para que sea LL(1) sería ~S->aR, R->aR | epsilon~ no?
+
+   <<DUDA>> (2) por que?  si la primera produccion es ~ab~ y la otra ~a~,
+   porque ambas empiezan con ~a~?
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) FALSO,
+
+   (2) FALSO
+
+   (3) Verdadero
+
+   (4) Verdadero
+
+   (5) FALSO
+   #+END_QUOTE
 ** Problema 2 (2018-02-26)
 *** Enunciado
    #+BEGIN_QUOTE
@@ -948,16 +918,60 @@
 
    Indique si la gramática es *LL(1)*. Si lo es justifique, si no, reescríbala para que sí sea:
    #+END_QUOTE
+*** Respuesta Resolución
+   #+BEGIN_QUOTE
+   No es LL(1) porque *los conjuntos primeros (o la función predice) no son disjuntos*.
+   
+   Pero si aplicamosel *algoritmo para eliminar prefijos comunes* (factorizar a izquierda)
+   entonces nos quedaría LL(1)
+   
+   sentencia-if:
+     if ( expresión ) sentencia else-opcional
+     
+   else-opcional:
+     else sentencia
+     ε
+   #+END_QUOTE
 ** Problema 3 (2018-12-03)
 *** Enunciado
    #+BEGIN_QUOTE
-   Analice la siguiente afirmación sobre las GIC LL(1): Dadas las producciones de un no terminal,
-   los conjuntos primeros de los lados derechos deben ser disjuntos.
-   ¿Está de acuerdo con la afirmación? ¿Por qué?: 
+   Analice la siguiente afirmación sobre las GIC LL(1):
+   Dadas las *producciones de un no terminal*,
+   los *conjuntos primeros de los lados derechos deben ser disjuntos*.
+   ¿Está de acuerdo con la afirmación? ¿Por qué?
    #+END_QUOTE
-*** Respuesta
-* [TODO] Match + Pas
-** Problema 1 (2018-02-26)
+*** Respuesta Resolución
+   #+BEGIN_QUOTE
+   Sí, porque si no son *disjuntos*
+   no hay forma de seleccionar la producción a aplicar con
+   sólo un (1) *símbolo de preanálisis* (siguiente token).
+   #+END_QUOTE
+** Problema 4 (desconocido)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dada la siguiente (GIC) encuentre una equivalente LL(1)
+   
+   S → SbD | ab
+   D → a | az
+   #+END_QUOTE
+*** Respuesta Resolución (adaptada)
+   #+BEGIN_QUOTE
+   En ~S → SbD | ab~ observamos que
+   - Recursividad a izquierda con ~α = bD~
+   - y ~β = ab~
+     
+   En ~D → a | az~ vemos que
+   - Prefijos comunes con ~α = a~ son ~β1 = ε~ y ~β2 = z~
+
+   Entonces la (GIC) equivalente sería
+   S → abS'
+   S' → bDS' | ε
+   
+   D → aD'
+   D' → z | ε
+   #+END_QUOTE
+* [WAITING] Match + Pas
+** [WAITING] Problema 1 (2018-02-26)
 *** Enunciado
    #+BEGIN_SRC C
      void S(){
@@ -975,10 +989,38 @@
    1. V/F? El PAS es *sintácticamente correcto*
    2. Dibuje el *árbol de expresión* de la *expresión de la sentencia etiquetada* con ~case B:~
    3. La *sentencia etiquetada* con ~default~ no fue desarrollada por el programador original, por
-   eso tiene el comentario ~TODO~ (para hacer), complétela arriba, en el propio código.
+      eso tiene el comentario ~TODO~ (para hacer), complétela arriba, en el propio código.
    4. Defina el *conjunto de las producciones de la gramática* asociada al PAS:
    5. Escriba una *regex* que represente el asociado al PAS:
    6. Calcule ~Primero(S)~
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_COMMENT
+   <<DUDA>>: (5) la resolución dice ~[A-C]~ pero no es recursiva a izquierda y derecha...?
+   
+   yo había puesto que, no existe una regex porque la gramática es un (GIC),
+   y es recursiva a izquierda y a derecha al mismo tiempo,
+   por tanto no existe una (GR) que genere ese (LR) y por tanto no hay una regex que lo represente
+
+   <<DUDA>>: (6) como sería bien..?
+   Primero(S) = Primero(A) U PRIMERO(B) = {A,B} ???
+   #+END_COMMENT
+   
+   #+BEGIN_QUOTE
+   (1) Error Sintáctico luego ~default:~, no se esperaba unas ~}~ llaves que cierran,
+   si no una expresión.
+
+   (2) el árbol estaría formado así
+   - raiz: ~()~
+   - hojas
+     - hoja izq: Match
+     - hoja der: B
+   
+   (3) ErrorSintactico(GetProximoToken())
+
+   (4)
+   S->ASC
+   S->B
    #+END_QUOTE
 ** Problema 2 (2019-12-11)
 *** Enunciado
@@ -987,9 +1029,11 @@
    
    1. Un *PAS* puede invocar al *scanner*
    #+END_QUOTE
-*** Respuesta (resolucion) 
+*** Respuesta
    #+BEGIN_QUOTE
-   Verdadero -> según la resolución
+   Verdadero,
+   porque un PAS puede tener funciones tipo wrapper sobre el Scanner
+   Ej. ~ProximoToken()~ y ~Match(t)~
    #+END_QUOTE
 ** Problema 3 (2018-07-16)
 *** Enunciado
@@ -1000,29 +1044,93 @@
    #+BEGIN_QUOTE
    Vacío, porque no tienen nada en común
    #+END_QUOTE
+** [WAITING] Problema 4 (2019-12-04)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Dado ~L={a^n b^n | n>0}~
+   Codifique en C el o los PAS asociados:  
+   #+END_QUOTE
+*** Respuesta
+   #+BEGIN_QUOTE
+   S->aSb | ab
+   #+END_QUOTE
+
+   #+BEGIN_COMMENT
+   <<DUDA>>: porque hace primero el Match(A) y luego el if? no es al revés?
+   ó habrá querido asignarlo a una variable A ?
+   #+END_COMMENT
+   
+   #+BEGIN_SRC C
+     void S(){
+       Match(A);
+       
+       if(proximoToken()==A){
+         S();
+         Match(b);
+       }
+     }
+
+     // alternativa, si hubiera mas (Vn) no terminales
+     void S(){
+       Token t = getProximoToken();
+
+       switch(t)
+       case A:
+         Match(A); S(); Match(b);
+       break;
+       default:
+         InformarErrorSintactico();
+     }
+   #+END_SRC
+*** Respuesta (Resolución)
+   #+BEGIN_QUOTE
+   void S(void){
+     Match(A);
+     
+     if(A==GetNextToken())
+       S();
+     Match(B);
+   }
+   #+END_QUOTE
 * Conjunto Primero
-** Problema 1 (2018-02-19)
+** [#A] Problema 1 (2018-02-19)
 *** Enunciado
    #+BEGIN_QUOTE
    Calcule ~Primero(S)~, siendo ~S~ el no terminal del BNF de C, es decir, la gramática de
    las *sentencias de iteración de C*
    #+END_QUOTE
+*** Respuesta
+  #+BEGIN_QUOTE
+  Primero(S) = {for,while,do}
+  #+END_QUOTE
 ** [WAITING] Problema 2 (2018-07-30)
 *** Enunciado
    #+BEGIN_QUOTE
    Dado los *LF expresiones y sentencias de C*, tilde la afirmación verdadera:
 
-   1. Primero(expresiones) inclusion Pimero(sentencias)
-   2. Primero(expresiones) inclusion ó igual Primero(sentencias)
+   1. Primero(expresiones) inclusion_estricta Primero(sentencias)
+   2. Primero(expresiones) inclusion Primero(sentencias)
    3. Primero(expresiones) inclusion_al_reves Pimero(sentencias)
    4. Primero(expresiones) inclusion_al_reves ó igual Primero(sentencias)
    5. Primero(expresiones) interseccion Primero(sentencias) = enteros
    6. Primero(expresiones) interseccion Primero(sentencias) = flotantes
    #+END_QUOTE
+   
+   #+BEGIN_COMMENT
+   la inclusion_estricta no lleva la rayita debajo del símbolo de inclusión,
+   *A inclusion_estricta B*: algunos de A están en B, pero los B no están en A
+
+   la inclusion normal, no lleva rayita debajo
+   *A inclusion B*: algunos de A están en B, y viceversa
+   #+END_COMMENT
 *** Respuesta
    #+BEGIN_COMMENT
    <<DUDA>>: La (2) dice que es FALSO, por que?
    yo había puesto verdadero porque era lo mismo que la (1)
+
+   <<DUDA>>:
+   Primero(expresiones) = expresion ?
+   Primero(sentencias) = sentencia-seleccion, sentencia-iteracion, , ... ?
    #+END_COMMENT
    
    #+BEGIN_QUOTE
@@ -1111,17 +1219,6 @@
    (4) Como puede ser reconocido por un AFD ó AFN,
    entonces también reconocido por un AP y MT, es decir todos.
    #+END_QUOTE
-** [TODO] Problema 3 (2019-07-29)
-*** Enunciado
-   #+BEGIN_QUOTE
-   Indique la *secuencia de algoritmos* para obtener un *AFD a partir de una ER*
-   #+END_QUOTE
-*** Respuesta (resolución)
-   #+BEGIN_QUOTE
-   - Algortimo de Thompson
-   - Algoritmo de Clausuras-ε o de Construccíon de Subconjuntos
-   - Algoritmo de Minimización
-   #+END_QUOTE
 ** [TODO] Problema 4 (2019-07-15)
 *** Enunciado
    #+BEGIN_QUOTE
@@ -1130,18 +1227,25 @@
 ** [TODO] Problema 5 (2019-05-23)
 *** Enunciado
    #+BEGIN_QUOTE
-   Defina formalmente el AF que resulta de la intersección entre las constantes octales sin sufijo
-   de C, las expresiones de C y el LF "números sin signo expresados en base dos".
+   Defina formalmente el (AF) que resulta de la intersección entre *las constantes octales sin sufijo de C*,
+   *las expresiones de C* y el LF "números sin signo expresados en base dos".
    #+END_QUOTE
 *** Respuesta (resolución)
    #+BEGIN_COMMENT
-   Constantes Octales sin sufijo la ER: 0[0-9]
+   *Constantes Octales sin sufijo la ER:* 0[0-9]
    Expresiones de C: más amplia
-   Numeros sin signo en base dos: 
+   *Numeros sin signo en base dos:* ..?
 
    A=>0=>B
    B=>0=>B
    B=>1=>B
+
+   |---+---+---|
+   | TT| 0 | 1 |
+   |---+---+---|
+   | A | B | - |
+   | B | B | B |
+   |---+---+---|
    #+END_COMMENT
    
    #+BEGIN_QUOTE   
@@ -1251,21 +1355,12 @@
    y la intersección entre ambos es el más simple osea el (LR)
    #+END_QUOTE
 * Regex
-** [WAITING] Problema 1 (2018-06-07)
+** [TODO] Problema 1 (2018-06-07)
 *** Enunciado
    #+BEGIN_QUOTE
    Escriba la regex resultante de la intersección entre las *constantes enteras decimales de C* y el
    LF representado por la regex ~[0-9]*|a~
    #+END_QUOTE
-*** Respuesta
-   #+BEGIN_COMMENT
-   <<DUDA>>: Por que la resolución dice que puede empezar con ~[1-9]~ ?
-   lo que tienen en común no es ~[0-9]*~ ?
-   
-   yo puse que la regex para el (LR) *constantes enteras decimales de c* sería: ~[1-9][0-9]*[lLuU]~ (agregamos los sufijos L de long y U de unsigned)
-   la intersección entre ~[1-9][0-9]*[lLuU]~ y ~[0-9]*|a~ es ~[1-9]*~
-   donde ~[0-9]*~ representa a un (LF) infinito que contiene los números formados por números entre 0 al 9 y a la palabra vacía por usar la clausura de kleene
-   #+END_COMMENT
 ** Problema 10 (2019-07-29)
 *** Enunciado
    #+BEGIN_QUOTE
@@ -1291,6 +1386,35 @@
  1. empieza con ~s.a~ (s, punto, a)
  2. seguido de ~s~ ó ~.~ ó ~i~ (sólo uno de los caracteres)
   #+END_QUOTE
+* [TODO] Automatas
+** Problema 1
+*** Enunciado
+   #+BEGIN_SRC c
+     while( EOF != (c=getchar()) ){
+       switch(state){
+       case INICIAL:
+         switch(c){
+         case 'a':
+           state=INICIAL;
+           continue;
+           // ...
+         }
+         // ...
+       }
+      }
+   #+END_SRC
+   
+   #+BEGIN_QUOTE
+   Asuma que el anterior fragmento es parte de la implementación de una *máquina de estado*, responda
+   considerando sólo la parte presentada:
+   
+   1) Indique el *tipo de máquina de estado*. Justifique.
+   2) Indique a qué conjunto pertenece ~INICIAL~
+   3) Indique a qué conjunto pertenece ~a~
+   4) Escriba la o las *transiciones* que representa.
+   5) Escriba una *ERX* análoga.
+   6) Escriba una *producción* análoga.
+   #+END_QUOTE
 * [TODO] Algoritmos de Muchnik
 ** Problema 1 (2018-10-03)
    #+BEGIN_QUOTE
@@ -1337,4 +1461,16 @@
    #+BEGIN_QUOTE
    1. V/F Para llegar al AFD mínimo desde una ER es necesario aplicar exactamente tres algoritmos.
    2. V/F  Dadas dos ER, el algoritmo del AFD mínimo es útil para determinar si representan el mismo LF.
+   #+END_QUOTE
+
+** Problema 4 (2019-07-29)
+*** Enunciado
+   #+BEGIN_QUOTE
+   Indique la *secuencia de algoritmos* para obtener un *AFD a partir de una ER*
+   #+END_QUOTE
+*** Respuesta (resolución)
+   #+BEGIN_QUOTE
+   - Algortimo de Thompson
+   - Algoritmo de Clausuras-ε o de Construccíon de Subconjuntos
+   - Algoritmo de Minimización
    #+END_QUOTE
