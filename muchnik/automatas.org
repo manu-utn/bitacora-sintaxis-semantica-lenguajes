@@ -1,0 +1,525 @@
+* AF - Automatas Finito
+** Conceptos
+  + Una *gramática formal* genera un *lenguaje formal*
+  + Un *autómata* tiene la *capacidad* de reconocer *lenguajes formales*
+  + Lo de *reconocer un lenguaje regular* significa:
+    * Que *acepta* las palabras que pertenecen al lenguaje
+    * Que *rechaza* las palabras que no pertenecen al lenguaje
+  + Aplicaciones? Construcción del módulo del compilador conocido por *Analizador Léxico*
+  + Es una *herramienta abstracta*
+
+  |------------------------------+-------------------------------------+--------------------------|
+  | Gramática Formal (genera ->) | Lenguaje Formal (reconocido por ->) | Autómata                 |
+  |------------------------------+-------------------------------------+--------------------------|
+  | GR                           | LR                                  | Autómata Finito          |
+  | GISC                         | LIC                                 | Autómata Finito Con Pila |
+  | GSC                          | LSC                                 | Maquina de Turing        |
+  | GI (Irrestricta)             | LI (Irrestricto)                    | Máquina de Turing        |
+  |------------------------------+-------------------------------------+--------------------------|
+** Definición Formal
+   - La definición formal de un AFD es AF={ALFABETO, ESTADOS, ESTADO INICIAL, ESTADO FINAL, FUNCION DE TRANSICION}
+** Características
+   + Tiene un único *estado inicial* se le agrega el símbolo -
+   + Puede tener uno o más *estados finales*, se le agregan un símbolo + también se les dice *estados de aceptación*
+   + Se representan mediante *diagramas de transiciones* (representa un dígrafo ó gráfo dirigido)
+   + Cada *transición* se etiqueta con un *caracter* del alfabeto del lenguaje
+   + *IMPORTANTE*: Un automata NO es *finito* porque reconozca lenguajes finitos
+   + *IMPORTANTE*: Un autómata es *finito* porque tiene una cantidad finita de estados
+** Reconocimiento en el DT
+   + *Reconocer* no es sólo *aceptar* las palabras que pertenecen, sino también *rechazar* las que no pertenecen.
+   + El proceso de analizar cada caracter, produce un *cambio en el estado* del AF (aceptación/rechazo)
+*** Procedimiento
+   1. Analiza cada caracter de la cadena
+   2. Si al terminar tiene un *estado de aceptación* (ó final), entonces la palabra pertenece al lenguaje.
+   3. Caso contrario si tiene un *estado de rechazo* es porque la palabra no pertenece al lenguaje.
+*** Casos de Rechazo
+    1. Que el AF no pueda leer una palabra (porque un caracter que no pertenece al alfabeto ó no existe esa transición)
+    2. Que la cadena exceda la longitud máxima de las palabras que reconoce el AF
+    3. Que no termine en un *estado final* (de aceptación)
+** Operadores Básicos para la construcción de ER
+*** Operador clausura de kleene (operador estrella)
+    + incluye la palabra vacía
+    + ACtua como una operación de concatenación
+*** Operador clausura positiva
+    + incluye al operador clausura de kleene
+    + ACtua como una operación de concatenación
+** Extra
+   + La siguiente es una (ERU) Expresión Regular Universal y es (0+1)*
+   + Si un AF reconoce a Lenguaje UNiversal sobre cierto alfabeto, entonces ninguna cadena podrá ser *rechazada*
+* AFD - Autómata Finito Determinístico
+** Conceptos
+   + Un AFD se caracteriza porque cualquiera sea su estado, se debe poder determinar sin *ambiguedades* cual será su *estado de llegada*
+   + Una transición que va de un estado A a un estado B, se dice que B es el *estado de llegada*
+   + Cada *estado* puede tener ninguna transición ó una transicición por cada caracter del alfabeto
+     * si alguno tiene cero transiciones, NO será un AFD *completo* si nó *incompleto*
+     * si alguno tiene más de una transición, NO es un AF *Deterministico*
+   + Dos AFDs son *equivalentes* si reconocen el mismo *lenguaje regular*
+** AFD Completo
+   + Un AFD es *completo* si cada *estado* tiene exactamente *una transicición* (ni más, ni menos)
+   + Un AFD es *completo* si su (TT) Tabla de Transiciones no tiene huecos
+   + Si un AFD es *incompleto* se puede completar agregando en la (TT) un nuevo estado el *estado de rechazo*, haciendo que los huecos de la (TT) apunten a este nuevo estado, apuntandose también a si mismo (un bucle)
+   + Más fácil de trabajar en lo computacional
+** Aplicaciones
+    + Validar cadenas
+    + Verificar si una cadena pertenece a un LR infinito
+      + Ej. Si un número pertenece al conjunto de los Números Naturales (N ó enteros positivos)
+      + Ej. Si un número pertenece al conjunto de los Enteros Negativos (Z-)
+** Algoritmos
+*** Conceptos
+    + Reconocer si una cadena pertenece o no a un (LR)
+    + Se parte de un (AF) y se construye un (AFD) Completo
+*** Algoritmo I
+    Para saber si un estado es de aceptación, analiza mientras haya caracteres en la cadena.
+
+    *Procedimiento*:
+    1. Analiza el *primer caracter* de la cadena
+    2. Evalua que el Estado actual del AF sea el *Inicial*
+    3. Mientras haya caracteres a analizar
+       1. Determinar el *próximo estado actual* (estado de llegada)
+       2. Analizar el *próximo caracter* de la cadena
+    4. Según cual sea el último estado actual
+       1. Si es un *estado final* (aceptacion), entonces la cadena pertenece al lenguaje
+       2. Caso contrario, la cadena no pertenece al lenguaje
+*** Algoritmo II
+    Para saber si es un estado de rechazo, analiza mientras el estado actual no sea el de rechazo.
+    
+    *Procedimiento*:
+    + El mismo que el algoritmo I, con la diferencia que en el paso 3 valida que el estado actual no sea el de rechazo
+
+*** Algoritmo I vs Algoritmo II
+    + Es mayor la complejidad de procesamiento del *Algoritmo II* respecto del *Algoritmo I*, por tanto se demorará más en validar
+    + Si se sabe que la mayoria de las palabras pertenecen, se recomienda el primero, por cuestiones de *eficiencia*
+
+*** Algoritmo III
+    Es una combinación entre los dos primeros
+
+    *PROCEDIMIENTO*:
+    1. Analiza el primer caracter de la cadena (para verificar no es una palabra vacía)
+    2. Determina que el *estado actual* sea el *estado inicial*
+    3. Mientras no sea fin de la cadena, y el estado actual no sea un estado final
+       1. Analiza cual será el siguiente estado actual (estado de llegada)
+       2. Analiza cual será el próximo caracter
+    4. Si el *estado actual* es un *estado final* la palabra pertenece al lenguaje
+    5. Caso contrario la palabra no pertenece al lenguaje *estado de rechazo*
+*** El Centinela
+    + Permite identificar fin de una palabra (serie de caracteres), y la separación de cadenas
+    + Es un caracter ó simbolo ó cjto de caracteres que no pertenece al LR
+* AFPD (Automata finito de pila deterministico)
+* AFN a AFD
+** Conceptos previos
+   + Para un AFN siempre va a tener un AFD equivalente (con los algoritmos)
+   + Para un AFD siempre va a tener un AFN equivalente (con los algoritmos)
+   + Un AFN es más fácil de construir
+   + Un AFN con el algoritmo de thompson (que tiene transciones epsilon) resulta más fácil de trabajar para las computadoras
+   + Un AFD tiene mejor perfomance, es más fácil de implementar en código
+** Algoritmo para pasar AFN a AFD
+*** Conceptos
+   + Se conoce como *Algoritmo de Clausura Epsilon ó Construcción*
+   + Para obtener un AFD equivalente
+*** El algoritmo utiliza
+      + el Conjunto clausura Epsilon (sólo si tiene una columna epsilon en la (TT) *tabla de transiciones*)
+      + el Conjunto Hacia (siempre se utiliza)
+*** El algoritmo necesita
+      1. Un estado inicial
+      2. Una tabla de transición (caracteres, estados, transciones para cada estado/caracter)
+      3. Un estado/estados de aceptacion
+*** Procedimiento del Algoritmo
+    1. Se agrega como fila el Estado Inicial del AFN
+    2. Se agrega tantas columnas como tenia el AFN original (excepto epsilon)
+    3. Se completan las celdas vacías con 
+       *Clausura_epsilon(Hacia(Q, a)*
+       siendo Q un estado, y a una letra
+    4. Si a medida que agregamos datos usando los algoritmos, alguna *celda* no existe como fila, se debe agregar como fila
+    5. Marcar todo los Q que son *estados de aceptación* (estado final)
+       como Q es un conjunto de estados, se revisa si alguno de esos estados es *estado final*
+       si alguno lo es, entonces Q también lo será
+       
+** Conjunto Clausura Epsilon 
+   clausuraEpsilon(Estado)={Estados de llegada} ó clausuraEpsilon({Estado})={Estados de llegada}
+
+   + Sea Q un estado, entonces
+      clausuraEpsilon(Q) es un conjunto formado por Q, y todos los estados que al que llega Q
+      con las transiciones epsilon
+      "es el mismo estado, unión los estados de llegada de ese estado con la transición epsilon"
+
+     |----------+----+---------+---------|
+     | Estados  | a  | b       | Epsilon |
+     |----------+----+---------+---------|
+     | 0        | 1  |         | {1,2,3} |
+     |          |    |         |         |
+     |----------+----+---------+---------|
+   + Es reflexiva (nunca es vacio, porque el mismo estado está en el nuevo conjunto)
+   + Es el resultado de la unión de la transición entre el/los estados (de la primera columna) con 
+     la columna Epsilon
+
+** Conjunto Hacia
+   hacia(Estado, Letra) = {estado de llegada}
+   hacia({Estados}, Letra) = {estados de llegada}
+
+   + Sea Q un estado,
+      entonces hacia(Q, A) es el conjunto de estados a los que llega desde cada transición con A
+      "es la Unión de todos los estados de llegada de cada transición con lesa letra A"
+
+   + Puede ser vacio
+   + Letra no puede ser EPSILON (porque epsilon es la palabra vacía, no es un caracter)
+   + Es el resultado de la unión de la transición entre el estado/estados (de la primera columna)
+     con la letra
+
+     | Estados  | a  | b       |
+     | -------- | -- | ------- |
+     | 0        | 1  |         | 
+     |          |    |         |
+
+** Tabla de transición
+   + Si tiene la columna epsilon se hace 
+     * clausuraEpsilon(conjuntoHacia(Estado), Letra) ó clausuraEpsilon(conjuntoHacia({Estado}), Letra)
+   + Por cada valor nuevo generado en las celdas, se agrega una nueva fila
+   + Si la tabla no tiene columna epsilon, se hace
+     * conjuntoHacia(Estado, Letra) ó conjuntoHacia({Estado}, Letra)
+       si es Estado o {Estado} depende de la primera columna, la de estados
+
+* AFD Minimo
+** Conceptos previos
+  + Un LR siempre va a tener
+    + 1 o más AF  que lo reconozcan
+    + 1 o más AFD que lo reconozcan (pero sólo uno será el *óptimo*)
+  + Un AFD es un *reconocedor*
+** Concepto AFD Minimo
+  + A partir de un AFD se aplica un algoritmo para obtener el AFD minimo
+  + Es único, y es el AFD que menor cantidad de estados tiene
+** Algoritmo para obtener el AFD Minimo
+  + Permite obtener si 1 o 2 AFD son *Equivalentes*
+  + Permite obtener si 1 o 2 ER son *Equivalentes*
+  + Si el AFD no está completo, se recomienda completarlo previamente
+
+*** Procedimiento
+    1. Particionar la *Tabla de Transición* en
+       + Estados de Aceptación (los finales, y los agrego a lo último)
+       + El resto
+       *Nota:* Además agregar una columna asignandoles una clase diferente a ambas particiones
+    2. Detectar y eliminar *estados equivalentes* (redundantes)
+       + Si pertenecen a la misma Clase/Partición y tienen mismas transiciciones (comportamiento)
+       + Eliminar la fila del estado de menor número
+       + Reemplazar en la tabla los *estados de llegada* del *estado eliminado* por el *estado equivalente*
+       + Repetir hasta que ~∃ estados redundantes (no se repitan más)
+
+         |---------+---+---+-------+----+---------+-----+---+-------+-------------------------------------------|
+         | Estados | a | b |       |    | Estados |   a | b |       |                                           |
+         |---------+---+---+-------+----+---------+-----+---+-------+-------------------------------------------|
+         |       1 | 2 | 4 | cl(0) |    |       1 |   2 | 4 | cl(0) |                                           |
+         |       2 | 3 | 4 | cl(0) | -> |       2 | (1) | 4 | cl(0) | << reemplacé el estado de llegada 3 por 1 |
+         |       3 | 2 | 4 | cl(0) |    |         |     |   |       | << este estado lo eliminé                 |
+         |---------+---+---+-------+----+---------+-----+---+-------+-------------------------------------------|
+         |      5+ | 5 | 1 | cl(1) |    |      5+ |   5 | 1 | cl(1) |                                           |
+         |---------+---+---+-------+----+---------+-----+---+-------+-------------------------------------------|
+
+    3. Construir *Tabla de Transición por Clases*
+       + Se reemplaza el estado de llegada por la clase a la que pertenece
+       + NO se elimina/agrega, sólo se *subparticiona*
+       + Reordenar si es necesario, las filas de los estados que tienen misma clase (agrupar)
+       + Proceso de modificar las tablas de transición
+         1. Reordenar
+             |---------+---+---+-------+---+---+---+---+---+---+---|
+             | Estados | b | c |       |   |   |   |   |   |   |   |
+             |---------+---+---+-------+---+---+---+---+---+---+---|
+             |       0 | 1 | 5 | cl(0) |   |   |   |   |   |   |   |
+             |       1 | 2 | 4 | cl(0) |   |   |   |   |   |   |   |
+             |       2 | 5 | 4 | cl(0) |   |   |   |   |   |   |   |
+             |---------+---+---+-------+---+---+---+---+---+---+---|
+             |       5+ | 5 | 1 | cl(1) |   |   |   |   |   |   |   |
+             |---------+---+---+-------+---+---+---+---+---+---+---|
+         2. Reemplazar
+             |---------+-------+-------|
+             | Estados | b     | c     |
+             |---------+-------+-------|
+             |       0 | cl(0) | cl(1) |
+             |       1 | cl(0) | cl(0) |
+             |       2 | cl(1) | cl(0) |
+             |---------+-------+-------|
+             |       5+ | cl(1) | cl(0) |
+             |---------+-------+-------|
+         3. No se que mas
+             |---------+-------+-------+------------------+---------------------------|
+             | Estados | b     | c     | reescribo clases |                           |
+             |---------+-------+-------+------------------+---------------------------|
+             |       0 | cl(0) | cl(1) |                  | << esta mantiene el cl(0) |
+             |---------+-------+-------+------------------+---------------------------|
+             |       1 | cl(0) | cl(0) | cl(2)            |                           |
+             |       1 | cl(0) | cl(0) |                  |                           |
+             |---------+-------+-------+------------------+---------------------------|
+             |       2 | cl(1) | cl(0) | cl(3)            |                           |
+             |---------+-------+-------+------------------+---------------------------|
+             |      5+ | cl(1) | cl(0) |                  | << esta mantiene el cl(1) |
+             |---------+-------+-------+------------------+---------------------------|
+    4. Subparticionar por clase
+       + Armar de nuevo la tabla
+       + Repetir hasta que ~∃ nuevas particiones (no se pueda particionar más)
+
+*** Ejemplo 1
+****  1. TT del AFD
+     
+       |----+---+---|
+       |    | a | b |
+       |----+---+---|
+       | 0- | 1 | 5 |
+       |  1 | 2 | 4 |
+       |  2 | 3 | 4 |
+       |  3 | 2 | 4 |
+       |  4 | 5 | 3 |
+       | 5+ | 5 | 1 |
+       |----+---+---|
+        
+**** 2. Reordeno y agrupo por clases 
+
+     Sólo el estado 3
+  
+       |----+---+---+-------|
+       |    | a | b |       |
+       |----+---+---+-------|
+       | 0- | 1 | 5 | cl(0) |
+       |  1 | 2 | 4 |       |
+       |  3 | 2 | 4 |       |
+       |  2 | 3 | 4 |       |
+       |  4 | 5 | 3 |       |
+       |----+---+---+-------|
+       | 5+ | 5 | 1 | cl(1) |
+       |----+---+---+-------|
+
+**** 3. Eliminamos estados equivalentes (redundantes) 
+
+       + Los estados 1 y 3 era equivalentes, tenian las mismas transiciones
+       + Sacamos la fila del estado 3, y los estados de llegada que apuntaban al 3,los apuntamos al 1
+     
+       |----+---+---+-------|
+       |    | a | b |       |
+       |----+---+---+-------|
+       | 0- | 1 | 5 | cl(0) |
+       |  1 | 2 | 4 |       |
+       |  2 | 1 | 4 |       |
+       |  4 | 5 | 1 |       |
+       |----+---+---+-------|
+       | 5+ | 5 | 1 | cl(1) |
+       |----+---+---+-------|
+
+**** 4. Verificamos si no quedaron nuevos estados estados equivalentes
+**** 5. Creamos la TT por clases 
+
+       +  Reemplazamos los estados de llegada por la clase a la que pertenecen
+
+       |------+-------+-------+-------|
+       |      | a     | b     |       |
+       |------+-------+-------+-------|
+       |   0- | cl(0) | cl(1) | cl(0) |
+       | >  1 | cl(0) | cl(0) |       |
+       | >  2 | cl(0) | cl(0) |       |
+       |    4 | cl(1) | cl(0) |       |
+       |------+-------+-------+-------|
+       |   5+ | cl(1) | cl(0) | cl(1) |
+       |------+-------+-------+-------|
+
+**** 6. Reordenamos estados equivalentes por clase
+**** 7. Particionamos la TT por clases
+
+       + Creamos nuevas particiones para los estados que no son equivalentes
+       + Mantengo la clases de los estados 1 y 5+
+
+       |----+-------+-------+-------|
+       |    | a     | b     |       |
+       |----+-------+-------+-------|
+       | 0- | cl(0) | cl(1) | cl(0) |
+       |----+-------+-------+-------|
+       |  1 | cl(0) | cl(0) | cl(2) |
+       |  2 | cl(0) | cl(0) |       |
+       |----+-------+-------+-------|
+       |  4 | cl(1) | cl(0) | cl(3) |
+       |----+-------+-------+-------|
+       | 5+ | cl(1) | cl(0) | cl(1) |
+       |----+-------+-------+-------|
+
+**** 8. Volvemos a particionar
+
+       + Usamos la tabla anterior a la TT por clases (del punto 3)
+       + Reemplazamos las clases donde estaban los *estados de llegada* por las nuevas clases que pertenecen
+       + Los estados 1 y 2 ya no se pueden particionar
+       + Los estados 1 y 2 son equivalantes por clases, en el siguiente paso elimino uno de ellos por ser redundantes
+
+       |----+-------+-------+-------|
+       |    | a     | b     |       |
+       |----+-------+-------+-------|
+       | 0- | cl(2) | cl(1) | cl(0) |
+       |----+-------+-------+-------|
+       |  1 | cl(2) | cl(3) | cl(2) |
+       |  2 | cl(2) | cl(3) |       |
+       |----+-------+-------+-------|
+       |  4 | cl(1) | cl(2) | cl(3) |
+       |----+-------+-------+-------|
+       | 5+ | cl(1) | cl(2) | cl(1) |
+       |----+-------+-------+-------|
+
+**** 9. Creamos la nueva TT por haber estados equivalentes por clase 
+
+       + Si en el paso anterior no hubieran habido *estados equivalentes* por clase,
+       entonces la última tabla anterior a la TT por clases, sería el AFD Mínimo 
+       + Reescribimos las clases por los *estados de llegada* de la última tabla que no era de clases
+       + Eliminamos la fila del estado 2, porque era equivalente al estado 1
+       + Los estados que apuntaban al estado 2 como estado de llegada, ahora deben apuntar al estado 1 (porque
+         era el equivalente al 2)
+
+
+       Este resulta ser el AFD Minimo..
+
+       |----+---+---|
+       |    | a | b |
+       |----+---+---|
+       | 0- | 1 | 5 |
+       |  1 | 1 | 4 |
+       |  4 | 5 | 1 |
+       | 5+ | 5 | 1 |
+       |----+---+---|
+
+
+*** Ejemplo 2
+    1. TT del AFD
+       
+       |----+---+---|
+       |    | a | b |
+       |----+---+---|
+       | 0- | 1 | 2 |
+       |  1 | 3 | 4 |
+       |  2 | 7 | - |
+       |  3 | 3 | 2 |
+       | 4+ | 5 | - |
+       | 5+ | 6 | - |
+       | 6+ | 6 | - |
+       | 7+ | - | - |
+       |----+---+---|       
+    2. Completo la TT del AFD
+       
+       Agrego el estado 8 que es el de rechazo
+
+       |----+---+---|
+       |    | a | b |
+       |----+---+---|
+       | 0- | 1 | 2 |
+       |  1 | 3 | 4 |
+       |  2 | 7 | 8 |
+       |  3 | 3 | 2 |
+       | 4+ | 5 | 8 |
+       | 5+ | 6 | 8 |
+       | 6+ | 6 | 8 |
+       | 7+ | 8 | 8 |
+       |  8 | 8 | 8 |
+       |----+---+---|
+    3. Reordeno y agrupo por clase
+
+       |------+---+---+-------|
+       |      | a | b |       |
+       |------+---+---+-------|
+       |   0- | 1 | 2 |       |
+       |    1 | 3 | 4 |       |
+       |    2 | 7 | 8 |       |
+       |    3 | 3 | 2 |       |
+       |    8 | 8 | 8 | cl(0) |
+       |------+---+---+-------|
+       |   4+ | 5 | 8 |       |
+       | > 5+ | 6 | 8 |       |
+       | > 6+ | 6 | 8 |       |
+       |   7+ | 8 | 8 | cl(1) |
+       |------+---+---+-------|
+    4. Elimino estados equivalentes (redundantes)
+
+       - En este caso los estados 5 y 6 son equivalentes, tienen mismas transiciones.
+       - Por tanto conservo el de menor numero (el 5), y borro la fila del estado 6(por ser mayor)
+       - Los estados de llegada que tengan numero 6, los reemplazo por 5
+
+       |------+---+---+-------|
+       |      | a | b |       |
+       |------+---+---+-------|
+       |   0- | 1 | 2 |       |
+       |    1 | 3 | 4 |       |
+       |    2 | 7 | 8 |       |
+       |    3 | 3 | 2 |       |
+       |    8 | 8 | 8 | cl(0) |
+       |------+---+---+-------|
+       | > 4+ | 5 | 8 |       |
+       | > 5+ | 5 | 8 |       |
+       |   7+ | 8 | 8 | cl(1) |
+       |------+---+---+-------|
+    5. Vuelvo a eliminar estados equivalentes 
+       
+       - Repito la operación porque, con el proceso anterior ahora 
+         los estados 4+ y 5+ son equivalentes
+       - Eliminamos la fila del estado 5+, y conservo el 4+ por ser el de menor valor
+       - Los estados de llegada que apunten al 5, los apunto al estado 4
+
+       |----+---+---+-------|
+       |    | a | b |       |
+       |----+---+---+-------|
+       | 0- | 1 | 2 |       |
+       |  1 | 3 | 4 |       |
+       |  2 | 7 | 8 |       |
+       |  3 | 3 | 2 |       |
+       |  8 | 8 | 8 | cl(0) |
+       |----+---+---+-------|
+       | 4+ | 4 | 8 |       |
+       | 7+ | 8 | 8 | cl(1) |
+       |----+---+---+-------|
+
+    6. "Particionamos" Creando la *Tabla de Transición por clases*
+
+       - Reemplazamos los *estados de llegada* por la clase a la que pertenecen
+
+       |------+-------+-------+-------|
+       |      | a     | b     |       |
+       |------+-------+-------+-------|
+       | > 0- | cl(0) | cl(0) |       |
+       |    1 | cl(0) | cl(1) |       |
+       |    2 | cl(1) | cl(0) |       |
+       | >  3 | cl(0) | cl(0) |       |
+       | >  8 | cl(0) | cl(0) | cl(0) |
+       |------+-------+-------+-------|
+       |   4+ | cl(1) | cl(0) |       |
+       |   7+ | cl(0) | cl(0) | cl(1) |
+       |------+-------+-------+-------|
+
+    7. Particionamos la TT 
+       - Agrupando los estados por los que tengan misma clases (particiones equivalentes)
+       - NO se agrega/ni eliminan filas, se subparticionan 
+
+       |----+-------+-------+--------------------|
+       |    | a     | b     | Nuevas Particiones |
+       |----+-------+-------+--------------------|
+       | 0- | cl(0) | cl(0) |                    |
+       |  3 | cl(0) | cl(0) |                    |
+       |  8 | cl(0) | cl(0) | cl(0)              |
+       |----+-------+-------+--------------------|
+       |  1 | cl(0) | cl(1) | cl(2)              |
+       |----+-------+-------+--------------------|
+       |  2 | cl(1) | cl(0) | cl(3)              |
+       |----+-------+-------+--------------------|
+       | 4+ | cl(1) | cl(0) | cl(4)              |
+       |----+-------+-------+--------------------|
+       | 7+ | cl(0) | cl(0) | cl(1)              |
+       |----+-------+-------+--------------------|
+
+    8. Vuelvo a particionar (subparticiono)
+       - Los estados que tienen clases equivalentes
+       - Usamos de referencia la tabla previa a reemplazar por las clases (la del paso 5)
+
+       |----+-------+-------+-------|
+       |    | a     | b     |       |
+       |----+-------+-------+-------|
+       | 0- | cl(2) | cl(3) |       |
+       |  3 | cl(0) | cl(3) |       |
+       |  8 | cl(0) | cl(0) | cl(0) |
+       |----+-------+-------+-------|
+       |  1 |       |       | cl(2) |
+       |----+-------+-------+-------|
+       |  2 |       |       | cl(3) |
+       |----+-------+-------+-------|
+       | 4+ |       |       | cl(4) |
+       |----+-------+-------+-------|
+       | 7+ |       |       | cl(1) |
+       |----+-------+-------+-------|
+
+    9. Como ya no quedan estados equivalentes por clase..

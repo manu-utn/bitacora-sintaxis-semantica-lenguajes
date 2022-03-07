@@ -1,0 +1,70 @@
+#+TITLE: Semántica en ANSI C
+
+* Objeto y Tipo (Segun MROC)
+** Objeto
+   + Es un espacio en memoria para guardar datos (que pueden representar valores)
+ 
+   #+BEGIN_EXAMPLE
+   Una variable es un objeto, porque se reserva espacio en memoria para que pueda guardar información
+   #+END_EXAMPLE
+** Tipo
+   + Le da un significado (la semántica) al dato que se guarda en un objeto
+   + El tipo *void* es representa a un *conjunto vacío de valores*
+   + Los tipos básicos son char, los enteros, y los reales
+*** Tipos Básicos
+    #+NAME: Tipos Básicos
+    |-------------+----------------------------|
+    | Tipo Básico |                            |
+    |-------------+----------------------------|
+    | char        | signed, unsigned           |
+    | integer     | short int, int, long int   |
+    | reales      | float, double, long double |
+    |-------------+----------------------------|
+
+*** Tipos de Constante Real
+    #+NAME: Tipos de Constante Real
+    |-----------+---------+-------------+-----------------|
+    | Constante | Sufijo  | Tipo        | Rango/Precisión |
+    |-----------+---------+-------------+-----------------|
+    | Real      | Ninguno | double      |                 |
+    | Real      | f ó F   | float       | menor           |
+    | Real      | l o L   | long double | mayor           |
+    |-----------+---------+-------------+-----------------|
+*** Ejemplos
+    #+NAME: Ejemplo 1 - Entre objeto y tipo
+    #+BEGIN_EXAMPLE
+    Una variable es un objeto, entonces
+    Al declarar una variable del tipo Entera le estoy dando un significado
+    a la información que almaceno en esta, que serán números enteros.
+    #+END_EXAMPLE
+* Semántica de Tokens/Categorías Léxicas
+** Identificadores
+   + Un *identificador* representa un *objeto* 
+** Literal Cadena
+   + Representan una secuencia de cero o más caracteres delimitada por doble comillas simples
+   + Son los conocidos como *string*
+** Operadores
+   + Producen un valor
+   + Especifican una operación
+** Caracteres de Puntuación
+   + No producen valor
+   + No especifican ninguna operación
+** [WAITING] Las expresiones
+   - Representan el cálculo de un valor (Ej. una operación algebraica)
+
+   #+BEGIN_COMMENT
+   <<DUDA>>:
+   Me parece que... te quedás corto con eso,
+   faltaría agregar + ejemplos
+   #+END_COMMENT
+** Constantes
+*** La Constante Caracter
+   + Se delimitan con comillas simples (Ej. 'a' ó 'h')
+   + Su tipo es *int* porque son la representación de los caracteres de la tabla *ASCII*
+
+   #+NAME: Ejemplo 1 - Casos particulares de Constantes Caracter
+   #+BEGIN_EXAMPLE
+   \0 es el caracter nulo, representa fin de una cadena 
+   \n representa al caracter de salto de linea (new line)
+   #+END_EXAMPLE
+

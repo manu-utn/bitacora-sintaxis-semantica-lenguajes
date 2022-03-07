@@ -1,0 +1,497 @@
+#+TITLE: Sintaxis y BNF
+* Conceptos
++ Un (LP) *Lenguaje de programación* está formado por un conjunto de
+  * (LRs) *Lenguajes Regulares*
+  * y (LICs) *Lenguajes Independientes de Contexto*
++ Un (LP) tienen características similares a las (GF) *Gramáticas Formales* denominadas *BNF*
++ La notación *BNF* se utiliza para describir la *sintaxis* de un (LP) *lenguaje de programación*
+  * Es similar a una (GIC) y (GQR) pero con más metasímbolos
+* Sintaxis
+** Categorías Gramáticales
+*** Las Expresiones
+**** Conceptos
+    + Constituye un (LIC) en cualquier (LP) lenguaje de programación 
+    + Son una *secuencia de operandos y operadores* con el _uso opcional de paréntesis_
+    + Una (GIC) debe producir *expresiones* pero también es importante 
+      - *La Precedencia*: es menor es mientras más cerca esté del *axioma*
+      - *La Asociatividad*: puede ser a izquierda ó a derecha según como sea la *recursividad de la producción*
+    + La asociatividad a derecha ó a izquierda, depende si la *producción* es recursiva a izquierda o a derecha
+**** Precedencia (prioridad)
+     + Con los _paréntesis cambiamos la precedencia/prioridad_
+     + Cuanto más cerca un *operador* está del *axioma* menor es su prioridad (el símbolo inicial del que se parte)
+
+     #+NAME: Ejemplo cambiar prioridad con parentesis
+     #+BEGIN_QUOTE
+     No es lo mismo ~1+2*3~ que ~(1+2)*3~
+     - 1+2*3 = 1+6 = 7
+     - (1+2)*3 = 3*3 = 9
+
+     Se deduce que ~7 != 9~
+     #+END_QUOTE
+**** Asociatividad
+     Se debe _evaluar para operadores con igual precedencia_ si es
+     + Evaluación de izquierda a derecha
+     + ó Evaluación de derecha a izquierda
+     + Si la *producción* es *recursiva a izquierda* entonces es *asociativa a izquierda*
+     + Si la *producción* es *recursiva a derecha* entonces es *asociativa a derecha*
+**** Proceso de Derivación Ejemplos
+     + El proceso de *derivación* se comienza por el *axioma*
+***** Ejemplo 1 - Sumar/Multiplicar expresiones
+     #+NAME: Ejemplo 1 - Sumar y multiplicar expresiones
+     #+BEGIN_EXAMPLE
+     Expresion -> Termino | Expresion + Termino
+     Termino -> Factor | Termino * Factor
+     Factor -> Numero | (Expresion)
+     Numero -> 1|2|3|4|5
+     #+END_EXAMPLE
+***** Ejemplo 2 - MAL diseñado 
+     #+NAME: Ejemplo MAL DISEÑADO - Sumar y multiplicar expresiones
+     #+BEGIN_EXAMPLE
+     Expresion -> Termino | Expresion + Termino | Termino * Factor | (E) | Numero
+     Numero -> 1|2|3|4|5
+     #+END_EXAMPLE
+    
+     #+NAME: Aclaraciones al Ejemplo MAL DISEÑADO
+     #+BEGIN_QUOTE
+     1. Está mal diseñado porque se pierde la *prioridad/precedencia* de los operadores
+     2. El operador de la multiplicacion debería tener mayor prioridad que el de la suma
+     3. Esa gramática dará un resultado erroneo al pasar por el *proceso de reducción/evaluación* por tener problema de precedencia
+     4. La prioridad del operador es menor mientras más cerca está del axioma, y mayor si está lejos del axioma
+     #+END_QUOTE
+***** Ejemplo 3 - Proceso de Derivación
+     #+BEGIN_QUOTE
+     La siguiente es una tabla a modo referencia, para identificar el número de cada producción
+     servirá para la *tabla de derivación* y la *tabla de evaluación/reducción*
+     Recordar que *Expresion* es el *Axioma*
+     #+END_QUOTE
+
+     #+NAME: Identificamos las producciones y las enumeramos 
+     |--------------+---------------------+----|
+     |              | PRODUCCIONES        | Nº |
+     |--------------+---------------------+----|
+     | Expresion -> | Termino             |  1 |
+     |              | Expresion + Termino |  2 |
+     | Termino   -> | Factor              |  3 |
+     |              | Termino * Factor    |  4 |
+     | Factor ->    | Numero              |  5 |
+     |              | (Expresion)         |  6 |
+     | Numero    -> | 1                   |  7 |
+     |              | 2                   |  7 |
+     |              | 3                   |  7 |
+     |              | 4                   |  7 |
+     |              | 5                   |  7 |
+     |--------------+---------------------+----|
+   
+     #+NAME: Observaciones del Ejemplo 1
+     #+BEGIN_QUOTE
+     1. El operador ~+~ _tiene menor prioridad_ al estar _cerca del axioma Expresion_
+     2. El operador ~*~ _tiene mayor prioridad_ al estar mas _lejos del axioma Expresion_
+     3. El *axioma* es el no terminal (Vn) Expresion
+     #+END_QUOTE
+
+     Usamos la (GR) del Ejemplo-1
+     #+NAME: Ejemplo 2 - Proceso de derivación a izquierda de 1+2*(3+4)+5
+     |---------------------+-------------------------------------|
+     | PRODUCCION APLICADA | CADENA DE DERIVACION OBTENIDA       |
+     |---------------------+-------------------------------------|
+     | (Axioma)            | Expresion                           |
+     |  2                  | Expresion + Termino                 |
+     |  2                  | Expresion + Termino + Termino       |
+     |  1                  | Termino + Termino + Termino         |
+     |  3                  | Factor + Termino + Termino          |
+     |  5                  | Numero + Termino + Termino          |
+     |  7                  | 1 + Termino + Termino               |
+     |  4                  | 1 + Termino*Factor + Termino        |
+     |  3                  | 1 + Factor*Factor + Termino         |
+     |  5                  | 1 + Numero*Factor + Termino         |
+     |  7                  | 1 + 2*Factor + Termino              |
+     |  6                  | 1 + 2*(Expresion) + Termino         |
+     |  2                  | 1 + 2*(Expresion+Termino) + Termino |
+     |  1                  | 1 + 2*(Termino+Termino) + Termino   |
+     |  3                  | 1 + 2*(Factor+Termino) + Termino    |
+     |  5                  | 1 + 2*(Numero+Termino) + Termino    |
+     |  7                  | 1 + 2*(3+Termino) + Termino         |
+     |  3                  | 1 + 2*(3+Factor) + Termino          |
+     |  5                  | 1 + 2*(3+Numero) + Termino          |
+     |  7                  | 1 + 2*(3+4) + Termino               |
+     |  3                  | 1 + 2*(3+4) + Factor                |
+     |  5                  | 1 + 2*(3+4) + Numero                |
+     |  7                  | 1 + 2*(3+4) + 5                     |
+     |---------------------+-------------------------------------|
+    
+     #+NAME Observación del Ejemplo 2
+     #+BEGIN_COMMENT
+     1. Se reemplaza de izquierda a derecha
+     2. Hasta que no haya un terminal no se puede reemplazar a derecha
+     3. En cada paso de derivación se obtiene una *cadena de derivación*
+     #+END_COMMENT
+    
+**** Proceso de Evaluación de una expresión, precedencia y asociatividad
+     + Es el proceso inverso al de *derivación* 
+     + Se parte de la *cadena de derivación* hasta llegar al *axioma*
+     + Se hace una *reducción* de la tabla generada por la *derivación*
+     + *IMPORTANTE:* Es más notable en este proceso la *asociatividad* y *precedencia*
+
+     #+NAME: Ejemplo 3 - Proceso de Reducción (a partir del proceso de derivación del ejemplo 2)
+     |----------------------------------+----------------------+-----------------|
+     | CADENA DE DERIVACION A REDUCIR   | PRODUCCION A APLICAR | OPERACION       |
+     |----------------------------------+----------------------+-----------------|
+     | 1 + 2*(3+4) + 5                  |                    7 |                 |
+     | 1 + 2*(3+4) + N5                 |                    5 |                 |
+     | 1 + 2*(3+4) + F5                 |                    3 |                 |
+     | 1 + 2*(3+4) + T5                 |                    7 |                 |
+     | 1 + 2*(3+N4) + T5                |                    5 |                 |
+     | 1 + 2*(3+F4) + T5                |                    3 |                 |
+     | 1 + 2*(3+T4) + T5                |                    7 |                 |
+     | 1 + 2*(N3+T4) + T5               |                    5 |                 |
+     | 1 + 2*(F3+T4) + T5               |                    3 |                 |
+     | 1 + 2*(T3+T4) + T5               |                    1 |                 |
+     | 1 + 2*(E3+T4) + T5               |                    2 | 3+4=7           |
+     | 1 + 2*(E7) + T5                  |                    6 |                 |
+     | 1 + 2*F7 + T5                    |                    7 |                 |
+     | 1 + N2*F7 + T5                   |                    5 |                 |
+     | 1 + F2*F7 + T5                   |                    3 |                 |
+     | 1 + T2*F7 + T5                   |                    4 | 2*7=14          |
+     | 1 + T14 + T5                     |                    7 |                 |
+     | N1 + T14 + T5                    |                    5 |                 |
+     | F1 + T14 + T5                    |                    3 |                 |
+     | T1 + T14 + T5    *OBSERVACION_1* |                    1 |                 |
+     | E1 + T14 + T5                    |                    2 | 1+14=15         |
+     | E15 + T5                         |                    2 | 15+5=20         |
+     | E20                              |             (axioma) | Resultado Final |
+     |----------------------------------+----------------------+-----------------|
+
+     #+NAME: Aclaraciones sobre el Ejemplo 3
+     #+BEGIN_COMMENT
+     1. La tabla corresponde al *proceso de reducción/evaluación* 
+     2. Se usa de referencia la tabla del *proceso de derivación*
+     3. Se parte del final del la tabla de derivación
+     4. *OBSERVACION_1*: Los tres operadores + tienen igual precedencia, pero la asociatividad del operador dirá con cual operar 
+     5. *OBSERVACION_1*: Por ser la operación + asociativa a izquierda, se opera 1+14 y no 14+5
+     #+END_COMMENT
+
+*** Declaraciones
+*** Sentencias
+**** Conceptos
+     + Son acciones que realiza la computadora en *tiempo de ejecución*
+**** Tipos de Sentencia
+     + Sentencia Compuesta
+     + Sentencia Expresión
+     + Sentencia Selección
+     + Sentencia Iteración
+     + Sentencia Salto
+**** Sentencia Compuesta
+     + Son aquellas que estan delimitadas con las llaves { }
+     + Forman bloques de código (Ej. un if, else, switch, for, while, etc..)
+**** Sentencia Expresión
+     + Es toda aquella que finaliza en punto y coma ;
+     + Si una linea solo tiene el ; se refiere a la sentencia nula
+* BNF
+** Conceptos
+   + Permite definir con precisión la sintaxis de un (LP) lenguaje de programación, sin ambiguedades.
+   + La *BNF* puede llegar a escribir situaciones *sintacticamente incorrectas*
+   + Se considera un *metalenguaje* para describir los (LP)
+*** Origenes
+    + BNF significa *Forma normal de Backus" (Backus Normal Form)
+    + Se basa en *ALGOL* (ALGOrithmic Language) que luego se llamó BNF
+    + Tiene una notación similar a las *GIC* (gramáticas independientes de contexto)
+*** Construcción de BNFs
+   Las BNFs estan formadas por 4 conjuntos
+   1. No terminales (Ej. <Identificador> <Operador> ..)
+   2. Terminales (Ej. 1, 2, a, b, ..)
+   3. Metasímbolos (Ej. <>, |, ::=)
+   4. Producciones (¿¿¿ Conjunto de terminales, no terminales, metasimbolos ??? )
+** BNF Extendida (EBNF ó PASCAL) 
+*** Concepto
+    - Está basada en la BNF Original
+    - Agrega el metasímbolo de las llaves { } para describir repetición de lo que encierra (cero o más veces)
+    - El metasimbolo { } representa al operador *clausura de kleene*
+*** Construcción de reglas
+    + Las reglas se construyen con 3 conjuntos *disjuntos* (metavariables, terminales, metasimbolos)
+**** Metavariables (ó no terminales)
+     + Se encierran entre llaves angulares
+     Ej. <Numero> ó <Letra>
+**** Terminales
+     + Son caracteres que pertenecen al alfabeto ó son *palabras reservadas*
+**** Metasimbolos
+     + Son caracteres o conjunto de caracteres
+     + Permiten representar las reglas
+     + Estos tres son los únicos que pertenecian al BNF original (ALGOL)
+       * <> es el metasimbolo para encerrar palabras de un *no terminal*
+       * | es el metasimbolo para representar al operador lógico *OR*
+       * ::= es el metasmbilo que significa "es" ó "corresponde a"
+**** Ejemplos
+     #+NAME: Ejemplo 1
+     #+BEGIN_EXAMPLE
+     <simbolo basico> ::= <letra>
+     #+END_EXAMPLE
+
+     #+NAME: Comentarios del ejemplo 1
+     #+BEGIN_COMMENT
+     1. Se lee como "un simbolo básico es una letra"
+     #+END_COMMENT
+*** El Metasimbolo de Producción ::=
+   + El símbolo de la producción es ::=
+   + Se lo denota también como "operador ES"
+   + En las gramáticas formales se representa con ->
+** Restricciones (en Lenguaje Natural)
+   + Si hay descripciones de BNF que no son exactas, se agregan restricciones en (LN) *Lenguaje Natural*
+   + Agrega características que la (GIC) o la BNF no pueden representar de forma clara
+
+   #+NAME: Aclaración de una restricción por ANSI C
+   #+BEGIN_COMMENT
+   *ANSI C* agrega una restricción en los operadores de asignación
+   "un operador de asignación debe tener un valorL modificable como su operando izquierdo"
+   
+   Por ejemplo lo siguiente: 1 = 2 
+   se puede derivar, por tanto debería ser sintáticamente válido...
+   Pero la restricción mencionada impide que sea totalmente válido.
+   #+END_COMMENT
+
+** Ejemplos
+   #+NAME: Ejemplo 1 - Sentencias con condiciones boolenas
+   #+BEGIN_EXAMPLE
+   <sentencia if>    ::= if    <expresion> then <sentencia> | if <expresion> then <sentencia> else <sentencia>
+   <sentencia while> ::= while <expresion> do <sentencia>
+   #+END_EXAMPLE
+* BNF y ANSI C
+** Conceptos ANSI/MROC
+   - *ANSI* significa American National Standars Institute, es quien desarrolló la *estandarización* del lenguaje C
+   - Para referencias se utiliza el *MROC* (Manual de referencia oficial de ANSI C)
+** Tokens ó Categorías Léxicas (de ANSI C)
+   + Representa un caracter o conjunto de caracteres
+   + Representan *LRs Finitos* y *LRs NO Finitos* (infinitos)
+*** Representación de los Tokens
+    + Identificador
+    + Palabra Reservada
+    + Constante
+    + Literal Cadena
+    + Operador
+    + Carácter de Puntuación
+*** Los Identificadores
+**** Conceptos
+      + Un *Identificador* es un conjunto de *caracteres* que nombran o entidades de un (LP),
+      + Semánticamente* representa a un *objeto*
+      + Los *identificadores* constituyen un (LR) Infinito, y representan
+        + Variables
+        + Funciones
+        + Procedimientos
+        + Constantes
+        + Tipos
+**** Ejemplos
+    Un ejemplo de una (GIC) para representar a los *identificadores*, donde el *axioma* es siempre por el que
+    se empieza, es decir la primera producción.
+
+    #+NAME: Ejemplo 1 - Una GIC recursiva a izquierda
+    #+BEGIN_EXAMPLE
+    Identificador -> Letra | Identificador Letra | Identificador GuionBajo Letra
+    GuionBajo -> _
+    Letra -> A | B | C | .. | X | Y | Z
+
+    El resultado de derivar sería:
+    Identificador -> Identificador Letra -> Identificador Identificador Letra -> Identificador Letra Letra -> Letra Letra Letra
+    -> Letra Letra A -> Letra B A -> A B A
+    #+END_EXAMPLE
+
+    #+NAME: Tabla de derivación del Ejemplo 1
+    |-----------------------------------+---------------------|
+    | Cadena derivada                   | Produccion aplicada |
+    |-----------------------------------+---------------------|
+    | Identificador                     | Axioma              |
+    | Identificador Letra               |                     |
+    | Identificador Identificador Letra |                     |
+    | Identificador Letra Letra         |                     |
+    | Letra Letra Letra                 |                     |
+    | Letra Letra A                     |                     |
+    | Letra B A                         |                     |
+    | A B A                             |                     |
+    |-----------------------------------+---------------------|
+
+    #+NAME: Ejemplo 2- Una GIC recursiva a derecha
+    #+BEGIN_EXAMPLE
+    Identificador -> Letra | Letra Resto
+    Resto -> Letra Resto | GuionBajo Letra Resto
+    GuionBajo -> _
+    Letra -> A | B | C | .. | X | Y | Z
+   
+    Un posible resultado de deribar sería:
+    Identificador -> Letra Resto -> Letra Letra Resto -> Letra Letra Letra -> Letra Letra A -> Letra B A -> A B A
+    #+END_EXAMPLE
+
+    #+NAME: Conceptos previos de grámaticas, producciones
+    #+BEGIN_COMMENT
+    1) Los *no terminales* están del lado izquierdo, y los *terminales* del lado derecho.
+    2) Cada *producción* debe tener al menos un *no terminal*
+    3) Las *producciones recursivas*
+       1. Son las que tienen un *no terminal* (el identificador en BNF) en ambos lados de la *producción*
+       2. Pueden ser *recursivas por izquierda* ó *recursivas por derecha* según donde se sitúe el *no terminal* 
+       3. Para detener la recursividad debe haber un terminal
+    4) Los *terminales* no pueden estar del lado izquierdo
+    5) Las producciones se componen de
+       1. Terminales
+       2. No Terminales
+       3. Metasímbolos (-> y |)
+    #+END_COMMENT
+
+*** Las Palabras Reservadas
+    + Una *palabra reservada* también estan formadas por un conjunto de caracteres
+    + Constituyen un (LR) Finito
+*** Los Lexemas
+    + Son los elementos que componen a esos LRs
+    + En las (GF) gramáticas formales se denominan *palabras*
+    + El término *lexema* se utiliza en los *compiladores*
+
+    Algunos lexemas podrían ser: int, Mayor, (, ;, main, void, {, return, 0, if, ...
+    Es decir pueden ser palabras reservadas como int, main, void,..
+    También puede ser constantes como el 0, 15, ..
+    Además de operadores como los parentesis (), las llaves {}, 
+
+    #+NAME: Tabla de Ejemplo de Lexemas, y a que categoría léxica pertenecen
+    |--------------------------+--------------------------+----------------------|
+    | Token ó Categoria Léxica | Lexemas                  |                      |
+    |--------------------------+--------------------------+----------------------|
+    | Palabra Reservada        | int, void, return, if    |                      |
+    | Literal Cadena           | "hola que tal"           |                      |
+    | Identificador            | Nombre, Edad, n1, printf | Variables, Funciones |
+    | Caracter de Puntuación   | ( ; { ) }                |                      |
+    | Operador                 | ( = & )                  |                      |
+    | Constante                | 0 12 3 1                 |                      |
+    |--------------------------+--------------------------+----------------------|
+
+*** Las Constantes
+    + Según (MROC) existen las Reales, Enteras, Enumeración y Caracter
+    + Las constantes *reales* y *enteras* representan *LRs infinitos*
+**** Constante Real
+     Se pueden representar en 
+     + En Punto fijo (Ej. 2.14)
+     + En Punto flotante (Ej. 3E18)
+**** Constante Entera
+     Las constantes enteras se dividen en tres tipos:
+     + En Decimales (en base 10)
+     + En Octales (en base 8)
+     + En Hexadecimales (en base 16)
+**** Constante Enumeración
+**** Constante Carácter
+**** Ejemplos
+
+     #+BEGIN_EXAMPLE
+     - Constante Real:
+     2.14 es punto fijo
+     3E18 es punto flotante y repreenta 3x10^18
+
+     - Constante entera:
+     0x4A12 es hexadecimal
+     99LU
+     02L
+     123U 
+     0654 es octal
+     #+END_EXAMPLE
+*** Caracter de Puntuación
+    Algunos de ellos son
+    + ( ) Los parentesis, para delimitar los parámetros de funciones 
+    + { } las llaves, para delimitar los bloques de código
+    + , la coma para delimitar argumentos de funciones
+    + ; el punto y coma, indica fin de una sentencia ó la sentencia nula (?)
+*** Operadores
+    Algunos de ellos son: 
+    + ?: el operador ternario, es el único y representa al condicional if else abreviado
+    + < <= => > operadores relacionales
+    + ++ operador de preincremento
+    + = operador de asignación
+    + += -= operadores de *asignación compuesto* 
+    + && || operadores lógicos
+    + + - * operadores ariméticos
+    + & operador dirección (Ej. referencia a una dirección de memoria de una variable)
+**** Observaciones importantes
+    + Los Operadores unarios son
+      + & (dirección)
+      + * (puntero)
+      + ! (not)
+      + sizeof 
+    + Sólo el operador , (la coma) tiene menor prioridad que el operador = (asignación)
+*** Asociatividad de operadores
+    Algunos ejemplos sacados de la BNF de ANSI C, recordemos que si una *producción* (que representa a un operador por ej.) 
+    es recursiva a izquierda entonces también es asociativa a izquierda, y si es recursiva a derecha será asociativa a derecha. 
+
+    #+NAME: Ejemplo 1 - Operadores asociativos a izquierda
+    #+BEGIN_EXAMPLE
+    expOr: expAnd
+           expOr || expAnd 
+           
+    expAnd: expIgualdad
+            expAnd && expIgualdad
+         
+    expIgualdad: expRelacional
+                 expIgualdad == expRelacional
+
+    expRelacional: expAditiva
+                   expRelacional >= expAditiva
+    #+END_EXAMPLE
+    
+    #+NAME: Ejemplo 2 - Operadores asociativos a derecha
+    #+BEGIN_EXAMPLE
+    expresion: expAsignacion
+    expAsignacion: expCondicional
+                   expUnaria operAsignacion expAsignacion
+                 
+
+    expCondicional: expOr
+                    expOr ? expresion : expCondicional
+                    
+    #+END_EXAMPLE
+*** Tokens que representan LRs Finitos/No Finitos
+    + Los tokens que representan *Lenguajes Regulares Finitos*
+      * Los identificadores
+      * Las palabras reservadas
+      * Los operadores
+      * Los caracteres de puntuación
+    + Los tokens que representan *Lenguajes Regulars NO fininitos* (infinitos)
+      * Las constantes *reales* y *enteras*
+*** Objeto y LValue segun *MROC*
+    Son definiciones integradas por *MROC* (manual de referencia oficial de C)
+**** Objeto
+     + Es un espacio de la memoria compuesta por bytes (una expresión no es un objeto)
+     + Una variable es un objeto
+     + Una expresión *NO es un objeto* (Ej. la expresión 1*2+3 )
+**** Lvalue (ó valorL)
+     + Es una expresión que designa un objeto
+     + Significa que la expresión que está a la izquierda de operador de asignación = debe ser un ValorL "MODIFICABLE"
+     + Ej de valorL: Una *variable* a, un elemento de un vector v[3]
+     + No es valorL una *constante* (Ej. el 12,13,..) , tampoco *una expresión arimética*
+     + *NOTA*: Suele hacer referencia a la expresión que está a la izquierda del operador asignación =
+     
+**** Ejemplos
+     #+NAME: Ejemplo 1 - ValorL
+     #+BEGIN_SRC C
+       // Un ejemplo de ValorL es una variable del tipo entera
+       // porque es modificable
+       int a;
+
+       // PRIMER CASO
+       // - La variable a es un valorL valido para el operador de asignación =
+       // - tiene una dirección en memoria donde se guardará un objeto compuesto por bytes (pendiente a consultar, porque no està en la definición)
+       // - en este caso el objeto es una constante 12 (que es un valor que está compuesto por bytes)
+       a = 2;
+
+       // SEGUNDO CASO
+       // - La variable a es un valorL valido para el operador preincremento ++
+       // porque es una variable modificable,
+       ++a;
+
+       /*****************************************************************/
+
+       // Ejemplo que NO ES ValorL
+       // - porque el 12 es una constante que no se puede modificar
+       // y el operador preincremento ++ necesita un valorL modificable
+       ++12 ;
+
+       // Otro Ejemplo que no es valorL
+       // porque no tiene una dirección en memoria, no hay manera de guardar algo en una constante
+       12 = a;
+
+       // Otro ejemplo que el lado izquierdo no es un valorL
+       // una función no se puede modificar
+       // Obs: Hay una excepción, si usamos el operador & (dirección) en la declaración de la función
+       unaFuncion() = 12;
+     #+END_SRC
+     

@@ -1,0 +1,15 @@
+#+TITLE: Analizador Semántico
+
+* Conceptos
+  - Es una (GSC) Grámatica Sensible de Contexto
+* (TS) Tablas de Símbolos
+  + Interactúa con las 3 fases de Análisis
+    * Analisis Léxico
+    * Análisis Sintáctico
+    * Análisis Semántico
+  + Un *Lenguaje Interprete* tiene una (TS) *Tabla de Simbolos* en tiempo de ejecución. (Ej. Javascript)
+  + Un *Lenguaje Compilado* tiene una (TS) *Tabla de Simbolos* en tiempo de compilación
+* (TAD) Tipo de Dato Abstracto
+  + Una (ED) "Estructura de Datos" representación organizada de un conjunto de datos
+  + Las (ED) implementan los (TAD) "tipos de datos abstractos"
+  + Son listas ordenadas como las pilas, las colas, ...

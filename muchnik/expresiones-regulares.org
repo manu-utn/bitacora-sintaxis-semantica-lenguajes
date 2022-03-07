@@ -1,0 +1,71 @@
+#+TITLE: Expresiones Regulares
+
+* Usos de las MetaER (o ERX)
+** Validaciones
+*** Número de telefono
+*** Fecha y horario
+*** Correo electrónico
+*** Clave segura
+    Que tenga minimo 6 caracteres, 1 letra en mayuscula, 1 letra en minuscula y un número
+* Conceptos
+  + Un Lenguaje Formal es un (LR) Lenguaje Regular si existe una (ER) Expresión Regular que lo represente
+  + A cada (ER) le corresponde un *único* (LR) que se puede describir de distintas maneras
+  + Un (LR) puede ser representado por varias (ERs)
+  + Los (LRs) son *cerrados* bajo los *operadores básicos* que se utilicen (bajo la Unión, Concatenación, las Clausuras, etc..)
+
+  #+NAME: Ejemplo de LRs cerrados 
+  #+BEGIN_EXAMPLE
+  - La union ò la intersección de dos LR es un LR
+  - La clausura de kleene o positiva de un LR es también un LR
+  Lo mismo aplica para el complemento con respecto al Lenguaje Universal
+  #+END_EXAMPLE
+* Expresiones Regulares Equivalentes
+ *Obs*: Dos (ERs) son *equivalentes* si representan al mismo (LR)
+
+ #+BEGIN_EXAMPLE
+ Esta ER (a+b)*b es equivalente a esta otra ER (b+a)*b 
+ por tanto representan al mismo LR.
+ Esto se da porque el operador + unión es conmutativo
+ #+END_EXAMPLE
+* Los Operadores de las ERs
+  El operador (*) (^) y (+) son *operadores unarios*
+** Operadores básicos 
+   Los básicos son la Clausura de Kleene, la Concatenación y la Unión
+   pero aparecen otros que no son básicos, la *Clasura Positiva* (+) y el *operador Potencia* (^)
+  + Clausura de Kleene (*)
+  + Concatenación (el producto)
+  + Unión (+)
+** Precedencia de los Operadores
+   
+   |------------------------+-------------|
+   | Operador               | Precedencia |
+   |------------------------+-------------|
+   | Clausura de Kleene (*) | ALTA        |
+   | Clausura Positiva (+)  | ALTA        |
+   | Operador Potencia (^)  | ALTA        |
+   |------------------------+-------------|
+   | Concatenación (º)      | MEDIA       |
+   |------------------------+-------------|
+   | Unión                  | BAJA        |
+   |------------------------+-------------|
+** Definición Formal de las ERs
+   #+NAME: Reglas básicas para la definición Formal de una ER
+   |--------------------------------+--------------------------------------------|
+   | (ER) Expresión Regular         | (LR) Lenguaje Regular que representa       |
+   |--------------------------------+--------------------------------------------|
+   | vacio                          | al LR Vacío (sin palabras, cardinalidad 0) |
+   | epsilon                        | al LR que solo contiene a la palabra vacía |
+   | todo caracter x de un alfabeto | al LR que contenga solo ese caracter       |
+   | una cadena s                   | al LR que solo contenga a esa cadena       |
+   |--------------------------------+--------------------------------------------|
+
+   #+NAME: Observación de las Reglas Básicas de la definición Formal de una ER
+   #+BEGIN_COMMENT
+   Lo mismo aplica para las operaciones básicas como *, concatenación, unión
+   Si R1 y R2 son ER entonces,
+   R1+R2 representan otra ER
+   R1ºR2 representa otra ER
+   R1* representa otra ER
+   R2* representa otra ER
+   #+END_COMMENT
+   

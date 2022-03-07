@@ -1,0 +1,40 @@
+#+TITLE: Analizador Léxico
+
+* Conceptos
+  + Se lo denomina *Scanner*
+  + Es un *AFD Completo* (sólo si se implementa el analizador de manera manual)
+  + Recibe una secuencia de caracteres (los lexemas)
+  + Detecta *Lexemas* del Código fuente (palabras) de mayor longitud
+  + Analiza a que *Categoría Léxica* (TOKENS) pertenecen los *Lexemas*
+
+  *Observación 1*: Un Lexema NO puede pertenecer a 2 tokens
+  *Observación #2*: Un TOKEN representa un (LR)
+* Cómo es la Implementación?
+  Puede ser de forma *manual* mediante un *AFD* ó automática mediante software (Ej.Lex)
+* Qué NO conoce?
+  + La *Sintáxis*
+  + Ni tampoco la *Semántica*
+* Que hace? Que SI reconoce?
+  + Reporta *errores léxicos*
+  + Con la *Tabla de Símbolos* entiende a que TOKEN pertenece cada *Lexema* (identificador, palabra reservada, ..)
+  + Reconoce 1 o más TOKENS, cada uno representan un (LR)
+  + Cada (EA) "estado de aceptación" es una acción 
+    1. *Reportar* que hace en *cada estado* (Si es una palabra reservada, un identificador, un operador de asignación, ..)
+    2. Luego de cada acción cambia al *estado inicial*
+    3. Continua analizando con el resto de los estados
+
+  #+BEGIN_EXAMPLE
+  El analizador léxico puede reportar si el *Lexema* detectado es un
+  identificador , ó un representa el fin de linea, ó si es un operador de asignación,..
+
+  Ej. Un identificador podria ser una variable
+  Ej. El fin de linea está representado por EOF (end of file) y es por '\0' en C
+  Ej. El operador asignación si es C será el = igual, si es pascal será ::=
+  #+END_EXAMPLE
+* Qué necesita devolver?
+  + *TOKENS* para el el *analizador sintáctico*
+  + *LEXEMAS* para el *analizador semántico*
+* Glosario
+** Caracter Espureo
+   - No necesita de otro caracter
+   - Ej. los parentesis ( ), la coma , el punto y coma ;
